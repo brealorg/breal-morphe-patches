@@ -76,6 +76,8 @@ public class ImgurUndeleteInterceptor extends PatchedditInterceptor {
         }
 
         Response response = chain.proceed(request);
+        // Imgur returns an image with 34641 bytes and HTTP 200 when country wide blocking is in effect.
+
         if (response.code() != HttpURLConnection.HTTP_NOT_FOUND) {
             return response;
         } else {

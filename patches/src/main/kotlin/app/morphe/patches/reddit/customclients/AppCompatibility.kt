@@ -25,14 +25,6 @@ object AppCompatibility {
         )
     )
 
-    internal val Continuum = arrayOf(
-        Compatibility(
-            name = "Continuum",
-            packageName = "org.cygnusx1.continuum",
-            targets = listOf(AppTarget(version = null))
-        )
-    )
-
     internal val Infinity = arrayOf(
         Compatibility(
             name = "Infinity for Reddit+",
@@ -92,14 +84,6 @@ object AppCompatibility {
             name = "Relay for Reddit Pro",
             packageName = "reddit.news",
             targets = listOf(AppTarget(version = "10.2.40"))
-        )
-    )
-
-    internal val Slide = arrayOf(
-        Compatibility(
-            name = "Slide (fork)",
-            packageName = "me.edgan.redditslide",
-            targets = listOf(AppTarget(version = null))
         )
     )
 
