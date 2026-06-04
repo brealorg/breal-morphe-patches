@@ -9,20 +9,18 @@ package app.morphe.extension.boostforreddit.http.reddit;
 
 import androidx.annotation.NonNull;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.base.Strings;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -57,6 +55,7 @@ public class RedditFixAudioInDownloadsInterceptor implements Interceptor {
         if (!enabled) {
             return chain.proceed(request);
         }
+
         Matcher matcher = VIDEO_REGEX.matcher(url);
         if (!matcher.find()) {
             return chain.proceed(request);
@@ -64,18 +63,36 @@ public class RedditFixAudioInDownloadsInterceptor implements Interceptor {
 
         try {
             String baseUrl = matcher.group(1);
-            JsonNode submissionData;
-            try (Response originalSubmission = HttpUtils.get(baseUrl)) {
-                try (Response submissionApiResponse = HttpUtils.get(originalSubmission.request().url() + "/.json")) {
-                    submissionData = HttpUtils.getJsonFromString(submissionApiResponse.body().string());
+
+            /*
+             * Old implementation tried:
+             *
+             *   GET https://v.redd.it/<id>
+             *   follow redirect
+             *   GET <redirected reddit post>/.json
+             *   parse media.reddit_video.dash_url
+             *
+             * That is brittle. If Reddit returns HTML/XML/error/redirect instead of JSON,
+             * audio retrieval fails with:
+             *
+             *   JsonParseException: Unexpected character '<'
+             *
+             * For v.redd.it we already know the media base URL, so go directly to the
+             * DASH/MPD manifest.
+             */
+            String dashUrl = baseUrl + "/DASHPlaylist.mpd";
+
+            String audioFilename;
+            try (Response dashPlaylistResponse = HttpUtils.get(dashUrl)) {
+                if (dashPlaylistResponse.body() == null) {
+                    throw new RuntimeException("DASH playlist response body was null");
+                }
+
+                try (InputStream dashPlaylistStream = dashPlaylistResponse.body().byteStream()) {
+                    audioFilename = parseDashPlaylist(dashPlaylistStream);
                 }
             }
 
-            String dashUrl = submissionData.get(0).get("data").get("children").get(0).get("data").get("media").get("reddit_video").get("dash_url").asText();
-
-            Response dashPlaylistResponse = HttpUtils.get(dashUrl);
-            InputStream dashPlaylistStream = dashPlaylistResponse.body().byteStream();
-            String audioFilename = parseDashPlaylist(dashPlaylistStream);
 
             return HttpUtils.get(baseUrl + "/" + audioFilename);
         } catch (Exception e) {
@@ -86,7 +103,7 @@ public class RedditFixAudioInDownloadsInterceptor implements Interceptor {
 
     private String parseDashPlaylist(InputStream xmlDocumentStream) throws IOException, SAXException, ParserConfigurationException {
         /*
-        Looking for something like this in the DASH playlist
+        Looking for something like this in the DASH playlist:
 
         <Representation audioSamplingRate="48000" bandwidth="131398" codecs="mp4a.40.2" id="7" mimeType="audio/mp4">
           <AudioChannelConfiguration schemeIdUri="urn:mpeg:dash:23003:3:audio_channel_configuration:2011" value="2" />
@@ -108,16 +125,58 @@ public class RedditFixAudioInDownloadsInterceptor implements Interceptor {
 
         for (int i = 0; i < representations.getLength(); i++) {
             Element representation = (Element) representations.item(i);
+
+            if (!looksLikeAudioRepresentation(representation)) {
+                continue;
+            }
+
             String bandwidthStr = representation.getAttribute("bandwidth");
-            if (bandwidthStr == null || bandwidthStr.isBlank()) continue;
+            if (bandwidthStr == null || bandwidthStr.isBlank()) {
+                continue;
+            }
+
+            NodeList baseUrls = representation.getElementsByTagName("BaseURL");
+            if (baseUrls == null || baseUrls.getLength() == 0 || baseUrls.item(0) == null) {
+                continue;
+            }
 
             int bandwidth = Integer.parseInt(bandwidthStr);
             if (bandwidth > maxBandwidth) {
-                baseUrl = representation.getElementsByTagName("BaseURL").item(0).getTextContent();
+                maxBandwidth = bandwidth;
+                baseUrl = baseUrls.item(0).getTextContent();
             }
         }
 
-        if (baseUrl != null) return baseUrl;
+        if (baseUrl != null && !baseUrl.isBlank()) {
+            return baseUrl;
+        }
+
         throw new RuntimeException("Unable to find matching audio track");
+    }
+
+    private boolean looksLikeAudioRepresentation(Element representation) {
+        if (attributeContains(representation, "mimeType", "audio")) return true;
+        if (attributeContains(representation, "contentType", "audio")) return true;
+        if (attributeStartsWith(representation, "codecs", "mp4a")) return true;
+
+        Node parent = representation.getParentNode();
+        if (parent instanceof Element) {
+            Element parentElement = (Element) parent;
+            if (attributeContains(parentElement, "mimeType", "audio")) return true;
+            if (attributeContains(parentElement, "contentType", "audio")) return true;
+            if (attributeStartsWith(parentElement, "codecs", "mp4a")) return true;
+        }
+
+        return false;
+    }
+
+    private boolean attributeContains(Element element, String attributeName, String needle) {
+        String value = element.getAttribute(attributeName);
+        return value != null && value.toLowerCase(Locale.ROOT).contains(needle);
+    }
+
+    private boolean attributeStartsWith(Element element, String attributeName, String prefix) {
+        String value = element.getAttribute(attributeName);
+        return value != null && value.toLowerCase(Locale.ROOT).startsWith(prefix);
     }
 }
