@@ -21,7 +21,6 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -106,8 +105,6 @@ public class RedditFixAudioInDownloadsInterceptor implements Interceptor {
         */
 
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        dbFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
         Document doc = dBuilder.parse(xmlDocumentStream);
         doc.getDocumentElement().normalize();
