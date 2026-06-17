@@ -1,6 +1,6 @@
 {
   "created_at": "2026-06-13T00:00:00",
   "description": "Unofficial beta hotfix for Boost. Includes v.redd.it video sharing/download audio fix and faster Giphy loading via direct media.giphy.com MP4 fallback.",
-  "download_url": "https://github.com/brealorg/patcheddit/releases/download/boost-hotfix-2/patches-1.4.0.mpp",
+  "download_url": "https://github.com/brealorg/breal-boost-hotfixes/releases/download/boost-hotfix-2/patches-1.4.0.mpp",
   "version": "1.4.0-boost-hotfix.2"
 }

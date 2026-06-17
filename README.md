@@ -31,11 +31,11 @@ Fixes very slow Giphy loading in Boost by bypassing Boost's old Giphy API resolv
 
 Recommended source:
 
-    github.com/brealorg/patcheddit
+    github.com/brealorg/breal-boost-hotfixes
 
 Direct JSON source:
 
-    https://raw.githubusercontent.com/brealorg/patcheddit/main/patches-bundle.json
+    https://raw.githubusercontent.com/brealorg/breal-boost-hotfixes/main/patches-bundle.json
 
 Fallback method:
 
