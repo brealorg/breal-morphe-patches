@@ -33,26 +33,25 @@ val inlineGiphyCommentPreviewPatch = bytecodePatch(
 
     execute {
         commentViewHolderBindFingerprint.method.apply {
-            val refreshIndex = indexOfFirstInstruction {
-                val methodReference = getReference<MethodReference>()
-                opcode == Opcode.INVOKE_VIRTUAL &&
-                    methodReference?.definingClass == COMMENT_VIEW_HOLDER_DESCRIPTOR &&
-                    methodReference.name == "M"
-            }
-
             addInstructions(
-                refreshIndex + 1,
-                """
-                    invoke-static {p0, p1, p5}, $INLINE_GIPHY_EXTENSION_DESCRIPTOR->bind(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
-                    """
-            )
-
-            addInstructions(
-                refreshIndex,
+                0,
                 """
                     invoke-static {p1}, $INLINE_GIPHY_EXTENSION_DESCRIPTOR->cleanCommentHtml(Ljava/lang/Object;)V
                     """
             )
+
+            val returnIndices = implementation!!.instructions.withIndex()
+                .filter { (_, instruction) -> instruction.opcode == Opcode.RETURN_VOID }
+                .map { (index, _) -> index }
+
+            returnIndices.asReversed().forEach { returnIndex ->
+                addInstructions(
+                    returnIndex,
+                    """
+                        invoke-static {p0, p1, p5}, $INLINE_GIPHY_EXTENSION_DESCRIPTOR->bind(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+                        """
+                )
+            }
         }
 
         commentViewHolderCollapseFingerprint.method.apply {
