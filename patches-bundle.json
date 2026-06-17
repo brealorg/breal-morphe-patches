@@ -1,6 +1,6 @@
 {
   "created_at": "2026-06-17T00:00:00",
-  "description": "Unofficial beta hotfix source for Boost for Reddit. Derived from Patcheddit. Includes v.redd.it video sharing/download audio fix and faster Giphy loading via direct media.giphy.com MP4 fallback. Experimental inline Giphy previews are included but disabled by default.",
+  "description": "Unofficial beta hotfix source for Boost for Reddit. Derived from Patcheddit. Includes v.redd.it video sharing/download audio fix and faster Giphy loading via direct media.giphy.com MP4 fallback. Experimental inline Giphy previews are included but disabled by default due to runtime instability.",
   "download_url": "https://github.com/brealorg/breal-boost-hotfixes/releases/download/boost-hotfix-9/patches-1.4.0.mpp",
   "signature_download_url": "",
   "version": "1.4.0-boost-hotfix.9"
