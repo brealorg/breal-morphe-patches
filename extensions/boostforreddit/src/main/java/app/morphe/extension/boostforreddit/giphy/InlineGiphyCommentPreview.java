@@ -99,7 +99,7 @@ public final class InlineGiphyCommentPreview {
             container.addView(imageView, imageParams);
 
             TextView label = new TextView(context);
-            label.setText("Source: " + sourceUrl);
+            label.setText("Open Giphy");
             label.setTextSize(11f);
             label.setAlpha(0.65f);
             label.setSingleLine(true);
