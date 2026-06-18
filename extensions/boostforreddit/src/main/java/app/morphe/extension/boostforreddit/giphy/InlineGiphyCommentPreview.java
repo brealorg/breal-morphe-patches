@@ -14,34 +14,47 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 public final class InlineGiphyCommentPreview {
     private static final String PREVIEW_TAG = "morphe_boost_inline_giphy_preview";
+    private static final Map<Object, PreviewSource> PREVIEW_SOURCES = new WeakHashMap<>();
+
+    private static final Pattern DIRECT_PREVIEW_URL_PATTERN =
+            Pattern.compile("https?://(?:external-preview|preview)\\.redd\\.it/[^\\s\"'<>]+", Pattern.CASE_INSENSITIVE);
 
     private static final Pattern[] GIPHY_PATTERNS = new Pattern[] {
-            Pattern.compile("!\\[gif\\]\\(giphy\\|([A-Za-z0-9]+)\\)"),
-            Pattern.compile("giphy\\|([A-Za-z0-9]+)"),
-            Pattern.compile("media\\.giphy\\.com/media/([A-Za-z0-9]+)/"),
-            Pattern.compile("giphy\\.com/gifs/(?:[^\\s\"'<>/]+-)?([A-Za-z0-9]+)(?:[\\s\"'<>/?#]|$)")
+            Pattern.compile("!\\[gif\\]\\(giphy\\|([A-Za-z0-9_-]+)\\)", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("giphy\\|([A-Za-z0-9_-]+)", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("media\\.giphy\\.com/media/([A-Za-z0-9_-]+)/", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("giphy\\.com/gifs/(?:[^\\s\"'<>/]+-)?([A-Za-z0-9_-]+)(?:[\\s\"'<>/?#]|$)", Pattern.CASE_INSENSITIVE)
     };
 
     private InlineGiphyCommentPreview() {
+    }
+
+    private static final class PreviewSource {
+        final String gifUrl;
+        final String sourceUrl;
+
+        PreviewSource(String gifUrl, String sourceUrl) {
+            this.gifUrl = gifUrl;
+            this.sourceUrl = sourceUrl;
+        }
     }
 
     public static void cleanCommentHtml(Object commentModel) {
         try {
             if (commentModel == null) return;
 
-            String raw = firstNonEmpty(
-                    callStringMethod(commentModel, "S0"),
-                    callStringMethod(commentModel, "T0"),
-                    findFirstStringValue(commentModel)
-            );
+            PreviewSource previewSource = findPreviewSource(commentModel);
+            if (previewSource == null) return;
 
-            if (extractGiphyId(raw) == null) return;
+            PREVIEW_SOURCES.put(commentModel, previewSource);
 
             replaceGiphyStringFields(commentModel);
-        } catch (Throwable ignored) {
+        } catch (Throwable throwable) {
         }
     }
 
@@ -49,24 +62,25 @@ public final class InlineGiphyCommentPreview {
         try {
             if (holder == null || commentModel == null) return;
 
-            String source = firstNonEmpty(
-                    callStringMethod(commentModel, "S0"),
-                    callStringMethod(commentModel, "T0"),
-                    findFirstStringValue(commentModel)
-            );
-
-            final String giphyId = extractGiphyId(source);
+            PreviewSource previewSource = findPreviewSource(commentModel);
+            if (previewSource == null) {
+                previewSource = PREVIEW_SOURCES.get(commentModel);
+            }
             View itemView = getItemView(holder);
 
-            if (!(itemView instanceof ViewGroup)) return;
+            if (!(itemView instanceof ViewGroup)) {
+                return;
+            }
 
             removeExistingPreview((ViewGroup) itemView);
 
-            if (giphyId == null || giphyId.length() == 0) return;
+            if (previewSource == null || previewSource.gifUrl == null || previewSource.gifUrl.length() == 0) {
+                return;
+            }
 
             final Context context = itemView.getContext();
-            final String gifUrl = "https://media.giphy.com/media/" + giphyId + "/giphy.gif";
-            final String sourceUrl = "https://giphy.com/gifs/" + giphyId;
+            final String gifUrl = previewSource.gifUrl;
+            final String sourceUrl = previewSource.sourceUrl;
 
             LinearLayout container = new LinearLayout(context);
             container.setTag(PREVIEW_TAG);
@@ -95,17 +109,28 @@ public final class InlineGiphyCommentPreview {
                     ViewGroup.LayoutParams.WRAP_CONTENT
             ));
 
-            container.setOnClickListener(new View.OnClickListener() {
+            View.OnClickListener previewClickListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     try {
                         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(sourceUrl));
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         view.getContext().startActivity(intent);
-                    } catch (Throwable ignored) {
+                    } catch (Throwable throwable) {
                     }
                 }
-            });
+            };
+
+            container.setClickable(true);
+            container.setFocusable(true);
+            imageView.setClickable(true);
+            imageView.setFocusable(true);
+            label.setClickable(true);
+            label.setFocusable(true);
+
+            container.setOnClickListener(previewClickListener);
+            imageView.setOnClickListener(previewClickListener);
+            label.setOnClickListener(previewClickListener);
 
             insertBelowCommentText(holder, (ViewGroup) itemView, container);
             loadWithGlide(context, glideRequestManager, gifUrl, imageView);
@@ -235,6 +260,14 @@ public final class InlineGiphyCommentPreview {
 
     private static Object invokeLoad(Object requestManager, String url) {
         try {
+            try {
+                Method method = requestManager.getClass().getMethod("t", String.class);
+                method.setAccessible(true);
+                Object result = method.invoke(requestManager, url);
+                return result;
+            } catch (Throwable ignored) {
+            }
+
             Method[] methods = requestManager.getClass().getMethods();
             for (Method method : methods) {
                 if (!"load".equals(method.getName())) continue;
@@ -242,10 +275,11 @@ public final class InlineGiphyCommentPreview {
 
                 Class<?> parameter = method.getParameterTypes()[0];
                 if (parameter == String.class || parameter == Object.class || CharSequence.class.isAssignableFrom(parameter)) {
-                    return method.invoke(requestManager, url);
+                    Object result = method.invoke(requestManager, url);
+                    return result;
                 }
             }
-        } catch (Throwable ignored) {
+        } catch (Throwable throwable) {
         }
 
         return null;
@@ -253,6 +287,14 @@ public final class InlineGiphyCommentPreview {
 
     private static void invokeInto(Object requestBuilder, ImageView imageView) {
         try {
+            try {
+                Method method = requestBuilder.getClass().getMethod("C0", ImageView.class);
+                method.setAccessible(true);
+                method.invoke(requestBuilder, imageView);
+                return;
+            } catch (Throwable ignored) {
+            }
+
             Method[] methods = requestBuilder.getClass().getMethods();
             for (Method method : methods) {
                 if (!"into".equals(method.getName())) continue;
@@ -264,8 +306,65 @@ public final class InlineGiphyCommentPreview {
                     return;
                 }
             }
-        } catch (Throwable ignored) {
+
+        } catch (Throwable throwable) {
         }
+    }
+
+    private static PreviewSource findPreviewSource(Object commentModel) {
+        PreviewSource source = extractPreviewSource(callStringMethod(commentModel, "S0"));
+        if (source != null) return source;
+
+        source = extractPreviewSource(callStringMethod(commentModel, "T0"));
+        if (source != null) return source;
+
+        return findFirstPreviewSourceInStringFields(commentModel);
+    }
+
+    private static PreviewSource findFirstPreviewSourceInStringFields(Object target) {
+        Class<?> cls = target.getClass();
+
+        while (cls != null) {
+            Field[] fields = cls.getDeclaredFields();
+
+            for (Field field : fields) {
+                try {
+                    if (field.getType() != String.class) continue;
+                    field.setAccessible(true);
+
+                    Object value = field.get(target);
+                    if (!(value instanceof String)) continue;
+
+                    PreviewSource source = extractPreviewSource((String) value);
+                    if (source != null) return source;
+                } catch (Throwable ignored) {
+                }
+            }
+
+            cls = cls.getSuperclass();
+        }
+
+        return null;
+    }
+
+    private static PreviewSource extractPreviewSource(String value) {
+        if (value == null) return null;
+
+        String normalized = normalizeText(value);
+
+        Matcher direct = DIRECT_PREVIEW_URL_PATTERN.matcher(normalized);
+        if (direct.find()) {
+            String url = cleanUrlTail(direct.group(0));
+            return new PreviewSource(url, url);
+        }
+
+        String giphyId = extractGiphyId(normalized);
+        if (giphyId == null || giphyId.length() == 0) return null;
+
+        return new PreviewSource(
+                "https://media.giphy.com/media/" + giphyId + "/giphy.gif",
+                "https://giphy.com/gifs/" + giphyId
+        );
     }
 
     private static String extractGiphyId(String value) {
@@ -299,7 +398,7 @@ public final class InlineGiphyCommentPreview {
                     if (!(value instanceof String)) continue;
 
                     String oldValue = (String) value;
-                    if (extractGiphyId(oldValue) == null) continue;
+                    if (extractPreviewSource(oldValue) == null) continue;
 
                     String newValue = removeGiphyText(oldValue);
                     field.set(target, newValue);
@@ -315,35 +414,32 @@ public final class InlineGiphyCommentPreview {
         if (value == null) return null;
 
         return value
-                .replaceAll("!\\[gif\\]\\(giphy\\|[A-Za-z0-9]+\\)", "")
-                .replaceAll("https?://(?:www\\.)?giphy\\.com/gifs/\\S+", "")
-                .replaceAll("https?://media\\.giphy\\.com/media/[A-Za-z0-9]+/giphy\\.(?:gif|mp4)", "")
+                .replaceAll("(?i)<img[^>]+(?:giphy|external-preview\\.redd\\.it|preview\\.redd\\.it)[^>]*>", "")
+                .replaceAll("(?i)!\\[gif\\]\\(giphy\\|[A-Za-z0-9_-]+\\)", "")
+                .replaceAll("(?i)!\\[[^\\]]*\\]\\(https?://(?:external-preview|preview)\\.redd\\.it/[^\\s)]+\\)", "")
+                .replaceAll("(?i)https?://(?:www\\.)?giphy\\.com/gifs/\\S+", "")
+                .replaceAll("(?i)https?://media\\.giphy\\.com/media/[A-Za-z0-9_-]+/giphy\\.(?:gif|mp4)", "")
+                .replaceAll("(?i)https?://(?:external-preview|preview)\\.redd\\.it/\\S+", "")
                 .trim();
     }
 
-    private static String findFirstStringValue(Object target) {
-        Class<?> cls = target.getClass();
+    private static String normalizeText(String value) {
+        if (value == null) return null;
 
-        while (cls != null) {
-            Field[] fields = cls.getDeclaredFields();
+        return value
+                .replace("&amp;", "&")
+                .replace("\\u0026", "&")
+                .replace("\\/", "/");
+    }
 
-            for (Field field : fields) {
-                try {
-                    if (field.getType() != String.class) continue;
-                    field.setAccessible(true);
+    private static String cleanUrlTail(String value) {
+        if (value == null) return null;
 
-                    Object value = field.get(target);
-                    if (value instanceof String && ((String) value).length() > 0) {
-                        return (String) value;
-                    }
-                } catch (Throwable ignored) {
-                }
-            }
-
-            cls = cls.getSuperclass();
+        while (value.endsWith(")") || value.endsWith("]") || value.endsWith(".") || value.endsWith(",")) {
+            value = value.substring(0, value.length() - 1);
         }
 
-        return null;
+        return value;
     }
 
     private static String callStringMethod(Object target, String name) {
@@ -382,16 +478,6 @@ public final class InlineGiphyCommentPreview {
             } catch (Throwable ignored) {
                 cls = cls.getSuperclass();
             }
-        }
-
-        return null;
-    }
-
-    private static String firstNonEmpty(String... values) {
-        if (values == null) return null;
-
-        for (String value : values) {
-            if (value != null && value.length() > 0) return value;
         }
 
         return null;

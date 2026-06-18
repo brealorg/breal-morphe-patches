@@ -12,7 +12,6 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 import app.morphe.patches.reddit.customclients.boostforreddit.misc.extension.sharedExtensionPatch
 import app.morphe.util.getReference
-import app.morphe.util.indexOfFirstInstruction
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
@@ -33,24 +32,11 @@ val inlineGiphyCommentPreviewPatch = bytecodePatch(
 
     execute {
         commentViewHolderBindFingerprint.method.apply {
-            val refreshIndex = indexOfFirstInstruction {
-                val methodReference = getReference<MethodReference>()
-                opcode == Opcode.INVOKE_VIRTUAL &&
-                    methodReference?.definingClass == COMMENT_VIEW_HOLDER_DESCRIPTOR &&
-                    methodReference.name == "M"
-            }
-
             addInstructions(
-                refreshIndex + 1,
-                """
-                    invoke-static {p0, p1, p5}, $INLINE_GIPHY_EXTENSION_DESCRIPTOR->bind(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
-                    """
-            )
-
-            addInstructions(
-                refreshIndex,
+                0,
                 """
                     invoke-static {p1}, $INLINE_GIPHY_EXTENSION_DESCRIPTOR->cleanCommentHtml(Ljava/lang/Object;)V
+                    invoke-static {p0, p1, p5}, $INLINE_GIPHY_EXTENSION_DESCRIPTOR->bind(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
                     """
             )
         }
