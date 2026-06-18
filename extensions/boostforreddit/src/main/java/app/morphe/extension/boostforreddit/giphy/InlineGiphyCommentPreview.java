@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.lang.reflect.Field;
@@ -132,7 +133,7 @@ public final class InlineGiphyCommentPreview {
             imageView.setOnClickListener(previewClickListener);
             label.setOnClickListener(previewClickListener);
 
-            insertBelowCommentText(holder, (ViewGroup) itemView, container);
+            if (!insertBelowCommentText(holder, (ViewGroup) itemView, container)) return;
             loadWithGlide(context, glideRequestManager, gifUrl, imageView);
             syncWithCommentState(holder);
         } catch (Throwable ignored) {
@@ -148,29 +149,105 @@ public final class InlineGiphyCommentPreview {
             if (preview == null) return;
 
             View commentText = findCommentTextView(holder);
-            if (commentText == null) {
-                preview.setVisibility(View.VISIBLE);
-                return;
-            }
+            boolean showPreview = commentText == null || commentText.getVisibility() == View.VISIBLE;
 
-            preview.setVisibility(commentText.getVisibility() == View.VISIBLE ? View.VISIBLE : View.GONE);
+            preview.setVisibility(showPreview ? View.VISIBLE : View.GONE);
+            updateRelativeLayoutAnchors(commentText, preview, showPreview);
         } catch (Throwable ignored) {
         }
     }
 
-    private static void insertBelowCommentText(Object holder, ViewGroup itemView, View preview) {
+    private static boolean insertBelowCommentText(Object holder, ViewGroup itemView, View preview) {
         View commentText = findCommentTextView(holder);
 
-        if (commentText != null && commentText.getParent() instanceof ViewGroup) {
+        if (!isActualCommentTextView(commentText)) {
+            return false;
+        }
+
+        if (commentText.getParent() instanceof ViewGroup) {
             ViewGroup parent = (ViewGroup) commentText.getParent();
             int index = parent.indexOfChild(commentText);
             if (index >= 0) {
-                parent.addView(preview, Math.min(index + 1, parent.getChildCount()));
-                return;
+                if (parent instanceof RelativeLayout) {
+                    insertInRelativeLayoutBelowComment((RelativeLayout) parent, commentText, preview);
+                } else {
+                    parent.addView(preview, Math.min(index + 1, parent.getChildCount()));
+                }
+                return true;
             }
         }
 
-        itemView.addView(preview);
+        return false;
+    }
+
+    private static boolean isActualCommentTextView(View view) {
+        if (view == null) return false;
+        String className = view.getClass().getName();
+        return "com.rubenmayayo.reddit.ui.customviews.TableTextView".equals(className)
+                || "com.rubenmayayo.reddit.ui.customviews.LinkTextView".equals(className);
+    }
+
+    private static void insertInRelativeLayoutBelowComment(RelativeLayout parent, View commentText, View preview) {
+        try {
+            if (preview.getId() == View.NO_ID) {
+                preview.setId(View.generateViewId());
+            }
+
+            RelativeLayout.LayoutParams previewParams = new RelativeLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+
+            if (commentText.getId() != View.NO_ID) {
+                previewParams.addRule(RelativeLayout.BELOW, commentText.getId());
+            }
+
+            parent.addView(preview, previewParams);
+
+            View expandableLayout = findFirstChildByClassName(parent, "net.cachapa.expandablelayout.ExpandableLayout");
+            if (expandableLayout != null && expandableLayout.getLayoutParams() instanceof RelativeLayout.LayoutParams) {
+                RelativeLayout.LayoutParams expandableParams =
+                        (RelativeLayout.LayoutParams) expandableLayout.getLayoutParams();
+                expandableParams.addRule(RelativeLayout.BELOW, preview.getId());
+                expandableLayout.setLayoutParams(expandableParams);
+            }
+        } catch (Throwable throwable) {
+            parent.addView(preview);
+        }
+    }
+
+    private static void updateRelativeLayoutAnchors(View commentText, View preview, boolean showPreview) {
+        try {
+            if (!(preview.getParent() instanceof RelativeLayout)) return;
+            RelativeLayout parent = (RelativeLayout) preview.getParent();
+
+            View expandableLayout = findFirstChildByClassName(parent, "net.cachapa.expandablelayout.ExpandableLayout");
+            if (expandableLayout == null) return;
+            if (!(expandableLayout.getLayoutParams() instanceof RelativeLayout.LayoutParams)) return;
+
+            RelativeLayout.LayoutParams expandableParams =
+                    (RelativeLayout.LayoutParams) expandableLayout.getLayoutParams();
+
+            if (showPreview && preview.getId() != View.NO_ID) {
+                expandableParams.addRule(RelativeLayout.BELOW, preview.getId());
+            } else if (commentText != null && commentText.getId() != View.NO_ID) {
+                expandableParams.addRule(RelativeLayout.BELOW, commentText.getId());
+            }
+
+            expandableLayout.setLayoutParams(expandableParams);
+            parent.requestLayout();
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static View findFirstChildByClassName(ViewGroup parent, String className) {
+        for (int i = 0; i < parent.getChildCount(); i++) {
+            View child = parent.getChildAt(i);
+            if (child != null && className.equals(child.getClass().getName())) {
+                return child;
+            }
+        }
+        return null;
     }
 
     private static View findCommentTextView(Object holder) {
