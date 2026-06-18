@@ -1,5 +1,5 @@
 {
-  "version": "1.4.0",
+  "version": "v1.4.0",
   "patches": [
     {
       "name": "Add archive links to context menu",
@@ -241,6 +241,18 @@
       "options": []
     },
     {
+      "name": "Fix download completed notification visibility",
+      "description": "Moves completed download notifications to a separate default-importance channel so download completion is visible while progress notifications remain low-priority.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.rubenmayayo.reddit": [
+          "1.12.12"
+        ]
+      },
+      "options": []
+    },
+    {
       "name": "Fix missing audio in video downloads",
       "description": "Fixes audio missing in videos downloaded from v.redd.it.",
       "use": true,
@@ -266,6 +278,18 @@
         ],
         "com.laurencedawson.reddit_sync.pro": null,
         "com.laurencedawson.reddit_sync.dev": null
+      },
+      "options": []
+    },
+    {
+      "name": "Fix slow Giphy loading",
+      "description": "Bypasses Boost's slow Giphy API resolver and uses Boost's direct media.giphy.com MP4 fallback for Giphy posts.",
+      "use": true,
+      "dependencies": [],
+      "compatiblePackages": {
+        "com.rubenmayayo.reddit": [
+          "1.12.12"
+        ]
       },
       "options": []
     },
@@ -404,6 +428,20 @@
         ],
         "com.laurencedawson.reddit_sync.pro": null,
         "com.laurencedawson.reddit_sync.dev": null
+      },
+      "options": []
+    },
+    {
+      "name": "Show inline Giphy previews in comments",
+      "description": "Adds inline animated Giphy previews below Boost comment text for Reddit Giphy markdown and Giphy links.",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": {
+        "com.rubenmayayo.reddit": [
+          "1.12.12"
+        ]
       },
       "options": []
     },
