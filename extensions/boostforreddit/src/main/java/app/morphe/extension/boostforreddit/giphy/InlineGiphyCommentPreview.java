@@ -1,5 +1,6 @@
 package app.morphe.extension.boostforreddit.giphy;
 
+
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -19,6 +20,10 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 public final class InlineGiphyCommentPreview {
+    private static final WeakHashMap<View, RelativeLayout.LayoutParams> ORIGINAL_RELATIVE_LAYOUT_PARAMS =
+            new WeakHashMap<>();
+
+
     private static final String PREVIEW_TAG = "morphe_boost_inline_giphy_preview";
     private static final Map<Object, PreviewSource> PREVIEW_SOURCES = new WeakHashMap<>();
 
@@ -188,6 +193,35 @@ public final class InlineGiphyCommentPreview {
                 || "com.rubenmayayo.reddit.ui.customviews.LinkTextView".equals(className);
     }
 
+
+    private static void rememberRelativeLayoutParams(View view) {
+        if (view == null) return;
+        if (!(view.getLayoutParams() instanceof RelativeLayout.LayoutParams)) return;
+
+        if (!ORIGINAL_RELATIVE_LAYOUT_PARAMS.containsKey(view)) {
+            ORIGINAL_RELATIVE_LAYOUT_PARAMS.put(
+                    view,
+                    new RelativeLayout.LayoutParams((RelativeLayout.LayoutParams) view.getLayoutParams())
+            );
+        }
+    }
+
+    private static void restoreRelativeLayoutParamsRecursive(View view) {
+        if (view == null) return;
+
+        RelativeLayout.LayoutParams original = ORIGINAL_RELATIVE_LAYOUT_PARAMS.remove(view);
+        if (original != null) {
+            view.setLayoutParams(new RelativeLayout.LayoutParams(original));
+        }
+
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                restoreRelativeLayoutParamsRecursive(group.getChildAt(i));
+            }
+        }
+    }
+
     private static void insertInRelativeLayoutBelowComment(RelativeLayout parent, View commentText, View preview) {
         try {
             if (preview.getId() == View.NO_ID) {
@@ -207,6 +241,7 @@ public final class InlineGiphyCommentPreview {
 
             View expandableLayout = findFirstChildByClassName(parent, "net.cachapa.expandablelayout.ExpandableLayout");
             if (expandableLayout != null && expandableLayout.getLayoutParams() instanceof RelativeLayout.LayoutParams) {
+                rememberRelativeLayoutParams(expandableLayout);
                 RelativeLayout.LayoutParams expandableParams =
                         (RelativeLayout.LayoutParams) expandableLayout.getLayoutParams();
                 expandableParams.addRule(RelativeLayout.BELOW, preview.getId());
@@ -226,6 +261,7 @@ public final class InlineGiphyCommentPreview {
             if (expandableLayout == null) return;
             if (!(expandableLayout.getLayoutParams() instanceof RelativeLayout.LayoutParams)) return;
 
+            rememberRelativeLayoutParams(expandableLayout);
             RelativeLayout.LayoutParams expandableParams =
                     (RelativeLayout.LayoutParams) expandableLayout.getLayoutParams();
 
@@ -295,6 +331,8 @@ public final class InlineGiphyCommentPreview {
     }
 
     private static void removeExistingPreview(ViewGroup root) {
+        restoreRelativeLayoutParamsRecursive(root);
+
         View preview = findPreview(root);
         if (preview != null && preview.getParent() instanceof ViewGroup) {
             ((ViewGroup) preview.getParent()).removeView(preview);
@@ -494,7 +532,28 @@ public final class InlineGiphyCommentPreview {
         }
     }
 
+
+    private static String removeGiphyAnchors(String value) {
+        if (value == null || value.length() == 0) return value;
+
+        // Boost stores some comment HTML escaped as &lt;...&gt;, so handle that before stripping plain URLs.
+        value = value.replaceAll("(?is)&lt;a\\s+[^&]*href=[\\\"']https?://(?:www\\.)?giphy\\.com/gifs/[^\\\"']+[\\\"'][^&]*&gt;.*?&lt;/a&gt;", "");
+        value = value.replaceAll("(?is)&lt;a\\s+[^&]*href=[\\\"']https?://media\\.giphy\\.com/media/[A-Za-z0-9_-]+/giphy\\.(?:gif|mp4)[^\\\"']*[\\\"'][^&]*&gt;.*?&lt;/a&gt;", "");
+
+        // Clean up malformed leftovers from earlier passes, e.g. &lt;a href=" target="_blank"&gt;
+        value = value.replaceAll("(?is)&lt;a\\s+[^&]*href=[\\\"']\\s*target=[\\\"']_blank[\\\"'][^&]*&gt;", "");
+        value = value.replaceAll("(?is)<a\\s+[^>]*href=[\\\"']\\s*target=[\\\"']_blank[\\\"'][^>]*>", "");
+
+        value = value.replaceAll("(?is)<a\\s+[^>]*href=[\"']https?://(?:www\\.)?giphy\\.com/gifs/[^\"']+[\"'][^>]*>.*?</a>", "");
+        value = value.replaceAll("(?is)<a\\s+[^>]*href=[\"']https?://media\\.giphy\\.com/media/[A-Za-z0-9_-]+/giphy\\.(?:gif|mp4)[^\"']*[\"'][^>]*>.*?</a>", "");
+
+        return value;
+    }
+
     private static String removeGiphyText(String value) {
+        if (value == null || value.length() == 0) return value;
+
+        value = removeGiphyAnchors(value);
         if (value == null) return null;
 
         return value
