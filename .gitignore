@@ -128,3 +128,7 @@ node_modules/
 # Ignore IDEA files
 .idea/
 local.properties
+
+__pycache__/
+
+*.py[cod]
