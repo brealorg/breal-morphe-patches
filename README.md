@@ -30,15 +30,15 @@ Do not use the normal GitHub project page as the Morphe source. The GitHub proje
 
 Current public bundle:
 
-`1.4.0-morphe-patches.16`
+`1.4.19`
 
 Latest release asset:
 
-`patches-1.4.0.mpp`
+`patches-1.4.19.mpp`
 
 Release tag:
 
-`morphe-patches-16`
+`morphe-patches-19`
 
 SHA256:
 
