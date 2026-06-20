@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-06-20T19:48:08",
-  "description": "Boost hotfix bundle 19\n\nThis is the brealorg Morphe patch source for Boost for Reddit hotfixes.\n\nAPKMirror provides the clean Boost APK.\nThis bundle provides the patches used by Morphe.\n\nUse a clean Boost 1.12.12 APK as input.\n\nIncluded Boost-specific fixes:\n- Fix missing audio in v.redd.it video downloads/shares\n- Improve Giphy loading with direct media.giphy.com MP4 fallback\n- Restore inline Giphy previews in comments\n- Add inline previews for direct GIF links\n- Improve inline preview layout handling\n- Improve completed download notifications\n\nNotes:\n- This is not the upstream Patcheddit v1.4.0 source.\n- If duplicate/confusing patches appear, temporarily disable the original Patcheddit source.\n- For debugging, enable only Spoof client plus the patch being tested.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-19/patches-1.4.19.mpp",
+  "created_at": "2026-06-20T20:12:32",
+  "description": "Boost hotfix bundle 18\n\nTemporarily restored to the last known working Morphe patch bundle while the Android/Dex bundle build is being fixed.\n\nAPKMirror provides the clean Boost APK.\nThis bundle provides the patches used by Morphe.\n\nUse a clean Boost 1.12.12 APK as input.\n\nNotes:\n- This source is temporarily pinned to the last working bundle.\n- A newer bundle will be published after the DEX build is clean.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-18/patches-1.4.0.mpp",
   "signature_download_url": "",
-  "version": "1.4.19"
+  "version": "1.4.0"
 }
