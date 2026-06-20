@@ -1,5 +1,6 @@
 package app.morphe.patches.imgur.fix.share
 
+import app.morphe.patches.imgur.ImgurCompatible
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
@@ -19,7 +20,7 @@ val shareSelectedMediaFilePatch = bytecodePatch(
         "and is not saved permanently to /sdcard/Download/Imgur.",
     default = true
 ) {
-    compatibleWith("com.imgur.mobile"("7.33.0.0"))
+    compatibleWith(*ImgurCompatible)
 
     dependsOn(sharedExtensionPatch)
 

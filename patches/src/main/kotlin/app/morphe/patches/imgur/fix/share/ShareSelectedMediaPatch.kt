@@ -1,5 +1,6 @@
 package app.morphe.patches.imgur.fix.share
 
+import app.morphe.patches.imgur.ImgurCompatible
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.stringOption
@@ -17,7 +18,7 @@ val shareSelectedMediaPatch = bytecodePatch(
         "Can share either the raw media/download URL or the Imgur item permalink.",
     default = true
 ) {
-    compatibleWith("com.imgur.mobile"("7.33.0.0"))
+    compatibleWith(*ImgurCompatible)
 
     val linkModeOption = stringOption(
         "link-mode",
