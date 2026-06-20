@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-06-20T20:19:06",
-  "description": "Boost hotfix bundle 20\n\nBreal Morphe patch source for Boost for Reddit and Imgur fixes.\n\nAPKMirror provides the clean APK.\nThis bundle provides the patches used by Morphe.\n\nUse a clean Boost 1.12.12 APK as input for Boost patches.\n\nThis release is built with a clean D8 Android/Dex build path.\n\nIncluded Boost-specific fixes:\n- Fix missing audio in v.redd.it video downloads/shares\n- Improve Giphy loading with direct media.giphy.com MP4 fallback\n- Restore inline Giphy previews in comments\n- Add inline previews for direct GIF links\n- Improve inline preview layout handling\n- Improve completed download notifications\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-20/patches-1.4.20.mpp",
+  "created_at": "2026-06-20T20:40:27",
+  "description": "Boost hotfix bundle 21\n\nBreal Morphe patch source.\n\nUse this as a Morphe patch source only. Clean APKs must be supplied separately:\n- Boost for Reddit: 1.12.12\n- Imgur: 7.33.0.0\n\nBoost fixes:\n- v.redd.it download/share audio\n- faster Giphy loading\n- inline Giphy previews in comments\n- inline previews for direct GIF links\n- preview layout handling\n- completed download notifications\n\nImgur compatibility is also included in this source.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-21/patches-1.4.21.mpp",
   "signature_download_url": "",
-  "version": "1.4.20"
+  "version": "1.4.21"
 }
