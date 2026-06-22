@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-06-21T23:11:30",
-  "description": "Bug Fixes\n\n• Boost for Reddit: optional target SDK 35 compatibility fix for newer Android versions\n• Boost for Reddit: fixes BillingClient receiver registration when target SDK is raised\n• Boost for Reddit: improves v.redd.it video download/share fallback by using DASH manifest media URLs\n• Boost for Reddit: completed download notifications use a separate visible notification ID/channel\n• Boost for Reddit: Disable ads now also bypasses AppLovin/MAX ad placer and ad SDK auto-init paths\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-25/patches-1.4.25.mpp",
+  "created_at": "2026-06-22T02:38:11",
+  "description": "Bug Fixes\n\n• Boost for Reddit: target SDK 35 compatibility now declares POST_NOTIFICATIONS so completed download notifications remain visible on Android 13+.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-26/patches-1.4.26.mpp",
   "signature_download_url": "",
-  "version": "1.4.25"
+  "version": "1.4.26"
 }
