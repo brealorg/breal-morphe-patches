@@ -130,8 +130,19 @@ public class HttpUtils {
 
     public static URL createUrl(String href) {
         try {
-            URI uri = new URI(href);
+            if (href == null || href.trim().isEmpty()) {
+                return createNoOpUrl();
+            }
+
+            URI uri = new URI(href.trim());
+            if (uri.getScheme() == null || uri.getRawAuthority() == null) {
+                return createNoOpUrl();
+            }
+
             String path = uri.getPath();
+            if (path == null || path.isEmpty()) {
+                path = "/";
+            }
             if (uri.getQuery() != null) {
                 path += "?" + uri.getQuery();
             }
@@ -142,5 +153,9 @@ public class HttpUtils {
         } catch (URISyntaxException | MalformedURLException e) {
             throw new IllegalArgumentException("Malformed URL", e);
         }
+    }
+
+    private static URL createNoOpUrl() throws MalformedURLException {
+        return new URL("https", "reddit.com", -1, "/", new NoOpUrlStreamHandler());
     }
 }
