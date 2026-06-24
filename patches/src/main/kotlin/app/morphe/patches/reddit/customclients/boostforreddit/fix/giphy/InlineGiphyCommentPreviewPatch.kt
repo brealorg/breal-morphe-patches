@@ -7,6 +7,8 @@
 
 package app.morphe.patches.reddit.customclients.boostforreddit.fix.giphy
 
+import app.morphe.patches.reddit.customclients.boostforreddit.misc.settings.boostMorpheSettingsPatch
+
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
@@ -27,7 +29,7 @@ val inlineGiphyCommentPreviewPatch = bytecodePatch(
     description = "Adds inline animated Giphy previews below Boost comment text for Reddit Giphy markdown and Giphy links.",
     default = true
 ) {
-    dependsOn(sharedExtensionPatch)
+    dependsOn(sharedExtensionPatch, boostMorpheSettingsPatch)
     compatibleWith(*BoostCompatible)
 
     execute {

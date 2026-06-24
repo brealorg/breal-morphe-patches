@@ -7,6 +7,7 @@ dependencies {
     compileOnly(libs.bundles.boost)
     compileOnly(project(":extensions:shared:library"))
     compileOnly(project(":extensions:boostforreddit:stub"))
+    compileOnly(libs.androidx.preference)
     implementation(libs.annotation)
     compileOnly(libs.okhttp)
     implementation(libs.room.runtime)
