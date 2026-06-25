@@ -1,6 +1,5 @@
 package app.morphe.extension.boostforreddit.giphy;
 
-import app.morphe.extension.boostforreddit.settings.BoostMediaPreferences;
 
 import android.app.Activity;
 import android.content.Context;
@@ -66,6 +65,8 @@ public final class InlineGiphyCommentPreview {
             if (previewSource == null) return;
 
             PREVIEW_SOURCES.put(commentModel, previewSource);
+
+            replaceGiphyStringFields(commentModel);
         } catch (Throwable throwable) {
         }
     }
@@ -91,21 +92,8 @@ public final class InlineGiphyCommentPreview {
             }
 
             final Context context = itemView.getContext();
-            if (!BoostMediaPreferences.inlinePreviewsEnabled(context)) {
-                return;
-            }
-
-            final boolean leftAlignPreviews = BoostMediaPreferences.leftAlignPreviews(context);
-            final boolean hideSourceAfterPreview = BoostMediaPreferences.hideSourceAfterPreview(context);
-            if (hideSourceAfterPreview) {
-                replaceGiphyStringFields(commentModel);
-            }
-
             final String gifUrl = previewSource.gifUrl;
             final String sourceUrl = previewSource.sourceUrl;
-            final int previewChildWidth = leftAlignPreviews
-                    ? dp(context, 260)
-                    : ViewGroup.LayoutParams.MATCH_PARENT;
 
             LinearLayout container = new LinearLayout(context);
             container.setTag(PREVIEW_TAG);
@@ -117,25 +105,22 @@ public final class InlineGiphyCommentPreview {
             imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
             LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(
-                    previewChildWidth,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
                     dp(context, 170)
             );
 
             container.addView(imageView, imageParams);
 
-            TextView label = null;
-            if (!hideSourceAfterPreview && sourceUrl != null && sourceUrl.length() > 0) {
-                label = new TextView(context);
-                label.setText("Source: " + sourceUrl);
-                label.setTextSize(10f);
-                label.setAlpha(0.65f);
-                label.setSingleLine(true);
+            TextView label = new TextView(context);
+            label.setText("Source: " + sourceUrl);
+            label.setTextSize(10f);
+            label.setAlpha(0.65f);
+            label.setSingleLine(true);
 
-                container.addView(label, new LinearLayout.LayoutParams(
-                        previewChildWidth,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                ));
-            }
+            container.addView(label, new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            ));
 
             View.OnClickListener mediaClickListener = new View.OnClickListener() {
                 @Override
@@ -148,13 +133,11 @@ public final class InlineGiphyCommentPreview {
             container.setFocusable(false);
             imageView.setClickable(true);
             imageView.setFocusable(true);
+            label.setClickable(true);
+            label.setFocusable(true);
 
             imageView.setOnClickListener(mediaClickListener);
-            if (label != null) {
-                label.setClickable(true);
-                label.setFocusable(true);
-                label.setOnClickListener(mediaClickListener);
-            }
+            label.setOnClickListener(mediaClickListener);
 
             if (!insertBelowCommentText(holder, (ViewGroup) itemView, container)) return;
             loadWithGlide(context, glideRequestManager, gifUrl, imageView);

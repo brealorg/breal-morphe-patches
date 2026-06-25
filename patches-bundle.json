@@ -1,7 +1,7 @@
 {
   "created_at": "2026-06-25T00:00:00",
-  "description": "Bug Fixes\n\n• Boost for Reddit: add Morphe settings for inline media previews in comments.\n• Boost for Reddit: allow inline previews to be disabled, left-aligned, or shown without hiding the source text.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-28/patches-1.4.28.mpp",
+  "description": "Bug Fixes\n\n• Boost for Reddit: RC2 test restores the 1.4.27 inline GIF preview flow after the 1.4.28 media settings regression.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-29-rc2/patches-1.4.29-rc2.mpp",
   "signature_download_url": "",
-  "version": "1.4.28"
+  "version": "1.4.29-rc2"
 }
