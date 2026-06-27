@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+    compileOnly("androidx.preference:preference:1.2.1")
     compileOnly(libs.morphe.extensions.library)
     compileOnly(libs.bundles.boost)
     compileOnly(project(":extensions:shared:library"))

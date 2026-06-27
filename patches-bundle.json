@@ -1,7 +1,7 @@
 {
   "created_at": "2026-06-25T18:16:54Z",
-  "description": "Dev preview\n- Replaces the preview alignment text field with a tap-to-select dialog.",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-30-dev.8/patches-1.4.30-dev.8.mpp",
+  "description": "Dev preview\n- Fixes the preview alignment settings crash by using an AndroidX ListPreference.",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-30-dev.9/patches-1.4.30-dev.9.mpp",
   "signature_download_url": "",
-  "version": "1.4.30-dev.8"
+  "version": "1.4.30-dev.9"
 }

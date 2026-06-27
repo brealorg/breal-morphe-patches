@@ -1,15 +1,13 @@
 package app.morphe.extension.boostforreddit.giphy;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.res.TypedArray;
-import android.preference.DialogPreference;
 import android.util.AttributeSet;
+
+import androidx.preference.ListPreference;
 
 import java.util.Locale;
 
-public final class PreviewAlignmentPreference extends DialogPreference {
+public final class PreviewAlignmentPreference extends ListPreference {
     private static final String ALIGNMENT_LEFT = "left";
     private static final String ALIGNMENT_CENTER = "center";
     private static final String ALIGNMENT_RIGHT = "right";
@@ -21,89 +19,56 @@ public final class PreviewAlignmentPreference extends DialogPreference {
             "Right"
     };
 
-    private static final String[] VALUES = new String[]{
+    private static final CharSequence[] VALUES = new CharSequence[]{
             ALIGNMENT_LEFT,
             ALIGNMENT_CENTER,
             ALIGNMENT_RIGHT
     };
 
-    private String value = DEFAULT_ALIGNMENT;
-
     public PreviewAlignmentPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
-        setPersistent(true);
+        configure();
+    }
+
+    public PreviewAlignmentPreference(Context context) {
+        super(context);
+        configure();
+    }
+
+    private void configure() {
+        setEntries(ENTRIES);
+        setEntryValues(VALUES);
+        setDefaultValue(DEFAULT_ALIGNMENT);
         setDialogTitle("Preview alignment");
-        updateSummary(getPersistedString(DEFAULT_ALIGNMENT));
-    }
 
-    @Override
-    protected Object onGetDefaultValue(TypedArray a, int index) {
-        return normalize(a.getString(index));
-    }
-
-    @Override
-    protected void onSetInitialValue(boolean restorePersistedValue, Object defaultValue) {
-        String initial;
-
-        if (restorePersistedValue) {
-            initial = getPersistedString(DEFAULT_ALIGNMENT);
-        } else if (defaultValue instanceof String) {
-            initial = (String) defaultValue;
+        String current = getValue();
+        if (current == null) {
+            setSummary(labelFor(DEFAULT_ALIGNMENT));
         } else {
-            initial = DEFAULT_ALIGNMENT;
+            setSummary(labelFor(current));
         }
-
-        setValue(initial);
     }
 
     @Override
-    protected void onPrepareDialogBuilder(AlertDialog.Builder builder) {
-        super.onPrepareDialogBuilder(builder);
-
-        final int checked = indexOf(getPersistedString(value));
-
-        builder.setSingleChoiceItems(ENTRIES, checked, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (which >= 0 && which < VALUES.length) {
-                    setValue(VALUES[which]);
-                }
-
-                dialog.dismiss();
-            }
-        });
+    public void setValue(String value) {
+        String normalized = normalize(value);
+        super.setValue(normalized);
+        setSummary(labelFor(normalized));
     }
 
-    private void setValue(String newValue) {
-        String normalized = normalize(newValue);
-        value = normalized;
-        persistString(normalized);
-        updateSummary(normalized);
-        notifyChanged();
-    }
-
-    private void updateSummary(String alignment) {
-        setSummary(labelFor(normalize(alignment)));
-    }
-
-    private static int indexOf(String rawValue) {
-        String normalized = normalize(rawValue);
-
-        for (int i = 0; i < VALUES.length; i++) {
-            if (VALUES[i].equals(normalized)) {
-                return i;
-            }
-        }
-
-        return 1;
+    @Override
+    public CharSequence getSummary() {
+        return labelFor(getValue());
     }
 
     private static String labelFor(String alignment) {
-        if (ALIGNMENT_LEFT.equals(alignment)) {
+        String normalized = normalize(alignment);
+
+        if (ALIGNMENT_LEFT.equals(normalized)) {
             return "Left";
         }
 
-        if (ALIGNMENT_RIGHT.equals(alignment)) {
+        if (ALIGNMENT_RIGHT.equals(normalized)) {
             return "Right";
         }
 
