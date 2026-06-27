@@ -13,7 +13,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -144,18 +143,7 @@ public final class InlineGiphyCommentPreview {
 
             container.addView(imageView, imageParams);
 
-            TextView label = new TextView(context);
-            label.setText("Source: " + sourceUrl);
-            label.setTextSize(10f);
-            label.setAlpha(0.65f);
-            label.setSingleLine(true);
-
-            container.addView(label, new LinearLayout.LayoutParams(
-                    textWidthForAlignment(previewAlignment),
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-            ));
-
-            applyPreviewAlignment(container, label, previewAlignment);
+            applyPreviewAlignment(container, previewAlignment);
 
             View.OnClickListener mediaClickListener = new View.OnClickListener() {
                 @Override
@@ -168,11 +156,8 @@ public final class InlineGiphyCommentPreview {
             container.setFocusable(false);
             imageView.setClickable(true);
             imageView.setFocusable(true);
-            label.setClickable(true);
-            label.setFocusable(true);
 
             imageView.setOnClickListener(mediaClickListener);
-            label.setOnClickListener(mediaClickListener);
 
             if (!insertBelowCommentText(holder, (ViewGroup) itemView, container)) return;
             loadWithGlide(context, glideRequestManager, gifUrl, imageView);
@@ -283,34 +268,17 @@ public final class InlineGiphyCommentPreview {
         return ViewGroup.LayoutParams.MATCH_PARENT;
     }
 
-    private static int textWidthForAlignment(String alignment) {
-        if (ALIGNMENT_LEFT.equals(alignment) || ALIGNMENT_RIGHT.equals(alignment)) {
-            return ViewGroup.LayoutParams.WRAP_CONTENT;
-        }
-
-        return ViewGroup.LayoutParams.MATCH_PARENT;
-    }
-
-    private static void applyPreviewAlignment(LinearLayout container, TextView label, String alignment) {
+    private static void applyPreviewAlignment(LinearLayout container, String alignment) {
         if (container == null) {
             return;
         }
 
         if (ALIGNMENT_LEFT.equals(alignment)) {
             container.setGravity(Gravity.START);
-            if (label != null) {
-                label.setGravity(Gravity.START);
-            }
         } else if (ALIGNMENT_RIGHT.equals(alignment)) {
             container.setGravity(Gravity.END);
-            if (label != null) {
-                label.setGravity(Gravity.END);
-            }
         } else {
             container.setGravity(Gravity.CENTER_HORIZONTAL);
-            if (label != null) {
-                label.setGravity(Gravity.CENTER_HORIZONTAL);
-            }
         }
     }
 
