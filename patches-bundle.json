@@ -1,7 +1,7 @@
 {
   "created_at": "2026-06-25T18:16:54Z",
-  "description": "Dev preview\n- Removes the duplicate gray Source URL label under inline previews.",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-30-dev.7/patches-1.4.30-dev.7.mpp",
+  "description": "Dev preview\n- Replaces the preview alignment text field with a tap-to-select dialog.",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-30-dev.8/patches-1.4.30-dev.8.mpp",
   "signature_download_url": "",
-  "version": "1.4.30-dev.7"
+  "version": "1.4.30-dev.8"
 }

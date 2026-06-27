@@ -7,7 +7,7 @@ import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 @Suppress("unused")
 val boostMorpheSettingsSkeletonPatch = resourcePatch(
     name = "Boost Morphe settings skeleton",
-    description = "Dev-only Boost Morphe settings UI with inline preview controls and no duplicate source label.",
+    description = "Dev-only Boost Morphe settings UI with dialog-based preview alignment control.",
     default = false
 ) {
     compatibleWith(*BoostCompatible)
@@ -25,12 +25,12 @@ val boostMorpheSettingsSkeletonPatch = resourcePatch(
                             android:summary="Show supported media previews directly in comments."
                             android:defaultValue="true" />
 
-                        <EditTextPreference
+                        <app.morphe.extension.boostforreddit.giphy.PreviewAlignmentPreference
+                            android:icon="@drawable/ic_photo_outline_24dp"
                             android:key="morphe_boost_inline_media_preview_alignment"
                             android:title="Preview alignment"
-                            android:summary="Type left, center, or right. Default: center."
+                            android:summary="Center"
                             android:dialogTitle="Preview alignment"
-                            android:dialogMessage="Use one of: left, center, right."
                             android:defaultValue="center" />
 
                         <CheckBoxPreference
@@ -91,13 +91,12 @@ val boostMorpheSettingsSkeletonPatch = resourcePatch(
                             android:summary="Show supported media previews directly in comments."
                             android:defaultValue="true" />
 
-                        <EditTextPreference
-                            android:key="morphe_boost_inline_media_preview_alignment"
+                        <app.morphe.extension.boostforreddit.giphy.PreviewAlignmentPreference
                             android:icon="@drawable/ic_photo_outline_24dp"
+                            android:key="morphe_boost_inline_media_preview_alignment"
                             android:title="Preview alignment"
-                            android:summary="Type left, center, or right. Default: center."
+                            android:summary="Center"
                             android:dialogTitle="Preview alignment"
-                            android:dialogMessage="Use one of: left, center, right."
                             android:defaultValue="center" />
 
                         <CheckBoxPreference
