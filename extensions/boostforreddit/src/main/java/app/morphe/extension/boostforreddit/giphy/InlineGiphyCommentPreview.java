@@ -37,6 +37,8 @@ public final class InlineGiphyCommentPreview {
             "morphe_boost_inline_media_preview_alignment";
     private static final String PREF_DIRECT_REDDIT_GIF_TAP_ACTION =
             "morphe_boost_direct_reddit_gif_tap_action";
+    private static final String PREF_GIPHY_PREVIEW_TAP_ACTION =
+            "morphe_boost_giphy_preview_tap_action";
     private static final String TAP_ACTION_IMAGE_VIEWER = "image_viewer";
     private static final String TAP_ACTION_VIDEO_VIEWER = "video_viewer";
     private static final String TAP_ACTION_BROWSER = "browser";
@@ -48,6 +50,7 @@ public final class InlineGiphyCommentPreview {
     private static final boolean DEFAULT_INLINE_MEDIA_PREVIEW_SHOW_SOURCE_TEXT = false;
     private static final String DEFAULT_INLINE_MEDIA_PREVIEW_ALIGNMENT = ALIGNMENT_CENTER;
     private static final String DEFAULT_DIRECT_REDDIT_GIF_TAP_ACTION = TAP_ACTION_IMAGE_VIEWER;
+    private static final String DEFAULT_GIPHY_PREVIEW_TAP_ACTION = TAP_ACTION_VIDEO_VIEWER;
     private static final Map<Object, PreviewSource> PREVIEW_SOURCES = new WeakHashMap<>();
 
     private static final Pattern DIRECT_PREVIEW_URL_PATTERN =
@@ -271,6 +274,28 @@ public final class InlineGiphyCommentPreview {
             return normalizeMediaTapAction(value, DEFAULT_DIRECT_REDDIT_GIF_TAP_ACTION);
         } catch (Throwable ignored) {
             return DEFAULT_DIRECT_REDDIT_GIF_TAP_ACTION;
+        }
+    }
+
+    private static String getGiphyPreviewTapAction(Context context) {
+        if (context == null) {
+            return DEFAULT_GIPHY_PREVIEW_TAP_ACTION;
+        }
+
+        try {
+            android.content.SharedPreferences preferences = context.getSharedPreferences(
+                    context.getPackageName() + "_preferences",
+                    Context.MODE_PRIVATE
+            );
+
+            String value = preferences.getString(
+                    PREF_GIPHY_PREVIEW_TAP_ACTION,
+                    DEFAULT_GIPHY_PREVIEW_TAP_ACTION
+            );
+
+            return normalizeMediaTapAction(value, DEFAULT_GIPHY_PREVIEW_TAP_ACTION);
+        } catch (Throwable ignored) {
+            return DEFAULT_GIPHY_PREVIEW_TAP_ACTION;
         }
     }
 
@@ -525,11 +550,26 @@ public final class InlineGiphyCommentPreview {
         Context context = view.getContext();
         String internalUrl = firstNonEmpty(mediaUrl, sourceUrl);
         String externalUrl = firstNonEmpty(sourceUrl, mediaUrl);
+        boolean giphyPreview = isGiphyPreview(mediaUrl, sourceUrl);
+        String giphyTapAction = giphyPreview
+                ? getGiphyPreviewTapAction(context)
+                : DEFAULT_GIPHY_PREVIEW_TAP_ACTION;
+
+        if (giphyPreview && TAP_ACTION_DISABLED.equals(giphyTapAction)) {
+            Log.d(LOG_TAG, "giphy preview tap disabled: " + internalUrl);
+            return;
+        }
+
+        if (giphyPreview && TAP_ACTION_BROWSER.equals(giphyTapAction)) {
+            Log.d(LOG_TAG, "open giphy preview externally: " + externalUrl);
+            openExternally(context, externalUrl);
+            return;
+        }
 
         try {
             Activity activity = findActivity(context);
 
-            if (activity != null && openViaBoostRouter(activity, internalUrl)) {
+            if (activity != null && openViaBoostRouter(activity, internalUrl, giphyTapAction)) {
                 return;
             }
 
@@ -541,7 +581,7 @@ public final class InlineGiphyCommentPreview {
         openExternally(context, externalUrl);
     }
 
-    private static boolean openViaBoostRouter(Activity activity, String url) {
+    private static boolean openViaBoostRouter(Activity activity, String url, String giphyTapAction) {
         if (activity == null || url == null || url.length() == 0) return false;
 
         try {
@@ -550,12 +590,23 @@ public final class InlineGiphyCommentPreview {
 
             boolean animated = isLikelyAnimatedMediaUrl(url);
             boolean directIRedditGif = isDirectIRedditGif(url);
+            boolean giphyMedia = isGiphyMediaUrl(url);
             String directIRedditGifTapAction = directIRedditGif
                     ? getDirectRedditGifTapAction(activity)
                     : DEFAULT_DIRECT_REDDIT_GIF_TAP_ACTION;
+            String normalizedGiphyTapAction = normalizeMediaTapAction(
+                    giphyTapAction,
+                    DEFAULT_GIPHY_PREVIEW_TAP_ACTION
+            );
             boolean forceVideoViewerForDirectGif = directIRedditGif
                     && TAP_ACTION_VIDEO_VIEWER.equals(directIRedditGifTapAction);
-            boolean animatedForRouting = animated || forceVideoViewerForDirectGif;
+            boolean forceImageViewerForGiphy = giphyMedia
+                    && TAP_ACTION_IMAGE_VIEWER.equals(normalizedGiphyTapAction);
+            boolean forceVideoViewerForGiphy = giphyMedia
+                    && TAP_ACTION_VIDEO_VIEWER.equals(normalizedGiphyTapAction);
+            boolean animatedForRouting = (animated && !forceImageViewerForGiphy)
+                    || forceVideoViewerForDirectGif
+                    || forceVideoViewerForGiphy;
 
             if (directIRedditGif && TAP_ACTION_DISABLED.equals(directIRedditGifTapAction)) {
                 Log.d(LOG_TAG, "direct i.redd.it gif tap disabled: " + url);
@@ -674,6 +725,19 @@ public final class InlineGiphyCommentPreview {
         if (first != null && first.length() > 0) return first;
         if (second != null && second.length() > 0) return second;
         return null;
+    }
+
+    private static boolean isGiphyPreview(String mediaUrl, String sourceUrl) {
+        return isGiphyMediaUrl(mediaUrl) || isGiphyMediaUrl(sourceUrl);
+    }
+
+    private static boolean isGiphyMediaUrl(String url) {
+        if (url == null) return false;
+
+        String lower = url.toLowerCase(java.util.Locale.US);
+        return lower.contains("://giphy.com/")
+                || lower.contains("://www.giphy.com/")
+                || lower.contains("://media.giphy.com/");
     }
 
     private static boolean isDirectIRedditGif(String url) {
