@@ -31,7 +31,7 @@ public class ArcticShift {
 
     private static final String[] POSTS_FIELDS = {
             "id", "title", "author", "author_fullname", "author_flair_text", "crosspost_parent",
-            "link_flair_text", "selftext", "url", "preview", "gallery_data", "post_hint", "domain",
+            "link_flair_text", "selftext", "url", "preview", "gallery_data", "media_metadata", "post_hint", "domain",
             "is_reddit_media_domain", "is_self", "is_video", "is_gallery", "media", "media_embed",
             "thumbnail"
     };

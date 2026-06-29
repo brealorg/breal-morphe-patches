@@ -43,6 +43,7 @@ import okhttp3.Response;
 public class RedditSubmissionUndeleteInterceptor implements Interceptor {
     private static final Pattern SUBMISSION_API_REGEX = Pattern.compile("^https?://\\w+\\.reddit\\.com/comments/");
     private static final Pattern GALLERY_REGEX = Pattern.compile("window\\.___r\\s*=\\s*(\\{.+\\})\\s*</script>", Pattern.DOTALL | Pattern.MULTILINE);
+    private static final String GALLERY_UNDELETE_MARKER = "morphe_boost_reddit_gallery_undelete_submission_json";
     private final AutoSavingCache submissionCache = new AutoSavingCache("RedditSubmissions", 10);
     private final AutoSavingCache commentsCache = new AutoSavingCache("RedditComments", 10000);
 
@@ -159,20 +160,7 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
         editableNode.setIfUnset("link_flair_css_class", NullNode.instance);
         editableNode.setIfUnset("link_flair_text", NullNode.instance);
 
-        /*
-        JsonNode galleryNode = editableNode.get("gallery_data");
-        if (galleryNode == null || galleryNode.isNull() || galleryNode.asText().isBlank()) {
-            if (isRedditGallery(editableNode.get("url"))) {
-                JsonNode data = getPostDataFromWayback(request, editableNode.get("url").asText());
-                if (data != null) {
-                    JsonNode media = data.get("posts").get("models").get("t3_" + id).get("media");
-                    editableNode.set("gallery_data", media.get("gallery"));
-                    editableNode.set("media_metadata", media.get("mediaMetadata"));
-                    editableNode.set("is_gallery", BooleanNode.TRUE);
-                }
-            }
-        }
-        */
+        restoreRedditGalleryMetadata(request, id, editableNode);
 
         submissionCache.put(id, HttpUtils.getStringFromJson(editableNode));
         return editableNode;
@@ -241,13 +229,71 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
         }
     }
 
+    private void restoreRedditGalleryMetadata(Request request, String id, EditableObjectNode editableNode) throws IOException {
+        if (!isRedditGallery(editableNode.get("url"))) {
+            return;
+        }
+
+        if (hasUsableGalleryMetadata(editableNode)) {
+            editableNode.set("is_gallery", BooleanNode.TRUE);
+            LoggingUtils.logInfo(true, () -> GALLERY_UNDELETE_MARKER + ": existing gallery metadata for " + id);
+            return;
+        }
+
+        String galleryUrl = editableNode.get("url").asText();
+        JsonNode data = getPostDataFromWayback(request, galleryUrl);
+        JsonNode media = getNested(data, "posts", "models", "t3_" + id, "media");
+        if (media == null || media.isNull()) {
+            return;
+        }
+
+        JsonNode gallery = media.get("gallery");
+        JsonNode mediaMetadata = media.get("mediaMetadata");
+        if (!isUsableJsonNode(gallery) || !isUsableJsonNode(mediaMetadata)) {
+            return;
+        }
+
+        editableNode.set("gallery_data", gallery);
+        editableNode.set("media_metadata", mediaMetadata);
+        editableNode.set("is_gallery", BooleanNode.TRUE);
+        LoggingUtils.logInfo(true, () -> GALLERY_UNDELETE_MARKER + ": restored gallery metadata for " + id);
+    }
+
+    private boolean hasUsableGalleryMetadata(JsonNode node) {
+        return node != null
+                && isUsableJsonNode(node.get("gallery_data"))
+                && isUsableJsonNode(node.get("media_metadata"));
+    }
+
+    private boolean isUsableJsonNode(JsonNode node) {
+        if (node == null || node.isNull()) {
+            return false;
+        }
+        if (node.isTextual() && node.asText().isBlank()) {
+            return false;
+        }
+        return !node.isContainerNode() || node.size() > 0;
+    }
+
+    private JsonNode getNested(JsonNode node, String... path) {
+        JsonNode current = node;
+        for (String segment : path) {
+            if (current == null || current.isNull()) {
+                return null;
+            }
+            current = current.get(segment);
+        }
+        return current;
+    }
+
     private JsonNode getPostDataFromWayback(Request request, String galleryUrl) throws IOException {
         WaybackResponse response = WaybackMachine.getFromWayback(request, galleryUrl);
-        String html = response.getResponse().body().string();
-        Matcher matcher = GALLERY_REGEX.matcher(html);
-        if (!response.found()) {
+        if (!response.found() || response.getResponse() == null || response.getResponse().body() == null) {
             return null;
         }
+
+        String html = response.getResponse().body().string();
+        Matcher matcher = GALLERY_REGEX.matcher(html);
         if (matcher.find()) {
             String json = matcher.group(1);
             json = json.replaceAll("(web\\.archive\\.org/web/\\d+)/", "$1if_/");
