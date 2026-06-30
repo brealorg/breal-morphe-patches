@@ -1,70 +1,71 @@
-# MORPHE WL-04 / WL-04R / WL-04E status
+# MORPHE-WL-04 status
 
-Status date: 2026-06-30T10:40:25+02:00
+Status: CLOSED for WL-04E 16 KB DEV runtime validation.
 
-## Corrected classification
+Updated: 2026-06-30
 
-WL-04R is **not** closed as true 16 KB runtime validated.
+## Final classification
 
-Correct status:
+WL-04E is now closed as clean for the DEV runtime validation lane.
 
-- Static 16 KB hardening: **validated**
-- DEV runtime on current Pixel 6 / Android 17 target: **validated**
-- Current runtime page size on tested physical target: **4096 bytes**
-- True 16 KB runtime validation: **pending**
-- Normal package touched during WL-04R/WL-04E validation: **no**
-- Manager lane used during WL-04R/WL-04E validation: **no**
+Validated state:
 
-## Why this correction exists
+- Source mutation: tooling only.
+- Commit under test: `e70ff26 Prune Boost devclone ABIs for 16KB runtime`.
+- Build source: committed wrapper `tools/build-boost-devclone-wl04r-16kb-appside-candidate.sh`.
+- Runtime target: `Morphe_16KB_API36` / `emulator-5554`.
+- Runtime page size: `getconf PAGESIZE=16384`.
+- Package tested: `com.rubenmayayo.reddit.dev`.
+- Normal package touched: no.
+- Manager lane used: no.
+- Final result: `MORPHE_WL04E_POSTCOMMIT_FINAL_16KB_RUNTIME_GATE_OK`.
 
-The earlier closeout wording could be read as overclaiming 16 KB runtime validation. That is not accepted.
+## Final candidate
 
-A result may only be labelled true 16 KB runtime validated when a target reports:
+DEV APK:
 
-```
-getconf PAGESIZE=16384
-```
+`local-artifacts/boost-dev-overwrite-candidates/20260630-111353-wl04e-postcommit-final-arm64only-16kb-runtime/dev/boost-devclone.apk`
 
-and the relevant DEV candidate is installed, launched, exercised, and logcat-checked on that same target.
+SHA256:
 
-## What has been validated
+`a13024c2e28322fff03c447424c1440d763a581b160a58688c0ac0852f0a9494`
 
-The WL-04R remediation removes the previously problematic RenderScript support path from the DEV remediation candidate:
+Final gate output:
 
-- `he.c / BlurTransformation.b(Bitmap)` no longer uses RenderScript.
-- Google ads overlay RenderScript blur path is neutralized.
-- `librsjni_androidx.so` and `libRSSupport.so` are removed from APK ABIs.
-- Remaining arm64 native libraries in the validated candidate were checked for 16 KB-compatible LOAD alignment.
-- The final DEV APK passes `zipalign -c -P 16 -v 4`.
+`local-artifacts/boost-lemmy-parity/20260630-111353-wl04e-postcommit-final-16kb-runtime-gate`
 
-Latest final DEV APK observed by this correction gate:
+## Native / 16 KB result
 
-```
-local-artifacts/boost-dev-overwrite-candidates/20260630-103249-wl04r-16kb-appside-dev-committed-final/dev/boost-devclone.apk
-5be5a05a2f13dc8872a1a1cd54669724487dc3542282407b15bca55b11adbfd2  local-artifacts/boost-dev-overwrite-candidates/20260630-103249-wl04r-16kb-appside-dev-committed-final/dev/boost-devclone.apk
-```
+The committed WL-04R wrapper now performs app-side RenderScript remediation and prunes native ABI directories to `arm64-v8a` only.
 
-## Current WL-04E runtime-target status
+Final static proof:
 
-Current online adb targets observed by this correction gate:
+- APK package: `com.rubenmayayo.reddit.dev`.
+- Label: `Boost Dev`.
+- Native code: `arm64-v8a` only.
+- Present app native libs:
+  - `lib/arm64-v8a/libpl_droidsonroids_gif.so`
+  - `lib/arm64-v8a/librsjni.so`
+  - `lib/arm64-v8a/libsnudown-jni.so`
+- All present app native libs have `LOAD_ALIGN=0x10000`.
+- No exact `LOAD_ALIGN=0x1000` remains.
+- `zipalign -c -P 16 -v 4` passed.
+- No RenderScript / rsjni DEX markers remain.
+- `librsjni_androidx.so` and `libRSSupport.so` are absent.
 
-```
+Final runtime proof:
 
-### 192.168.1.248:35071
-model=Pixel 6
-ro.product.cpu.abilist=arm64-v8a,armeabi-v7a,armeabi
-ro.build.version.release=17
-ro.build.version.sdk=37
-getconf PAGESIZE=4096
-```
+- Install on 16 KB runtime succeeded.
+- Installed package selected `primaryCpuAbi=arm64-v8a`.
+- Installed package target SDK is 35.
+- Launch reached DEV `MainActivity`.
+- No strict app-specific runtime blocker was found.
+- No `PAGE_SIZE_APP_COMPAT_FLAG_ELF_NOT_ALIGNED`.
+- No `PageSizeMismatchDialog`.
+- Final runtime page size remained `16384`.
 
-If no target reports `getconf PAGESIZE=16384`, WL-04E remains open.
+## Notes
 
-## Required next step for true 16 KB runtime validation
+Earlier full-ABI candidates installed and launched but triggered Android 16 KB page-size compatibility handling because the x86/x86_64/armeabi native libraries included `LOAD_ALIGN=0x1000`. The validated resolution is to keep only the aligned `arm64-v8a` native libraries in the DEV 16 KB remediation lane.
 
-WL-04E must continue until one of these is available:
-
-1. a physical device with `getconf PAGESIZE=16384`, or
-2. an Android emulator/AVD configured for 16 KB page size.
-
-Only then may the DEV candidate be installed and runtime-tested for true 16 KB validation.
+This closes WL-04E for clean 16 KB DEV runtime validation. It does not claim full product release, normal-package Manager validation, Reddit auth/media matrix validation, or Boost for Lemmy parity completion.
