@@ -6,6 +6,7 @@
 # - he.c / BlurTransformation.b(Bitmap) redirects RenderScript blur to existing ze.a FastBlur.
 # - com.google.android.gms.ads.internal.overlay.c.zza() is no-op.
 # - librsjni_androidx.so and libRSSupport.so are removed from all APK ABIs.
+# - non-arm64 native ABI directories are pruned so 16 KB runtimes do not select 0x1000-aligned x86/x86_64/armeabi libs.
 #
 # This wrapper does not install anything. It delegates signing/package rewrite to
 # tools/build-boost-devclone-candidate.sh after injecting the decoded-APK mutation.
@@ -175,6 +176,33 @@ PYWL04R
   else
     echo "[WL04R][PASS] rsjni/RSSupport libs removed from decoded APK"
   fi
+
+  echo "[WL04E] pruning native ABIs to arm64-v8a only for clean 16KB runtime"
+  if [ ! -d "$DECODED/lib" ]; then
+    echo "[WL04E][FAIL] decoded lib dir missing before ABI prune"
+    exit 1
+  fi
+
+  echo "[WL04E] native ABI dirs before prune:"
+  find "$DECODED/lib" -mindepth 1 -maxdepth 1 -type d -printf '[WL04E]   %f\n' | sort || true
+
+  find "$DECODED/lib" -mindepth 1 -maxdepth 1 -type d ! -name arm64-v8a -print -exec rm -rf {} +
+
+  echo "[WL04E] native ABI dirs after prune:"
+  find "$DECODED/lib" -mindepth 1 -maxdepth 1 -type d -printf '[WL04E]   %f\n' | sort || true
+
+  if find "$DECODED/lib" -mindepth 1 -maxdepth 1 -type d ! -name arm64-v8a 2>/dev/null | grep -q .; then
+    echo "[WL04E][FAIL] non-arm64 ABI dirs remain after prune"
+    find "$DECODED/lib" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort
+    exit 1
+  fi
+
+  if [ ! -d "$DECODED/lib/arm64-v8a" ]; then
+    echo "[WL04E][FAIL] arm64-v8a ABI dir missing after prune"
+    exit 1
+  fi
+
+  echo "[WL04E][PASS] native ABIs pruned to arm64-v8a only"
 '''
 
 text = text.replace(needle, injection + "\n" + needle, 1)
