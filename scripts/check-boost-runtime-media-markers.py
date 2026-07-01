@@ -47,7 +47,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Check Boost runtime media tap-action markers in a built Morphe .mpp."
     )
-    parser.add_argument("--version", required=True, help="Bundle version, e.g. 1.4.32")
+    parser.add_argument("--version", required=True, help="Bundle version, e.g. 1.4.x")
     parser.add_argument(
         "--mpp",
         help="Path to .mpp. Defaults to patches/build/libs/patches-<version>.mpp.",

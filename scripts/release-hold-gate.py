@@ -73,7 +73,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Verify that a local release candidate is held and not exposed to end users."
     )
-    parser.add_argument("--version", required=True, help="Held local version, e.g. 1.4.32")
+    parser.add_argument("--version", required=True, help="Held local version, e.g. 1.4.x")
     parser.add_argument("--tag", required=True, help="Held local tag that must not exist yet")
     parser.add_argument(
         "--mpp",
