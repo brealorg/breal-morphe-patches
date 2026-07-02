@@ -10,300 +10,11 @@ Manual fallback:
 
 https://github.com/brealorg/breal-morphe-patches
 
-
 1.4.43 fixes Boost comment code block rendering so Reddit fenced code preserves line breaks and surrounding prose stays outside code blocks.
 
 Unofficial Morphe patch bundle for Boost for Reddit, Imgur, and related Android app fixes.
 
 This repository publishes a Morphe-compatible `.mpp` bundle and a small JSON feed used by Morphe Manager to discover the current release.
-
-
-## Patches list
-
-<!-- PATCHES_START_EXPANDED -->
-> **Patch source version:** `v1.4.43` • `main` • 29 unique patches • 81 package entries
-
-<details open>
-<summary><strong>Boost for Reddit</strong> • 20 patches</summary>
-
-
-
-| Patch | Description | Options |
-|---|---|---|
-| [Add archive links to context menu](#add-archive-links-to-context-menu) |  |  |
-| [Automatically undelete Imgur images](#automatically-undelete-imgur-images) |  |  |
-| [Automatically undelete Reddit content](#automatically-undelete-reddit-content) |  |  |
-| [Boost Morphe settings](#boost-morphe-settings) | Adds Boost Morphe settings for inline media previews, source text visibility, and preview alignment. |  |
-| [Disable ads](#disable-ads) |  |  |
-| [Disable Boost Crashlytics startup network calls](#disable-boost-crashlytics-startup-network-calls) | Disables Boost's Crashlytics startup initialization while keeping Firebase Analytics and other Firebase components. |  |
-| [Fix /r/all](#fix-r-all) |  |  |
-| [Fix /s/ links](#fix-s-links) |  |  |
-| [Fix Boost code block rendering](#fix-boost-code-block-rendering) | Preserves multiline Reddit code blocks by normalizing inline multiline <code> HTML to Boost's native <pre> renderer path. |  |
-| [Fix Boost comments Lemmy-style toolbar UI](#fix-boost-comments-lemmy-style-toolbar-ui) | Removes the duplicate native comments title by disabling the SlidrTheme window title/actionbar layer while preserving Boost's selected light/dark theme, toolbar title, and dynamic sort subtitle. |  |
-| [Fix Boost navigation bar overlap](#fix-boost-navigation-bar-overlap) | Adds runtime system bar inset handling for Boost bottom controls and drawer content on Android 15+ target SDK builds. |  |
-| [Fix Boost target SDK 35 compatibility](#fix-boost-target-sdk-35-compatibility) | Sets Boost for Reddit's target SDK to 35 and fixes BillingClient receiver registration for newer Android versions. |  |
-| [Fix download completed notification visibility](#fix-download-completed-notification-visibility) | Moves completed download notifications to a separate default-importance channel so download completion is visible while progress notifications remain low-priority. |  |
-| [Fix missing audio in video downloads](#fix-missing-audio-in-video-downloads) | Fixes audio missing in videos downloaded from v.redd.it. |  |
-| [Fix Redgifs API](#fix-redgifs-api) |  |  |
-| [Fix slow Giphy loading](#fix-slow-giphy-loading) | Bypasses Boost's slow Giphy API resolver and uses Boost's direct media.giphy.com MP4 fallback for Giphy posts. |  |
-| [Hook exception handler](#hook-exception-handler) | Hook the exception handler in Boost. Don't enable except for development purposes |  |
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
-| [Show inline Giphy previews in comments](#show-inline-giphy-previews-in-comments) | Adds inline animated Giphy previews below Boost comment text for Reddit Giphy markdown and Giphy links. |  |
-| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-
-</details>
-
-<details open>
-<summary><strong>com.laurencedawson.reddit_sync</strong> • 9 patches</summary>
-
-
-
-| Patch | Description | Options |
-|---|---|---|
-| [Disable ads](#disable-ads) |  |  |
-| [Disable Sync for Lemmy bottom sheet](#disable-sync-for-lemmy-bottom-sheet) | Disables the bottom sheet at the startup that asks you to signup to "Sync for Lemmy". |  |
-| [Fix /s/ links](#fix-s-links) |  |  |
-| [Fix post thumbnails](#fix-post-thumbnails) | Fixes loading post thumbnails by correcting their URLs. |  |
-| [Fix Redgifs API](#fix-redgifs-api) |  |  |
-| [Fix video downloads](#fix-video-downloads) | Fixes a bug in Sync's MPD parser resulting in only the audio-track being saved. |  |
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
-| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-| [Use /user/ endpoint](#use-user-endpoint) | Replaces the deprecated endpoint for viewing user profiles /u with /user, that used to fix a bug. |  |
-
-</details>
-
-<details open>
-<summary><strong>com.laurencedawson.reddit_sync.pro</strong> • 8 patches</summary>
-
-
-
-| Patch | Description | Options |
-|---|---|---|
-| [Disable Sync for Lemmy bottom sheet](#disable-sync-for-lemmy-bottom-sheet) | Disables the bottom sheet at the startup that asks you to signup to "Sync for Lemmy". |  |
-| [Fix /s/ links](#fix-s-links) |  |  |
-| [Fix post thumbnails](#fix-post-thumbnails) | Fixes loading post thumbnails by correcting their URLs. |  |
-| [Fix Redgifs API](#fix-redgifs-api) |  |  |
-| [Fix video downloads](#fix-video-downloads) | Fixes a bug in Sync's MPD parser resulting in only the audio-track being saved. |  |
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
-| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-| [Use /user/ endpoint](#use-user-endpoint) | Replaces the deprecated endpoint for viewing user profiles /u with /user, that used to fix a bug. |  |
-
-</details>
-
-<details open>
-<summary><strong>com.laurencedawson.reddit_sync.dev</strong> • 8 patches</summary>
-
-
-
-| Patch | Description | Options |
-|---|---|---|
-| [Disable Sync for Lemmy bottom sheet](#disable-sync-for-lemmy-bottom-sheet) | Disables the bottom sheet at the startup that asks you to signup to "Sync for Lemmy". |  |
-| [Fix /s/ links](#fix-s-links) |  |  |
-| [Fix post thumbnails](#fix-post-thumbnails) | Fixes loading post thumbnails by correcting their URLs. |  |
-| [Fix Redgifs API](#fix-redgifs-api) |  |  |
-| [Fix video downloads](#fix-video-downloads) | Fixes a bug in Sync's MPD parser resulting in only the audio-track being saved. |  |
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
-| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-| [Use /user/ endpoint](#use-user-endpoint) | Replaces the deprecated endpoint for viewing user profiles /u with /user, that used to fix a bug. |  |
-
-</details>
-
-<details open>
-<summary><strong>o.o.joey</strong> • 3 patches</summary>
-
-
-
-| Patch | Description | Options |
-|---|---|---|
-| [Disable ads](#disable-ads) |  |  |
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
-| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-
-</details>
-
-<details open>
-<summary><strong>io.syncapps.lemmy_sync</strong> • 1 patch</summary>
-
-
-
-| Patch | Description | Options |
-|---|---|---|
-| [Disable ads](#disable-ads) |  |  |
-
-</details>
-
-<details open>
-<summary><strong>com.andrewshu.android.reddit</strong> • 4 patches</summary>
-
-
-
-| Patch | Description | Options |
-|---|---|---|
-| [Fake reddit premium](#fake-reddit-premium) | Allows using pro features without ads. |  |
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
-| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-| [Use public imgur API](#use-public-imgur-api) | Fix imgur albums not loading. |  |
-
-</details>
-
-<details open>
-<summary><strong>free.reddit.news</strong> • 3 patches</summary>
-
-
-
-| Patch | Description | Options |
-|---|---|---|
-| [Fix /s/ links](#fix-s-links) |  |  |
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
-| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-
-</details>
-
-<details open>
-<summary><strong>reddit.news</strong> • 3 patches</summary>
-
-
-
-| Patch | Description | Options |
-|---|---|---|
-| [Fix /s/ links](#fix-s-links) |  |  |
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
-| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-
-</details>
-
-<details open>
-<summary><strong>com.onelouder.baconreader</strong> • 3 patches</summary>
-
-
-
-| Patch | Description | Options |
-|---|---|---|
-| [Fix Redgifs API](#fix-redgifs-api) |  |  |
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
-| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-
-</details>
-
-<details open>
-<summary><strong>com.onelouder.baconreader.premium</strong> • 3 patches</summary>
-
-
-
-| Patch | Description | Options |
-|---|---|---|
-| [Fix Redgifs API](#fix-redgifs-api) |  |  |
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
-| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-
-</details>
-
-<details open>
-<summary><strong>ml.docilealligator.infinityforreddit.plus</strong> • 2 patches</summary>
-
-
-
-| Patch | Description | Options |
-|---|---|---|
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
-| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-
-</details>
-
-<details open>
-<summary><strong>ml.docilealligator.infinityforreddit.patreon</strong> • 2 patches</summary>
-
-
-
-| Patch | Description | Options |
-|---|---|---|
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
-| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-
-</details>
-
-<details open>
-<summary><strong>o.o.joey.pro</strong> • 2 patches</summary>
-
-
-
-| Patch | Description | Options |
-|---|---|---|
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
-| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-
-</details>
-
-<details open>
-<summary><strong>o.o.joey.dev</strong> • 2 patches</summary>
-
-
-
-| Patch | Description | Options |
-|---|---|---|
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
-| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-
-</details>
-
-<details open>
-<summary><strong>com.andrewshu.android.redditdonation</strong> • 3 patches</summary>
-
-
-
-| Patch | Description | Options |
-|---|---|---|
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
-| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-| [Use public imgur API](#use-public-imgur-api) | Fix imgur albums not loading. |  |
-
-</details>
-
-<details open>
-<summary><strong>Imgur</strong> • 2 patches</summary>
-
-
-
-| Patch | Description | Options |
-|---|---|---|
-| [Share selected media](#share-selected-media) | Makes Imgur direct media sharing use the selected media item instead of the parent gallery. Can share either the raw media/download URL or the Imgur item permalink. | • Link mode |
-| [Share selected media file](#share-selected-media-file) | Makes Imgur post-detail media long-press share the selected media file. Also replaces Imgur's Download share action with direct file sharing. The selected media is cached privately, shared with Android's share sheet, and is not saved permanently to /sdcard/Download/Imgur. |  |
-
-</details>
-
-<details open>
-<summary><strong>org.cygnusx1.continuum</strong> • 1 patch</summary>
-
-
-
-| Patch | Description | Options |
-|---|---|---|
-| [Spoof client](#spoof-client) | Allows modifying Continuum's client ID, redirect URI and user agent in API Keys settings menu. Patch options will modify default values. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-
-</details>
-
-<details open>
-<summary><strong>me.edgan.redditslide</strong> • 1 patch</summary>
-
-
-
-| Patch | Description | Options |
-|---|---|---|
-| [Spoof client](#spoof-client) | Allows modifying Slide's client ID, redirect URI and user agent in settings. Patch options will modify default values. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-
-</details>
-
-<details open>
-<summary><strong>Universal</strong> • 1 patch</summary>
-
-
-
-| Patch | Description | Options |
-|---|---|---|
-| [Enable Android debugging](#enable-android-debugging) | Enables Android developer debugging capabilities. Including this patch can slow down the app. |  |
-
-</details>
-<!-- PATCHES_END -->
 
 ## Project page
 
@@ -403,6 +114,293 @@ Included Imgur patches:
   - Default mode shares the raw media/download URL.
   - Optional mode shares the selected item permalink.
   - Keeps URL/link sharing separate from file sharing.
+
+### Patches list
+
+<!-- PATCHES_START -->
+> **Patch source version:** `v1.4.43` • `main` • 29 unique patches • 81 package entries
+
+<details>
+<summary><strong>Boost for Reddit</strong> • 20 patches</summary>
+
+
+
+| Patch | Description | Options |
+|---|---|---|
+| [Add archive links to context menu](#add-archive-links-to-context-menu) |  |  |
+| [Automatically undelete Imgur images](#automatically-undelete-imgur-images) |  |  |
+| [Automatically undelete Reddit content](#automatically-undelete-reddit-content) |  |  |
+| [Boost Morphe settings](#boost-morphe-settings) | Adds Boost Morphe settings for inline media previews, source text visibility, and preview alignment. |  |
+| [Disable ads](#disable-ads) |  |  |
+| [Disable Boost Crashlytics startup network calls](#disable-boost-crashlytics-startup-network-calls) | Disables Boost's Crashlytics startup initialization while keeping Firebase Analytics and other Firebase components. |  |
+| [Fix /r/all](#fix-r-all) |  |  |
+| [Fix /s/ links](#fix-s-links) |  |  |
+| [Fix Boost code block rendering](#fix-boost-code-block-rendering) | Preserves multiline Reddit code blocks by normalizing inline multiline <code> HTML to Boost's native <pre> renderer path. |  |
+| [Fix Boost comments Lemmy-style toolbar UI](#fix-boost-comments-lemmy-style-toolbar-ui) | Removes the duplicate native comments title by disabling the SlidrTheme window title/actionbar layer while preserving Boost's selected light/dark theme, toolbar title, and dynamic sort subtitle. |  |
+| [Fix Boost navigation bar overlap](#fix-boost-navigation-bar-overlap) | Adds runtime system bar inset handling for Boost bottom controls and drawer content on Android 15+ target SDK builds. |  |
+| [Fix Boost target SDK 35 compatibility](#fix-boost-target-sdk-35-compatibility) | Sets Boost for Reddit's target SDK to 35 and fixes BillingClient receiver registration for newer Android versions. |  |
+| [Fix download completed notification visibility](#fix-download-completed-notification-visibility) | Moves completed download notifications to a separate default-importance channel so download completion is visible while progress notifications remain low-priority. |  |
+| [Fix missing audio in video downloads](#fix-missing-audio-in-video-downloads) | Fixes audio missing in videos downloaded from v.redd.it. |  |
+| [Fix Redgifs API](#fix-redgifs-api) |  |  |
+| [Fix slow Giphy loading](#fix-slow-giphy-loading) | Bypasses Boost's slow Giphy API resolver and uses Boost's direct media.giphy.com MP4 fallback for Giphy posts. |  |
+| [Hook exception handler](#hook-exception-handler) | Hook the exception handler in Boost. Don't enable except for development purposes |  |
+| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Show inline Giphy previews in comments](#show-inline-giphy-previews-in-comments) | Adds inline animated Giphy previews below Boost comment text for Reddit Giphy markdown and Giphy links. |  |
+| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+
+</details>
+
+<details>
+<summary><strong>com.laurencedawson.reddit_sync</strong> • 9 patches</summary>
+
+
+
+| Patch | Description | Options |
+|---|---|---|
+| [Disable ads](#disable-ads) |  |  |
+| [Disable Sync for Lemmy bottom sheet](#disable-sync-for-lemmy-bottom-sheet) | Disables the bottom sheet at the startup that asks you to signup to "Sync for Lemmy". |  |
+| [Fix /s/ links](#fix-s-links) |  |  |
+| [Fix post thumbnails](#fix-post-thumbnails) | Fixes loading post thumbnails by correcting their URLs. |  |
+| [Fix Redgifs API](#fix-redgifs-api) |  |  |
+| [Fix video downloads](#fix-video-downloads) | Fixes a bug in Sync's MPD parser resulting in only the audio-track being saved. |  |
+| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+| [Use /user/ endpoint](#use-user-endpoint) | Replaces the deprecated endpoint for viewing user profiles /u with /user, that used to fix a bug. |  |
+
+</details>
+
+<details>
+<summary><strong>com.laurencedawson.reddit_sync.pro</strong> • 8 patches</summary>
+
+
+
+| Patch | Description | Options |
+|---|---|---|
+| [Disable Sync for Lemmy bottom sheet](#disable-sync-for-lemmy-bottom-sheet) | Disables the bottom sheet at the startup that asks you to signup to "Sync for Lemmy". |  |
+| [Fix /s/ links](#fix-s-links) |  |  |
+| [Fix post thumbnails](#fix-post-thumbnails) | Fixes loading post thumbnails by correcting their URLs. |  |
+| [Fix Redgifs API](#fix-redgifs-api) |  |  |
+| [Fix video downloads](#fix-video-downloads) | Fixes a bug in Sync's MPD parser resulting in only the audio-track being saved. |  |
+| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+| [Use /user/ endpoint](#use-user-endpoint) | Replaces the deprecated endpoint for viewing user profiles /u with /user, that used to fix a bug. |  |
+
+</details>
+
+<details>
+<summary><strong>com.laurencedawson.reddit_sync.dev</strong> • 8 patches</summary>
+
+
+
+| Patch | Description | Options |
+|---|---|---|
+| [Disable Sync for Lemmy bottom sheet](#disable-sync-for-lemmy-bottom-sheet) | Disables the bottom sheet at the startup that asks you to signup to "Sync for Lemmy". |  |
+| [Fix /s/ links](#fix-s-links) |  |  |
+| [Fix post thumbnails](#fix-post-thumbnails) | Fixes loading post thumbnails by correcting their URLs. |  |
+| [Fix Redgifs API](#fix-redgifs-api) |  |  |
+| [Fix video downloads](#fix-video-downloads) | Fixes a bug in Sync's MPD parser resulting in only the audio-track being saved. |  |
+| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+| [Use /user/ endpoint](#use-user-endpoint) | Replaces the deprecated endpoint for viewing user profiles /u with /user, that used to fix a bug. |  |
+
+</details>
+
+<details>
+<summary><strong>o.o.joey</strong> • 3 patches</summary>
+
+
+
+| Patch | Description | Options |
+|---|---|---|
+| [Disable ads](#disable-ads) |  |  |
+| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+
+</details>
+
+<details>
+<summary><strong>io.syncapps.lemmy_sync</strong> • 1 patch</summary>
+
+
+
+| Patch | Description | Options |
+|---|---|---|
+| [Disable ads](#disable-ads) |  |  |
+
+</details>
+
+<details>
+<summary><strong>com.andrewshu.android.reddit</strong> • 4 patches</summary>
+
+
+
+| Patch | Description | Options |
+|---|---|---|
+| [Fake reddit premium](#fake-reddit-premium) | Allows using pro features without ads. |  |
+| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+| [Use public imgur API](#use-public-imgur-api) | Fix imgur albums not loading. |  |
+
+</details>
+
+<details>
+<summary><strong>free.reddit.news</strong> • 3 patches</summary>
+
+
+
+| Patch | Description | Options |
+|---|---|---|
+| [Fix /s/ links](#fix-s-links) |  |  |
+| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+
+</details>
+
+<details>
+<summary><strong>reddit.news</strong> • 3 patches</summary>
+
+
+
+| Patch | Description | Options |
+|---|---|---|
+| [Fix /s/ links](#fix-s-links) |  |  |
+| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+
+</details>
+
+<details>
+<summary><strong>com.onelouder.baconreader</strong> • 3 patches</summary>
+
+
+
+| Patch | Description | Options |
+|---|---|---|
+| [Fix Redgifs API](#fix-redgifs-api) |  |  |
+| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+
+</details>
+
+<details>
+<summary><strong>com.onelouder.baconreader.premium</strong> • 3 patches</summary>
+
+
+
+| Patch | Description | Options |
+|---|---|---|
+| [Fix Redgifs API](#fix-redgifs-api) |  |  |
+| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+
+</details>
+
+<details>
+<summary><strong>ml.docilealligator.infinityforreddit.plus</strong> • 2 patches</summary>
+
+
+
+| Patch | Description | Options |
+|---|---|---|
+| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+
+</details>
+
+<details>
+<summary><strong>ml.docilealligator.infinityforreddit.patreon</strong> • 2 patches</summary>
+
+
+
+| Patch | Description | Options |
+|---|---|---|
+| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+
+</details>
+
+<details>
+<summary><strong>o.o.joey.pro</strong> • 2 patches</summary>
+
+
+
+| Patch | Description | Options |
+|---|---|---|
+| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+
+</details>
+
+<details>
+<summary><strong>o.o.joey.dev</strong> • 2 patches</summary>
+
+
+
+| Patch | Description | Options |
+|---|---|---|
+| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+
+</details>
+
+<details>
+<summary><strong>com.andrewshu.android.redditdonation</strong> • 3 patches</summary>
+
+
+
+| Patch | Description | Options |
+|---|---|---|
+| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+| [Use public imgur API](#use-public-imgur-api) | Fix imgur albums not loading. |  |
+
+</details>
+
+<details>
+<summary><strong>Imgur</strong> • 2 patches</summary>
+
+
+
+| Patch | Description | Options |
+|---|---|---|
+| [Share selected media](#share-selected-media) | Makes Imgur direct media sharing use the selected media item instead of the parent gallery. Can share either the raw media/download URL or the Imgur item permalink. | • Link mode |
+| [Share selected media file](#share-selected-media-file) | Makes Imgur post-detail media long-press share the selected media file. Also replaces Imgur's Download share action with direct file sharing. The selected media is cached privately, shared with Android's share sheet, and is not saved permanently to /sdcard/Download/Imgur. |  |
+
+</details>
+
+<details>
+<summary><strong>org.cygnusx1.continuum</strong> • 1 patch</summary>
+
+
+
+| Patch | Description | Options |
+|---|---|---|
+| [Spoof client](#spoof-client) | Allows modifying Continuum's client ID, redirect URI and user agent in API Keys settings menu. Patch options will modify default values. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+
+</details>
+
+<details>
+<summary><strong>me.edgan.redditslide</strong> • 1 patch</summary>
+
+
+
+| Patch | Description | Options |
+|---|---|---|
+| [Spoof client](#spoof-client) | Allows modifying Slide's client ID, redirect URI and user agent in settings. Patch options will modify default values. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+
+</details>
+
+<details>
+<summary><strong>Universal</strong> • 1 patch</summary>
+
+
+
+| Patch | Description | Options |
+|---|---|---|
+| [Enable Android debugging](#enable-android-debugging) | Enables Android developer debugging capabilities. Including this patch can slow down the app. |  |
+
+</details>
+<!-- PATCHES_END -->
 
 ## Tested app versions
 
