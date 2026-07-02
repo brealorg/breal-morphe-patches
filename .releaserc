@@ -28,7 +28,7 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "./tools/check-patches-list-feed.sh --write \"v${nextRelease.version}\" || { git diff -- patches-list.json; exit 1; }"
+        "prepareCmd": "./tools/check-patches-list-feed.sh --write \"v${nextRelease.version}\" || { git diff -- patches-list.json; exit 1; }; python3 .github/scripts/generate_patches_readme.py \"$GITHUB_REPOSITORY\" \"$GITHUB_REF_NAME\" patches-list.json README.md"
       }
     ],
     [
@@ -38,7 +38,8 @@
           "CHANGELOG.md",
           "gradle.properties",
           "patches-bundle.json",
-          "patches-list.json"
+          "patches-list.json",
+          "README.md"
         ],
         "message": "chore: Release v${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }
