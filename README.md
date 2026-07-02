@@ -1,5 +1,7 @@
 # Breal Morphe Patches
 
+1.4.42 disables the automatic Imgur/Reddit undelete patches by default for Boost. This avoids slow comment loading in the normal/default patch flow while keeping undelete available as an opt-in patch.
+
 Unofficial Morphe patch bundle for Boost for Reddit, Imgur, and related Android app fixes.
 
 This repository publishes a Morphe-compatible `.mpp` bundle and a small JSON feed used by Morphe Manager to discover the current release.
@@ -34,12 +36,12 @@ Do not use the normal GitHub project page as the Morphe source. The GitHub proje
 
 | Field | Value |
 |---|---|
-| Version | `1.4.41` |
-| Release tag | `morphe-patches-41` |
-| Asset | `patches-1.4.41.mpp` |
-| SHA256 | `5844fea46e784e5d7c3430e58768ae794bed91a93774592ea1e857436dab51db` |
+| Version | `1.4.42` |
+| Release tag | `morphe-patches-42` |
+| Asset | `patches-1.4.42.mpp` |
+| SHA256 | `b3032facb27e2e763e3c11d9257e0dfb15cc9de7bea6ad19eaad80e46e2955d8` |
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-41/patches-1.4.41.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-42/patches-1.4.42.mpp` |
 
 ## What this bundle does
 
@@ -49,9 +51,9 @@ The current bundle is focused on practical hotfixes for tested app versions, esp
 
 Tested against Boost for Reddit `1.12.12` / versionCode `210011212`.
 
-Included in `1.4.41`:
+Included in `1.4.42`:
 
-1.4.41 is a hotfix for the normal Morphe Manager/default-flow path: the Comments UI fix is now enabled by default, so the duplicate native `Comments` title row is removed without requiring users to manually select that patch.
+1.4.42 is a hotfix for the normal Morphe Manager/default-flow path: the Comments UI fix is now enabled by default, so the duplicate native `Comments` title row is removed without requiring users to manually select that patch.
 
 - **Comments UI**
   - Removes the duplicate native `Comments` title row.
@@ -112,12 +114,12 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.41` was published and verified with:
+Release `1.4.42` was published and verified with:
 
-- Release tag `morphe-patches-41` pointing to the 1.4.41 release commit.
+- Release tag `morphe-patches-42` pointing to the 1.4.42 release commit.
 - GitHub release asset SHA256 matching the local built MPP.
-- Raw `patches-bundle.json` returning version `1.4.41`.
-- Raw `patches-bundle.json` pointing to the `morphe-patches-41` asset.
+- Raw `patches-bundle.json` returning version `1.4.42`.
+- Raw `patches-bundle.json` pointing to the `morphe-patches-42` asset.
 - Downloaded release asset SHA256 matching:
 
 ```text
@@ -130,7 +132,7 @@ This repository contains experimental and release-candidate work in local/work b
 
 ### Deferred work
 
-16K / WL04R builder and runtime work is intentionally **not included** in `1.4.41`.
+16K / WL04R builder and runtime work is intentionally **not included** in `1.4.42`.
 
 That work is preserved separately for a later scope.
 
