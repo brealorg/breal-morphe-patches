@@ -118,10 +118,10 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `v1.4.43` • `main` • 29 unique patches • 81 package entries
+> **Patch source version:** `v1.4.1` • `main` • 30 unique patches • 82 package entries
 
 <details>
-<summary><strong>Boost for Reddit</strong> • 20 patches</summary>
+<summary><strong>Boost for Reddit</strong> • 21 patches</summary>
 
 
 
@@ -145,6 +145,7 @@ Included Imgur patches:
 | [Fix Boost navigation bar overlap](#fix-boost-navigation-bar-overlap) | Adds runtime system bar inset handling for Boost bottom controls and drawer content on Android 15+ target SDK builds. |  |
 | [Fix Boost target SDK 35 compatibility](#fix-boost-target-sdk-35-compatibility) | Sets Boost for Reddit's target SDK to 35 and fixes BillingClient receiver registration for newer Android versions. |  |
 | [Fix download completed notification visibility](#fix-download-completed-notification-visibility) | Moves completed download notifications to a separate default-importance channel so download completion is visible while progress notifications remain low-priority. |  |
+| [Fix Hide crash](#fix-hide-crash) | Prevents Boost from crashing when Hide receives an invalid feed/list index. |  |
 | [Fix missing audio in video downloads](#fix-missing-audio-in-video-downloads) | Fixes audio missing in videos downloaded from v.redd.it. |  |
 | [Fix Redgifs API](#fix-redgifs-api) |  |  |
 | [Fix slow Giphy loading](#fix-slow-giphy-loading) | Bypasses Boost's slow Giphy API resolver and uses Boost's direct media.giphy.com MP4 fallback for Giphy posts. |  |

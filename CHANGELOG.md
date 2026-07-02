@@ -1,3 +1,11 @@
+## [1.4.1](https://github.com/brealorg/breal-morphe-patches/compare/v1.4.0...v1.4.1) (2026-07-02)
+
+
+### Bug Fixes
+
+* **boost:** guard hide invalid index crash ([1f28da3](https://github.com/brealorg/breal-morphe-patches/commit/1f28da393ef53185af4a2831f4f15c410ba4a803))
+* include app names in patches list feed ([85a8164](https://github.com/brealorg/breal-morphe-patches/commit/85a816451b987e67e49c8f80025781a2e927792d))
+
 # Changelog
 
 

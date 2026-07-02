@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-02T22:12:10",
-  "description": "Fix Boost comment code block rendering so Reddit fenced code preserves line breaks.\nSplit multiline Reddit <code> HTML into separate Boost native code blocks so prose such as 'Or:' stays outside the code block.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-43/patches-1.4.43.mpp",
-  "signature_download_url": "",
-  "version": "1.4.43"
+  "created_at": "2026-07-02T23:05:11",
+  "description": "## [1.4.1](https://github.com/brealorg/breal-morphe-patches/compare/v1.4.0...v1.4.1) (2026-07-02)\n\n\n### Bug Fixes\n\n* **boost:** guard hide invalid index crash ([1f28da3](https://github.com/brealorg/breal-morphe-patches/commit/1f28da393ef53185af4a2831f4f15c410ba4a803))\n* include app names in patches list feed ([85a8164](https://github.com/brealorg/breal-morphe-patches/commit/85a816451b987e67e49c8f80025781a2e927792d))",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/v1.4.1/patches-1.4.1.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/v1.4.1/patches-1.4.1.mpp.asc",
+  "version": "1.4.1"
 }

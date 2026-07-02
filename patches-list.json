@@ -1,5 +1,5 @@
 {
-  "version": "v1.4.43",
+  "version": "v1.4.1",
   "patches": [
     {
       "name": "Add archive links to context menu",
@@ -357,6 +357,22 @@
         "ResourcePatch",
         "BytecodePatch"
       ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.rubenmayayo.reddit",
+          "name": "Boost for Reddit",
+          "targets": [
+            "1.12.12"
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Fix Hide crash",
+      "description": "Prevents Boost from crashing when Hide receives an invalid feed/list index.",
+      "use": true,
+      "dependencies": [],
       "compatiblePackages": [
         {
           "packageName": "com.rubenmayayo.reddit",
