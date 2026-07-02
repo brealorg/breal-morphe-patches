@@ -63,7 +63,11 @@ The current bundle is focused on practical hotfixes for tested app versions, esp
 
 Tested against Boost for Reddit `1.12.12` / versionCode `210011212`.
 
-Included in `1.4.43`:
+Included in `1.4.44`:
+
+1.4.44 fixes a Boost crash when hiding a post from a feed if Boost receives an invalid list index.
+
+Also included from `1.4.43`:
 
 1.4.43 fixes Boost comment rendering for Reddit fenced code blocks. Multiline code is rendered as Boost native code blocks, while prose between adjacent code blocks stays outside the code background.
 
