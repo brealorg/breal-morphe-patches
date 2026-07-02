@@ -128,6 +128,17 @@ def main() -> int:
     req(tag in readme, f"README.md missing tag {tag}")
     req(mpp_name in readme, f"README.md missing asset name {mpp_name}")
 
+    boost_heading = "### Boost for Reddit"
+    next_imgur_heading = "### Imgur selected media sharing"
+    if boost_heading in readme and next_imgur_heading in readme:
+        boost_section = readme.split(boost_heading, 1)[1].split(next_imgur_heading, 1)[0]
+        req(
+            f"Included in `{version}`:" in boost_section,
+            f"README Boost for Reddit section missing current release marker: Included in `{version}`:",
+        )
+    else:
+        errors.append("README.md missing expected Boost for Reddit / Imgur section headings")
+
     req(mpp_path.exists(), f"MPP does not exist: {mpp_path}")
 
     if mpp_path.exists():
