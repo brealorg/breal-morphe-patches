@@ -36,6 +36,9 @@ trap cleanup EXIT
 echo "===== generate patches-list.json ====="
 ./gradlew :patches:generatePatchesList >/tmp/morphe-check-patches-list-feed.gradle.log
 
+echo "===== normalize compatiblePackages schema ====="
+python3 tools/normalize-patches-list-compatible-packages.py patches-list.json
+
 TMP="$(mktemp)"
 jq --arg v "$EXPECTED_VERSION" '.version=$v' patches-list.json > "$TMP"
 mv "$TMP" patches-list.json
@@ -78,7 +81,7 @@ PY
 
 if ! diff -u "$ORIGINAL" patches-list.json > "$DIFF_OUT"; then
   echo
-  echo "FAIL: patches-list.json is stale relative to generated output"
+  echo "patches-list.json differs from generated output"
   echo "----- diff -----"
   cat "$DIFF_OUT"
   echo
@@ -86,7 +89,10 @@ if ! diff -u "$ORIGINAL" patches-list.json > "$DIFF_OUT"; then
     echo "MODE=--write, leaving regenerated patches-list.json in working tree"
     trap - EXIT
     rm -f "$ORIGINAL" "$DIFF_OUT"
+    echo "RESULT=PATCHES_LIST_FEED_WRITE_OK"
+    exit 0
   fi
+  echo "FAIL: patches-list.json is stale relative to generated output"
   exit 1
 fi
 

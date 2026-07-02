@@ -125,6 +125,11 @@ Included Imgur patches:
 
 
 
+**Supported versions:**
+
+| 1.12.12 |
+| :---: |
+
 | Patch | Description | Options |
 |---|---|---|
 | [Add archive links to context menu](#add-archive-links-to-context-menu) |  |  |
@@ -151,9 +156,14 @@ Included Imgur patches:
 </details>
 
 <details>
-<summary><strong>com.laurencedawson.reddit_sync</strong> • 9 patches</summary>
+<summary><strong>Sync for Reddit</strong> • 9 patches</summary>
 
 
+
+**Supported versions:**
+
+| v23.06.30-13:39 |
+| :---: |
 
 | Patch | Description | Options |
 |---|---|---|
@@ -170,7 +180,7 @@ Included Imgur patches:
 </details>
 
 <details>
-<summary><strong>com.laurencedawson.reddit_sync.pro</strong> • 8 patches</summary>
+<summary><strong>Sync for Reddit Pro</strong> • 8 patches</summary>
 
 
 
@@ -188,7 +198,7 @@ Included Imgur patches:
 </details>
 
 <details>
-<summary><strong>com.laurencedawson.reddit_sync.dev</strong> • 8 patches</summary>
+<summary><strong>Sync for Reddit Dev</strong> • 8 patches</summary>
 
 
 
@@ -206,7 +216,7 @@ Included Imgur patches:
 </details>
 
 <details>
-<summary><strong>o.o.joey</strong> • 3 patches</summary>
+<summary><strong>Joey for Reddit</strong> • 3 patches</summary>
 
 
 
@@ -234,6 +244,11 @@ Included Imgur patches:
 
 
 
+**Supported versions:**
+
+| 5.6.22 |
+| :---: |
+
 | Patch | Description | Options |
 |---|---|---|
 | [Fake reddit premium](#fake-reddit-premium) | Allows using pro features without ads. |  |
@@ -248,6 +263,11 @@ Included Imgur patches:
 
 
 
+**Supported versions:**
+
+| 10.2.40 |
+| :---: |
+
 | Patch | Description | Options |
 |---|---|---|
 | [Fix /s/ links](#fix-s-links) |  |  |
@@ -260,6 +280,11 @@ Included Imgur patches:
 <summary><strong>reddit.news</strong> • 3 patches</summary>
 
 
+
+**Supported versions:**
+
+| 10.2.40 |
+| :---: |
 
 | Patch | Description | Options |
 |---|---|---|
@@ -274,6 +299,11 @@ Included Imgur patches:
 
 
 
+**Supported versions:**
+
+| 6.1.4 |
+| :---: |
+
 | Patch | Description | Options |
 |---|---|---|
 | [Fix Redgifs API](#fix-redgifs-api) |  |  |
@@ -286,6 +316,11 @@ Included Imgur patches:
 <summary><strong>com.onelouder.baconreader.premium</strong> • 3 patches</summary>
 
 
+
+**Supported versions:**
+
+| 6.1.4 |
+| :---: |
 
 | Patch | Description | Options |
 |---|---|---|
@@ -348,6 +383,11 @@ Included Imgur patches:
 
 
 
+**Supported versions:**
+
+| 5.6.22 |
+| :---: |
+
 | Patch | Description | Options |
 |---|---|---|
 | [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
@@ -360,6 +400,11 @@ Included Imgur patches:
 <summary><strong>Imgur</strong> • 2 patches</summary>
 
 
+
+**Supported versions:**
+
+| 7.33.0.0 |
+| :---: |
 
 | Patch | Description | Options |
 |---|---|---|

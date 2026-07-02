@@ -4,6 +4,7 @@ Generate README patch list from patches-list.json.
 
 This repo-compatible generator supports:
 - compatiblePackages missing/empty
+- compatiblePackages as map[packageName] -> versions
 - compatiblePackages as list[str]
 - compatiblePackages as list[dict]
 - options as list[str] or list[dict]
@@ -63,11 +64,29 @@ def safe_text(value) -> str:
 def package_label(package_name: str, explicit: str = "") -> str:
     return explicit or KNOWN_PACKAGE_LABELS.get(package_name, package_name or "Unknown package")
 
+def normalize_targets(value):
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return value
+    return [value]
+
 def normalize_compatible_packages(value):
     if not value:
         return []
 
     out = []
+
+    if isinstance(value, dict):
+        for package_name, targets in value.items():
+            package_name = str(package_name)
+            out.append({
+                "packageName": package_name,
+                "name": package_label(package_name),
+                "targets": normalize_targets(targets),
+            })
+        return out
+
     for item in value:
         if isinstance(item, str):
             out.append({
@@ -80,14 +99,13 @@ def normalize_compatible_packages(value):
                 item.get("packageName")
                 or item.get("id")
                 or item.get("package")
-                or item.get("name")
-                or "unknown"
+                or ""
             )
-            explicit_name = item.get("name") if item.get("packageName") else ""
+            explicit_name = item.get("name") or item.get("displayName") or item.get("appName") or ""
             out.append({
-                "packageName": package_name,
-                "name": package_label(package_name, explicit_name or ""),
-                "targets": item.get("targets") or item.get("versions") or [],
+                "packageName": str(package_name),
+                "name": package_label(str(package_name), str(explicit_name or "")),
+                "targets": normalize_targets(item.get("targets") or item.get("versions") or []),
             })
         else:
             package_name = str(item)
