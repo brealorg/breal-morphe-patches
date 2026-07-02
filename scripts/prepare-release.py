@@ -90,7 +90,47 @@ def set_readme_heading_value(text: str, heading: str, value: str) -> str:
 
 
 def set_readme_sha(text: str, sha: str) -> str:
-    return set_readme_heading_value(text, "SHA256:", sha)
+    new, count = re.subn(
+        r"(?m)^SHA256:\s*`?[0-9a-f]{64}`?\s*$",
+        f"SHA256: `{sha}`",
+        text,
+        count=1,
+    )
+    if count != 1:
+        raise SystemExit("Could not replace standalone README SHA256 line")
+    return new
+
+
+def replace_readme_table_value(text: str, label: str, value: str) -> str:
+    pattern = rf"(?m)^(\| {re.escape(label)} \| `)[^`]*(` \|)$"
+    new, count = re.subn(pattern, rf"\g<1>{value}\2", text, count=1)
+    if count != 1:
+        raise SystemExit(f"Could not replace README Current release table row: {label}")
+    return new
+
+
+def replace_readme_verification(text: str, version: str, tag: str, mpp_name: str, sha: str) -> str:
+    block = (
+        "## Verification\n\n"
+        f"Release `{version}` is prepared and locally verified with:\n\n"
+        f"- Release tag `{tag}`.\n"
+        "- Local built MPP SHA256 matching README.\n"
+        f"`{sha}`\n"
+        f"- `patches-bundle.json` returning version `{version}`.\n"
+        f"- `patches-bundle.json` pointing to the `{tag}` asset.\n"
+        "- Expected release asset:\n"
+        f"`{mpp_name}`\n"
+        f"- `{sha}  {mpp_name}`\n\n"
+    )
+    new, count = re.subn(
+        r"(?ms)^## Verification\n\n.*?(?=^## Development notes)",
+        block,
+        text,
+        count=1,
+    )
+    if count != 1:
+        raise SystemExit("Could not replace README Verification section")
+    return new
 
 
 def update_description(version: str, tag: str, changelog_lines: list[str]) -> str:
@@ -116,9 +156,9 @@ def update_bundle_json(path: Path, version: str, tag: str, changelog_lines: list
     mpp_name = mpp_name_for(version)
     data["created_at"] = datetime.now().replace(microsecond=0).isoformat()
     data["version"] = version
-    data["download_url"] = (
-        f"https://github.com/brealorg/breal-morphe-patches/releases/download/{tag}/{mpp_name}"
-    )
+    download_url = f"https://github.com/brealorg/breal-morphe-patches/releases/download/{tag}/{mpp_name}"
+    data["download_url"] = download_url
+    data["signature_download_url"] = f"{download_url}.asc"
     data["description"] = update_description(version, tag, changelog_lines)
 
     write(path, json.dumps(data, indent=2, ensure_ascii=False) + "\n")
@@ -126,14 +166,18 @@ def update_bundle_json(path: Path, version: str, tag: str, changelog_lines: list
 
 def update_readme(path: Path, version: str, tag: str, sha: str | None = None) -> None:
     mpp_name = mpp_name_for(version)
+    download_url = f"https://github.com/brealorg/breal-morphe-patches/releases/download/{tag}/{mpp_name}"
     text = read(path)
 
-    text = set_readme_heading_value(text, "Current public bundle:", version)
-    text = set_readme_heading_value(text, "Latest release asset:", mpp_name)
-    text = set_readme_heading_value(text, "Release tag:", tag)
+    text = replace_readme_table_value(text, "Version", version)
+    text = replace_readme_table_value(text, "Release tag", tag)
+    text = replace_readme_table_value(text, "Asset", mpp_name)
+    text = replace_readme_table_value(text, "Download URL", download_url)
 
     if sha is not None:
+        text = replace_readme_table_value(text, "SHA256", sha)
         text = set_readme_sha(text, sha)
+        text = replace_readme_verification(text, version, tag, mpp_name, sha)
 
     write(path, text)
 
@@ -190,8 +234,8 @@ def print_summary(version: str, tag: str, mpp: Path | None, sha: str | None) -> 
         print("sha256:", sha)
     print()
     print("Next manual steps:")
-    print("  git --no-pager diff -- gradle.properties patches-bundle.json README.md")
-    print("  git add gradle.properties patches-bundle.json README.md")
+    print("  git --no-pager diff -- gradle.properties patches-bundle.json patches-list.json README.md")
+    print("  git add gradle.properties patches-bundle.json patches-list.json README.md")
     print("  git commit -m \"Prepare patch bundle release <N>\"")
     print("  git tag -a <tag> -m <tag>")
     print("  git push origin main")
@@ -257,6 +301,15 @@ def main() -> int:
     write(gradle_path, gradle_text)
 
     update_bundle_json(bundle_path, version, tag, changelog_lines)
+    run(["./tools/check-patches-list-feed.sh", "--write", f"v{version}"])
+    run([
+        sys.executable,
+        ".github/scripts/generate_patches_readme.py",
+        "brealorg/breal-morphe-patches",
+        "main",
+        "patches-list.json",
+        "README.md",
+    ])
     update_readme(readme_path, version, tag, sha=None)
 
     if args.skip_build:
