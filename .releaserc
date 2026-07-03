@@ -83,7 +83,7 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "./tools/check-patches-list-feed.sh --write \"v${nextRelease.version}\" || { git diff -- patches-list.json; exit 1; }; python3 .github/scripts/generate_patches_readme.py \"$GITHUB_REPOSITORY\" \"$GITHUB_REF_NAME\" patches-list.json README.md"
+        "prepareCmd": "./tools/check-patches-list-feed.sh --write \"v${nextRelease.version}\" || { git diff -- patches-list.json; exit 1; }; python3 .github/scripts/generate_patches_readme.py \"$GITHUB_REPOSITORY\" \"$GITHUB_REF_NAME\" patches-list.json README.md; python3 tools/update-readme-current-release.py \"${nextRelease.version}\""
       }
     ],
     [
