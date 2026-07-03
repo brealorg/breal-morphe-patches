@@ -4,7 +4,7 @@ VERSION ?=
 TAG ?=
 EXTRA_GATE_ARGS ?=
 
-.PHONY: help status prepare-release release-build release-gate verify-remote
+.PHONY: help status prepare-release release-build release-gate verify-remote release-publish
 
 help:
 > @echo "Targets:"
@@ -13,6 +13,7 @@ help:
 > @echo "  make prepare-release VERSION=1.4.26 TAG=morphe-patches-26 CHANGELOG_FILE=/tmp/changelog.txt"
 > @echo "  make release-gate VERSION=1.4.22 TAG=morphe-patches-22 EXTRA_GATE_ARGS='...'"
 > @echo "  make verify-remote VERSION=1.4.22 TAG=morphe-patches-22"
+> @echo "  make release-publish VERSION=1.4.47 TAG=v1.4.47 EXTRA_PUBLISH_ARGS='--dry-run'"
 
 status:
 > git --no-pager status -sb
@@ -49,6 +50,11 @@ verify-remote:
 > @test -n "$(VERSION)" || (echo "Usage: make verify-remote VERSION=1.4.22 TAG=morphe-patches-22"; exit 1)
 > @test -n "$(TAG)" || (echo "Usage: make verify-remote VERSION=1.4.22 TAG=morphe-patches-22"; exit 1)
 > ./scripts/verify-remote-release.sh "$(VERSION)" "$(TAG)"
+
+release-publish:
+> @test -n "$(VERSION)" || (echo "Usage: make release-publish VERSION=1.4.47 TAG=v1.4.47 EXTRA_PUBLISH_ARGS='--dry-run'"; exit 1)
+> @test -n "$(TAG)" || (echo "Usage: make release-publish VERSION=1.4.47 TAG=v1.4.47 EXTRA_PUBLISH_ARGS='--dry-run'"; exit 1)
+> ./scripts/publish-release.py --version "$(VERSION)" --tag "$(TAG)" $(EXTRA_PUBLISH_ARGS)
 
 update-readme-sha:
 > @test -n "$(VERSION)" || (echo "Usage: make update-readme-sha VERSION=1.4.22"; exit 1)
