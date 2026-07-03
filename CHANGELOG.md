@@ -1,3 +1,5 @@
+## [1.4.46](https://github.com/brealorg/breal-morphe-patches/compare/v1.4.45...v1.4.46) (2026-07-03)
+
 ## [1.4.1](https://github.com/brealorg/breal-morphe-patches/compare/v1.4.0...v1.4.1) (2026-07-02)
 
 

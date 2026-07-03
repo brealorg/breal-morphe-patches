@@ -46,14 +46,14 @@ Preferred Morphe source setup is the deep link below. Raw `patches-bundle.json` 
 
 | Field | Value |
 |---|---|
-| Version | `1.4.45` |
-| Release tag | `morphe-patches-45` |
-| Asset | `patches-1.4.45.mpp` |
-| SHA256 | `5af6aa523d3373cf5222ce04ff8f859a3397ec59892088e3fbb1b9f2655b24eb` |
+| Version | `1.4.46` |
+| Release tag | `v1.4.46` |
+| Asset | `patches-1.4.46.mpp` |
+| SHA256 | `43c41f59733c4805ec7e0fd0815ded1d49deda7179e65464c5a9abe10593acdf` |
 
-SHA256: `5af6aa523d3373cf5222ce04ff8f859a3397ec59892088e3fbb1b9f2655b24eb`
+SHA256: `43c41f59733c4805ec7e0fd0815ded1d49deda7179e65464c5a9abe10593acdf`
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-45/patches-1.4.45.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/v1.4.46/patches-1.4.46.mpp` |
 
 ## What this bundle does
 
@@ -122,7 +122,7 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `v1.4.45` • `main` • 30 unique patches • 82 package entries
+> **Patch source version:** `v1.4.46` • `main` • 30 unique patches • 82 package entries
 
 <details>
 <summary><strong>Boost for Reddit</strong> • 21 patches</summary>

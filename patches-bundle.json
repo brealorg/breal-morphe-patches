@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-03T15:48:34",
-  "description": "Fix inline image/GIF previews in comments so they use comment-text inset and no longer hug the comment box edge.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-45/patches-1.4.45.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-45/patches-1.4.45.mpp.asc",
-  "version": "1.4.45"
+  "created_at": "2026-07-03T15:12:52",
+  "description": "## [1.4.46](https://github.com/brealorg/breal-morphe-patches/compare/v1.4.45...v1.4.46) (2026-07-03)",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/v1.4.46/patches-1.4.46.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/v1.4.46/patches-1.4.46.mpp.asc",
+  "version": "1.4.46"
 }
