@@ -138,7 +138,7 @@ if [ "$EXPLICIT_SERIAL" -eq 0 ] && [ -z "$DEVICES_FILE" ]; then
 fi
 
 if [ -n "$DEVICES_FILE" ]; then
-  [ -f "$DEVICES_FILE" ] || die "devices file missing: $DEVICES_FILE"
+  [ -r "$DEVICES_FILE" ] || die "devices file missing or unreadable: $DEVICES_FILE"
   DEVICES_TEXT="$(cat "$DEVICES_FILE")" || die "could not read devices file: $DEVICES_FILE"
 else
   command -v adb >/dev/null 2>&1 || die_tool "adb not found in PATH"
