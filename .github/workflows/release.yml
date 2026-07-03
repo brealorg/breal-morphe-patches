@@ -2,14 +2,266 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version, for example 1.4.45'
+        required: true
+        type: string
+      changelog:
+        description: 'Manager-facing release description'
+        required: true
+        type: string
+      markers:
+        description: 'Optional release-gate markers, one per line'
+        required: false
+        type: string
+      publish:
+        description: 'Commit, tag, push, and create GitHub release'
+        required: true
+        default: false
+        type: boolean
+      confirm:
+        description: 'Type MORPHE_RELEASE when publish=true'
+        required: false
+        type: string
+
+concurrency:
+  group: morphe-release
+  cancel-in-progress: false
 
 jobs:
   release:
-    name: Release disabled pending Morphe workflow rewrite
+    name: Manual Morphe release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    env:
+      VERSION: ${{ inputs.version }}
+      CHANGELOG: ${{ inputs.changelog }}
+      MARKERS: ${{ inputs.markers }}
+      PUBLISH: ${{ inputs.publish }}
+      CONFIRM: ${{ inputs.confirm }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
-      - name: Disabled
+      - name: Validate dispatch input
+        shell: bash
         run: |
-          echo "Release workflow is intentionally disabled."
-          echo "Use scripts/prepare-release.py and the manual Morphe release path until this workflow is rewritten."
-          exit 1
+          set -euo pipefail
+
+          if [ "$GITHUB_REF_NAME" != "main" ]; then
+            echo "Release workflow must be dispatched from main. Current ref: $GITHUB_REF_NAME"
+            exit 1
+          fi
+
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version: $VERSION"
+            exit 1
+          fi
+
+          if [ -z "$CHANGELOG" ]; then
+            echo "changelog input is required"
+            exit 1
+          fi
+
+          if [ "$PUBLISH" = "true" ] && [ "$CONFIRM" != "MORPHE_RELEASE" ]; then
+            echo "publish=true requires confirm=MORPHE_RELEASE"
+            exit 1
+          fi
+
+          TAG="morphe-patches-${VERSION##*.}"
+          ASSET="patches-${VERSION}.mpp"
+
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          echo "ASSET=$ASSET" >> "$GITHUB_ENV"
+
+          echo "VERSION=$VERSION"
+          echo "TAG=$TAG"
+          echo "ASSET=$ASSET"
+          echo "PUBLISH=$PUBLISH"
+
+      - name: Checkout main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Check existing release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "Release tag already exists: $TAG"
+            if [ "$PUBLISH" = "true" ]; then
+              exit 1
+            fi
+            echo "publish=false, continuing dry-run despite existing tag."
+          fi
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          fingerprint: ${{ vars.GPG_FINGERPRINT }}
+
+      - name: Prepare Morphe release
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cmd=(
+            python3 scripts/prepare-release.py
+            --version "$VERSION"
+            --tag "$TAG"
+            --changelog "$CHANGELOG"
+            --stale "releases/download/v"
+            --stale "patches-1.4.1.mpp"
+          )
+
+          while IFS= read -r marker; do
+            if [ -n "$marker" ]; then
+              cmd+=(--marker "$marker")
+            fi
+          done <<< "$MARKERS"
+
+          printf '+ '
+          printf '%q ' "${cmd[@]}"
+          echo
+
+          "${cmd[@]}"
+
+      - name: Sign and verify asset
+        shell: bash
+        env:
+          GPG_FINGERPRINT: ${{ vars.GPG_FINGERPRINT }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+
+          ASSET_PATH="patches/build/libs/$ASSET"
+
+          test -s "$ASSET_PATH"
+
+          unzip -l "$ASSET_PATH" | grep -F 'classes.dex'
+          unzip -l "$ASSET_PATH" | grep -F 'extensions/boostforreddit.mpe'
+
+          gpg --batch --yes \
+            --pinentry-mode loopback \
+            --passphrase "$GPG_PASSPHRASE" \
+            --local-user "$GPG_FINGERPRINT" \
+            --armor \
+            --detach-sign "$ASSET_PATH"
+
+          gpg --batch --verify "$ASSET_PATH.asc" "$ASSET_PATH"
+
+          sha256sum "$ASSET_PATH"
+          ls -lh "$ASSET_PATH" "$ASSET_PATH.asc"
+
+      - name: Show prepared release diff
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git diff --check -- gradle.properties patches-bundle.json patches-list.json README.md
+
+          UNEXPECTED="$(git diff --name-only | grep -Ev '^(gradle\.properties|patches-bundle\.json|patches-list\.json|README\.md)$' || true)"
+          if [ -n "$UNEXPECTED" ]; then
+            echo "Unexpected prepared file changes:"
+            printf '%s\n' "$UNEXPECTED"
+            exit 1
+          fi
+
+          git --no-pager diff -- gradle.properties patches-bundle.json patches-list.json README.md | sed -n '1,280p'
+          git --no-pager status -sb
+
+      - name: Stop before publish
+        if: ${{ inputs.publish != true }}
+        shell: bash
+        run: |
+          echo "publish=false, stopping after build/sign/gate/diff."
+          echo "No commit, tag, push, or GitHub release was created."
+
+      - name: Commit release metadata
+        if: ${{ inputs.publish == true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add gradle.properties patches-bundle.json patches-list.json README.md
+          git --no-pager diff --cached --name-only
+
+          git commit -m "Prepare Morphe patch bundle $VERSION [skip ci]"
+          git tag -a "$TAG" -m "$TAG"
+
+      - name: Push release commit and tag
+        if: ${{ inputs.publish == true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git push origin HEAD:main
+          git push origin HEAD:dev
+          git push origin "$TAG"
+
+      - name: Create GitHub release
+        if: ${{ inputs.publish == true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ASSET_PATH="patches/build/libs/$ASSET"
+          NOTES_FILE="release-notes-$VERSION.md"
+
+          printf '%s\n' "$CHANGELOG" > "$NOTES_FILE"
+
+          gh release create "$TAG" \
+            "$ASSET_PATH" \
+            "$ASSET_PATH.asc" \
+            --title "Morphe patch bundle $VERSION" \
+            --notes-file "$NOTES_FILE"
+
+      - name: Verify published release asset
+        if: ${{ inputs.publish == true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ASSET_PATH="patches/build/libs/$ASSET"
+          LOCAL_SHA="$(sha256sum "$ASSET_PATH" | awk '{print $1}')"
+
+          mkdir -p verify-release
+          gh release download "$TAG" --dir verify-release --pattern "$ASSET"
+          gh release download "$TAG" --dir verify-release --pattern "$ASSET.asc"
+
+          REMOTE_SHA="$(sha256sum "verify-release/$ASSET" | awk '{print $1}')"
+
+          echo "LOCAL_SHA=$LOCAL_SHA"
+          echo "REMOTE_SHA=$REMOTE_SHA"
+
+          test "$LOCAL_SHA" = "$REMOTE_SHA"
+          gpg --batch --verify "verify-release/$ASSET.asc" "verify-release/$ASSET"
+
+      - name: Attest release artifact
+        if: ${{ inputs.publish == true }}
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-name: 'Morphe ${{ env.TAG }}'
+          subject-path: 'patches/build/libs/${{ env.ASSET }}'
