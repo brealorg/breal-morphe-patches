@@ -12,6 +12,7 @@ body:
 
         - **Do not submit a duplicate bug report**: Search for existing bug reports [here](https://github.com/wchill/patcheddit/issues?q=label%3A%22Bug+report%22).
         - **Review the contribution guidelines**: Make sure your bug report adheres to it. You can find the guidelines [here](https://github.com/wchill/patcheddit/blob/main/CONTRIBUTING.md).
+        - **Release verification policy**: User-visible fixes stay open until the fix is released and verified through Morphe Manager / normal Boost when applicable.
   - type: textarea
     attributes:
       label: Bug description

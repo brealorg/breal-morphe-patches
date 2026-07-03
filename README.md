@@ -16,6 +16,11 @@ Unofficial Morphe patch bundle for Boost for Reddit, Imgur, and related Android 
 
 This repository publishes a Morphe-compatible `.mpp` bundle and a small JSON feed used by Morphe Manager to discover the current release.
 
+Release process notes:
+
+- [Release validation policy](docs/release-validation-policy.md)
+- [Final snapshot template](docs/final-snapshot-template.md)
+
 ## Project page
 
 Canonical GitHub repository:
