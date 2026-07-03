@@ -29,6 +29,9 @@ public final class InlineGiphyCommentPreview {
 
 
     private static final String PREVIEW_TAG = "morphe_boost_inline_giphy_preview";
+    private static final String COMMENT_TEXT_INSET_MARKER =
+            "morphe_boost_inline_media_comment_text_inset_v1";
+    private static final int FALLBACK_COMMENT_TEXT_HORIZONTAL_INSET_DP = 8;
     private static final String LOG_TAG = "InlineGiphy";
     private static final String PREF_INLINE_MEDIA_PREVIEWS_ENABLED =
             "morphe_boost_inline_media_previews_enabled";
@@ -191,6 +194,7 @@ public final class InlineGiphyCommentPreview {
             if (preview == null) return;
 
             View commentText = findCommentTextView(holder);
+            applyCommentTextHorizontalInset(preview, commentText);
             boolean showPreview = commentText == null || commentText.getVisibility() == View.VISIBLE;
 
             preview.setVisibility(showPreview ? View.VISIBLE : View.GONE);
@@ -388,6 +392,8 @@ public final class InlineGiphyCommentPreview {
             return false;
         }
 
+        applyCommentTextHorizontalInset(preview, commentText);
+
         if (commentText.getParent() instanceof ViewGroup) {
             ViewGroup parent = (ViewGroup) commentText.getParent();
             int index = parent.indexOfChild(commentText);
@@ -437,6 +443,41 @@ public final class InlineGiphyCommentPreview {
             for (int i = 0; i < group.getChildCount(); i++) {
                 restoreRelativeLayoutParamsRecursive(group.getChildAt(i));
             }
+        }
+    }
+
+    private static void applyCommentTextHorizontalInset(View preview, View commentText) {
+        try {
+            if (preview == null) return;
+
+            int leftInset = 0;
+            int rightInset = 0;
+
+            if (commentText != null) {
+                leftInset = Math.max(0, commentText.getPaddingLeft());
+                rightInset = Math.max(0, commentText.getPaddingRight());
+
+                ViewGroup.LayoutParams params = commentText.getLayoutParams();
+                if (params instanceof ViewGroup.MarginLayoutParams) {
+                    ViewGroup.MarginLayoutParams margins = (ViewGroup.MarginLayoutParams) params;
+                    leftInset += Math.max(0, margins.leftMargin);
+                    rightInset += Math.max(0, margins.rightMargin);
+                }
+            }
+
+            if (leftInset == 0 && rightInset == 0 && preview.getContext() != null) {
+                leftInset = dp(preview.getContext(), FALLBACK_COMMENT_TEXT_HORIZONTAL_INSET_DP);
+                rightInset = dp(preview.getContext(), FALLBACK_COMMENT_TEXT_HORIZONTAL_INSET_DP);
+            }
+
+            preview.setPadding(
+                    leftInset,
+                    preview.getPaddingTop(),
+                    rightInset,
+                    preview.getPaddingBottom()
+            );
+        } catch (Throwable throwable) {
+            Log.w(LOG_TAG, COMMENT_TEXT_INSET_MARKER + ": failed to apply comment text inset", throwable);
         }
     }
 
