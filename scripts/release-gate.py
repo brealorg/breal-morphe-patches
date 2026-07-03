@@ -69,6 +69,36 @@ def git_staged_files() -> list[str]:
     return [line.strip() for line in result.stdout.splitlines() if line.strip()]
 
 
+def readme_current_release_section(readme: str) -> str:
+    """Return only the active README Current release section for stale checks.
+
+    Historical README sections, release notes, and verification notes may
+    legitimately mention previous release versions/tags/assets. Stale checks
+    should therefore only scan the active release table area.
+    """
+
+    match = re.search(r"(?ms)^## Current release\n.*?(?=^##\s|\Z)", readme)
+    if match:
+        return match.group(0)
+    return ""
+
+
+def bundle_active_release_fields(bundle: dict) -> str:
+    """Return only active bundle fields that define the current release asset.
+
+    The Manager-facing description can contain generated compare ranges or
+    historical wording. Description quality is guarded separately by the
+    Manager description checks.
+    """
+
+    active_keys = (
+        "version",
+        "download_url",
+        "signature_download_url",
+    )
+    return "\n".join(str(bundle.get(key, "")) for key in active_keys)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate a Morphe patch bundle release before publishing.")
     parser.add_argument("--version", help="Expected bundle version, e.g. 1.4.22. Defaults to gradle.properties.")
@@ -180,11 +210,15 @@ def main() -> int:
         except Exception as e:
             errors.append(f"Could not inspect MPP: {e}")
 
-    metadata_files = [gradle_path, bundle_path, readme_path]
+    stale_scopes = [
+        ("gradle.properties", gradle),
+        ("patches-bundle.json active release fields", bundle_active_release_fields(bundle)),
+        ("README.md Current release section", readme_current_release_section(readme)),
+    ]
     for stale in args.stale:
-        for file in metadata_files:
-            if stale in read(file):
-                errors.append(f"stale value {stale!r} still present in {file.name}")
+        for scope_name, scope_text in stale_scopes:
+            if stale in scope_text:
+                errors.append(f"stale value {stale!r} still present in {scope_name}")
 
     if not args.skip_staged_check:
         staged = git_staged_files()
