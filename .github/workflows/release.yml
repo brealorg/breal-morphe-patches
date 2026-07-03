@@ -103,6 +103,30 @@ jobs:
             echo "publish=false, continuing dry-run despite existing tag."
           fi
 
+
+      - name: Validate release signing config
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          GPG_FINGERPRINT: ${{ vars.GPG_FINGERPRINT }}
+        run: |
+          set -euo pipefail
+
+          missing=0
+          for name in GPG_PRIVATE_KEY GPG_PASSPHRASE GPG_FINGERPRINT; do
+            value="${!name:-}"
+            if [ -z "$value" ]; then
+              echo "::error::$name is missing or empty"
+              missing=1
+            fi
+          done
+
+          if [ "$missing" -ne 0 ]; then
+            echo "Release signing config is incomplete."
+            exit 1
+          fi
+
+          echo "Release signing config is present."
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
