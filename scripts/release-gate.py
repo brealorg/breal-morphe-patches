@@ -132,9 +132,16 @@ def main() -> int:
     next_imgur_heading = "### Imgur selected media sharing"
     if boost_heading in readme and next_imgur_heading in readme:
         boost_section = readme.split(boost_heading, 1)[1].split(next_imgur_heading, 1)[0]
+        boost_release_marker = f"Included in `{version}`:"
+        generated_patch_source_markers = (
+            f"**Patch source version:** `v{version}`",
+            f"**Patch source version:** `{version}`",
+        )
         req(
-            f"Included in `{version}`:" in boost_section,
-            f"README Boost for Reddit section missing current release marker: Included in `{version}`:",
+            boost_release_marker in boost_section
+            or any(marker in readme for marker in generated_patch_source_markers),
+            "README missing current release marker: expected "
+            f"{boost_release_marker} in Boost for Reddit section or generated patch source version v{version}",
         )
     else:
         errors.append("README.md missing expected Boost for Reddit / Imgur section headings")
