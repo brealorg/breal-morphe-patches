@@ -90,6 +90,9 @@ jobs:
           ref: main
           fetch-depth: 0
 
+      - name: Validate semantic-release contract
+        run: ./tools/check-semantic-release-contract.sh
+
       - name: Check existing release tag
         shell: bash
         run: |
