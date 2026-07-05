@@ -1,5 +1,5 @@
 {
-  "version": "v1.4.46",
+  "version": "v1.4.47",
   "patches": [
     {
       "name": "Add archive links to context menu",
@@ -751,6 +751,38 @@
       "options": []
     },
     {
+      "name": "Restore GIF URL insertion",
+      "description": "Adds provider-independent manual GIF URL insertion to Boost's existing image menu.",
+      "use": false,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.rubenmayayo.reddit",
+          "name": "Boost for Reddit",
+          "targets": [
+            "1.12.12"
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Restore GIF search integration probe",
+      "description": "Fingerprint-only probe for Boost compose/reply GIF insertion through FormattingBar. No runtime behavior change.",
+      "use": false,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.rubenmayayo.reddit",
+          "name": "Boost for Reddit",
+          "targets": [
+            "1.12.12"
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Share selected media",
       "description": "Makes Imgur direct media sharing use the selected media item instead of the parent gallery. Can share either the raw media/download URL or the Imgur item permalink.",
       "use": true,
@@ -1261,6 +1293,22 @@
           "values": null
         }
       ]
+    },
+    {
+      "name": "Support keyboard GIF insertion",
+      "description": "Enables keyboard GIF/image rich content insertion through Android receive-content when a public URL is available.",
+      "use": false,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.rubenmayayo.reddit",
+          "name": "Boost for Reddit",
+          "targets": [
+            "1.12.12"
+          ]
+        }
+      ],
+      "options": []
     },
     {
       "name": "Use /user/ endpoint",

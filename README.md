@@ -51,14 +51,14 @@ Preferred Morphe source setup is the deep link below. Raw `patches-bundle.json` 
 
 | Field | Value |
 |---|---|
-| Version | `1.4.46` |
-| Release tag | `v1.4.46` |
-| Asset | `patches-1.4.46.mpp` |
-| SHA256 | `43c41f59733c4805ec7e0fd0815ded1d49deda7179e65464c5a9abe10593acdf` |
+| Version | `1.4.47` |
+| Release tag | `morphe-patches-47` |
+| Asset | `patches-1.4.47.mpp` |
+| SHA256 | `12c72c0202956757927e1e03c50c5ba7eb754cce42d4ca13a287fcc9a04fbb64` |
 
-SHA256: `43c41f59733c4805ec7e0fd0815ded1d49deda7179e65464c5a9abe10593acdf`
+SHA256: `12c72c0202956757927e1e03c50c5ba7eb754cce42d4ca13a287fcc9a04fbb64`
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/v1.4.46/patches-1.4.46.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-47/patches-1.4.47.mpp` |
 
 ## What this bundle does
 
@@ -127,10 +127,10 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `v1.4.46` • `main` • 30 unique patches • 82 package entries
+> **Patch source version:** `v1.4.47` • `main` • 33 unique patches • 85 package entries
 
 <details>
-<summary><strong>Boost for Reddit</strong> • 21 patches</summary>
+<summary><strong>Boost for Reddit</strong> • 24 patches</summary>
 
 
 
@@ -160,8 +160,11 @@ Included Imgur patches:
 | [Fix slow Giphy loading](#fix-slow-giphy-loading) | Bypasses Boost's slow Giphy API resolver and uses Boost's direct media.giphy.com MP4 fallback for Giphy posts. |  |
 | [Hook exception handler](#hook-exception-handler) | Hook the exception handler in Boost. Don't enable except for development purposes |  |
 | [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Restore GIF search integration probe](#restore-gif-search-integration-probe) | Fingerprint-only probe for Boost compose/reply GIF insertion through FormattingBar. No runtime behavior change. |  |
+| [Restore GIF URL insertion](#restore-gif-url-insertion) | Adds provider-independent manual GIF URL insertion to Boost's existing image menu. |  |
 | [Show inline Giphy previews in comments](#show-inline-giphy-previews-in-comments) | Adds inline animated Giphy previews below Boost comment text for Reddit Giphy markdown and Giphy links. |  |
 | [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+| [Support keyboard GIF insertion](#support-keyboard-gif-insertion) | Enables keyboard GIF/image rich content insertion through Android receive-content when a public URL is available. |  |
 
 </details>
 
@@ -468,16 +471,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.45` is prepared and locally verified with:
+Release `1.4.47` is prepared and locally verified with:
 
-- Release tag `morphe-patches-45`.
+- Release tag `morphe-patches-47`.
 - Local built MPP SHA256 matching README.
-`5af6aa523d3373cf5222ce04ff8f859a3397ec59892088e3fbb1b9f2655b24eb`
-- `patches-bundle.json` returning version `1.4.45`.
-- `patches-bundle.json` pointing to the `morphe-patches-45` asset.
+`12c72c0202956757927e1e03c50c5ba7eb754cce42d4ca13a287fcc9a04fbb64`
+- `patches-bundle.json` returning version `1.4.47`.
+- `patches-bundle.json` pointing to the `morphe-patches-47` asset.
 - Expected release asset:
-`patches-1.4.45.mpp`
-- `5af6aa523d3373cf5222ce04ff8f859a3397ec59892088e3fbb1b9f2655b24eb  patches-1.4.45.mpp`
+`patches-1.4.47.mpp`
+- `12c72c0202956757927e1e03c50c5ba7eb754cce42d4ca13a287fcc9a04fbb64  patches-1.4.47.mpp`
 
 ## Development notes
 

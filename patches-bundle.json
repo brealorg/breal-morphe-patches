@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-03T15:12:52",
-  "description": "## [1.4.46](https://github.com/brealorg/breal-morphe-patches/compare/v1.4.45...v1.4.46) (2026-07-03)",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/v1.4.46/patches-1.4.46.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/v1.4.46/patches-1.4.46.mpp.asc",
-  "version": "1.4.46"
+  "created_at": "2026-07-05T19:09:21",
+  "description": "Add Boost keyboard GIF/image insertion through Android receive-content and Gboard.\nKeep Boost GIF URL insertion support for the in-app GIF URL dialog.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-47/patches-1.4.47.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-47/patches-1.4.47.mpp.asc",
+  "version": "1.4.47"
 }
