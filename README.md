@@ -480,7 +480,7 @@ Release `1.4.47` is prepared and locally verified with:
 - `patches-bundle.json` pointing to the `morphe-patches-47` asset.
 - Expected release asset:
 `patches-1.4.47.mpp`
-- `12c72c0202956757927e1e03c50c5ba7eb754cce42d4ca13a287fcc9a04fbb64  patches-1.4.47.mpp`
+- `cb5001efc81dba8bfb826b2236374ceb12e6254abc370509f1f0d4a0c9b97c90  patches-1.4.47.mpp`
 
 ## Development notes
 
