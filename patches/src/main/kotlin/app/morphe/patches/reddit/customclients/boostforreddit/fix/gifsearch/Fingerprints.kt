@@ -36,3 +36,24 @@ internal val formattingBarSetEditTextFingerprint = Fingerprint(
     returnType = "V",
     parameters = listOf("Landroid/widget/EditText;")
 )
+
+internal val formattingBarInitFingerprint = Fingerprint(
+    definingClass = FORMATTING_BAR_DESCRIPTOR,
+    name = "o",
+    returnType = "V",
+    parameters = emptyList()
+)
+
+internal val formattingBarImageMenuOptionsFingerprint = Fingerprint(
+    definingClass = FORMATTING_BAR_DESCRIPTOR,
+    name = "i",
+    returnType = "Ljava/util/List;",
+    parameters = emptyList()
+)
+
+internal val formattingBarHandleImageMenuOptionFingerprint = Fingerprint(
+    definingClass = FORMATTING_BAR_DESCRIPTOR,
+    name = "m",
+    returnType = "V",
+    parameters = listOf("Lcom/rubenmayayo/reddit/ui/customviews/menu/MenuOption;")
+)
