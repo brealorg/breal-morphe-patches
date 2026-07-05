@@ -10,7 +10,7 @@ Manual fallback:
 
 https://github.com/brealorg/breal-morphe-patches
 
-1.4.43 fixes Boost comment code block rendering so Reddit fenced code preserves line breaks and surrounding prose stays outside code blocks.
+1.4.47 adds Boost keyboard GIF insertion through Android receive-content / Gboard and restores manual GIF URL insertion.
 
 Unofficial Morphe patch bundle for Boost for Reddit, Imgur, and related Android app fixes.
 
@@ -68,43 +68,7 @@ The current bundle is focused on practical hotfixes for tested app versions, esp
 
 Tested against Boost for Reddit `1.12.12` / versionCode `210011212`.
 
-Included in `1.4.44`:
-
-1.4.44 fixes a Boost crash when hiding a post from a feed if Boost receives an invalid list index.
-
-Also included from `1.4.43`:
-
-1.4.43 fixes Boost comment rendering for Reddit fenced code blocks. Multiline code is rendered as Boost native code blocks, while prose between adjacent code blocks stays outside the code background.
-
-- **Comments UI**
-  - Removes the duplicate native `Comments` title row.
-  - Preserves Boost's toolbar title.
-  - Preserves the dynamic sort subtitle, such as `Best`, `Hot`, and other sort modes.
-  - Preserves dark theme behavior in comments.
-
-- **Runtime media tap-action settings**
-  - Adds configurable handling for direct Reddit GIFs.
-  - Adds configurable handling for Giphy previews.
-  - Adds configurable handling for static previews.
-  - Keeps media opening behavior closer to Boost's internal viewer flow.
-
-- **Deleted Reddit gallery metadata restore**
-  - Improves recovery of deleted Reddit gallery metadata where possible.
-
-- **Safer subreddit listing fallback**
-  - Improves fallback handling for subreddit listing edge cases.
-
-Earlier Boost fixes carried forward:
-
-- Android 15+ / target SDK 35 compatibility work.
-- Navigation bar overlap fixes for media viewer and drawer.
-- Completed-download notification visibility fixes.
-- Separate default-importance notification channel for completed downloads.
-- v.redd.it audio sharing/download fixes.
-- Direct `i.redd.it` GIF handling.
-- Inline Giphy and direct GIF preview fixes.
-- Slow Giphy loading fix.
-- Archive / undelete related Boost fixes where applicable.
+Current Boost coverage includes keyboard GIF insertion through Android receive-content / Gboard, restored manual GIF URL insertion, code block rendering fixes, comments toolbar cleanup, media tap-action settings, Android 15+ / target SDK 35 compatibility, navigation bar inset fixes, download notification/audio fixes, direct `i.redd.it` GIF handling, Giphy preview/loading fixes, archive/undelete behavior, gallery metadata recovery, Hide crash prevention, and subreddit listing fallback handling.
 
 ### Imgur selected media sharing
 
