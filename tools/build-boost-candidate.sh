@@ -224,9 +224,10 @@ redirect_uri = os.environ["REDDIT_REDIRECT_URI"]
 
 seen_spoof = False
 seen_target = False
+seen_native_upload = False
 
 def walk(obj):
-    global seen_spoof, seen_target
+    global seen_spoof, seen_target, seen_native_upload
 
     if isinstance(obj, dict):
         for key, value in obj.items():
@@ -245,6 +246,10 @@ def walk(obj):
                 value["enabled"] = True
                 seen_target = True
 
+            if key == "Fix Boost native image upload" and isinstance(value, dict):
+                value["enabled"] = True
+                seen_native_upload = True
+
             walk(value)
 
     elif isinstance(obj, list):
@@ -258,6 +263,8 @@ if not seen_spoof:
     missing.append("Spoof client")
 if not seen_target:
     missing.append("Fix Boost target SDK 35 compatibility")
+if not seen_native_upload:
+    missing.append("Fix Boost native image upload")
 
 if missing:
     raise SystemExit("Missing expected options entries: " + ", ".join(missing))
@@ -278,6 +285,7 @@ pass "configured options file: $OPTIONS_FILE"
 echo "      Spoof client client-id=<redacted>"
 echo "      Spoof client redirect-uri=<redacted>"
 echo "      Fix Boost target SDK 35 compatibility enabled"
+echo "      Fix Boost native image upload enabled"
 
 echo
 echo "Base APK sha256:"
