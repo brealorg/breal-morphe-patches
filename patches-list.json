@@ -4,7 +4,7 @@
     {
       "name": "Add archive links to context menu",
       "description": null,
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -12,8 +12,18 @@
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -22,7 +32,7 @@
     {
       "name": "Automatically undelete Imgur images",
       "description": null,
-      "use": false,
+      "default": false,
       "dependencies": [
         "BytecodePatch",
         "BytecodePatch"
@@ -31,8 +41,18 @@
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -41,7 +61,7 @@
     {
       "name": "Automatically undelete Reddit content",
       "description": null,
-      "use": false,
+      "default": false,
       "dependencies": [
         "BytecodePatch",
         "BytecodePatch"
@@ -50,8 +70,18 @@
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -60,14 +90,24 @@
     {
       "name": "Boost Morphe settings",
       "description": "Adds Boost Morphe settings for inline media previews, source text visibility, and preview alignment.",
-      "use": false,
+      "default": false,
       "dependencies": [],
       "compatiblePackages": [
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -76,7 +116,7 @@
     {
       "name": "Disable Boost Crashlytics startup network calls",
       "description": "Disables Boost's Crashlytics startup initialization while keeping Firebase Analytics and other Firebase components.",
-      "use": true,
+      "default": true,
       "dependencies": [
         "ResourcePatch"
       ],
@@ -84,8 +124,18 @@
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -94,24 +144,42 @@
     {
       "name": "Disable Sync for Lemmy bottom sheet",
       "description": "Disables the bottom sheet at the startup that asks you to signup to \"Sync for Lemmy\".",
-      "use": true,
+      "default": true,
       "dependencies": [],
       "compatiblePackages": [
         {
           "packageName": "com.laurencedawson.reddit_sync",
           "name": "Sync for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "v23.06.30-13:39"
+            {
+              "version": "v23.06.30-13:39",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.pro",
           "name": "Sync for Reddit Pro",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.dev",
           "name": "Sync for Reddit Dev",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         }
       ],
@@ -120,7 +188,7 @@
     {
       "name": "Disable ads",
       "description": null,
-      "use": true,
+      "default": true,
       "dependencies": [
         "ResourcePatch"
       ],
@@ -128,8 +196,18 @@
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -138,7 +216,7 @@
     {
       "name": "Disable ads",
       "description": null,
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -146,6 +224,10 @@
         {
           "packageName": "o.o.joey",
           "name": "Joey for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         }
       ],
@@ -154,7 +236,7 @@
     {
       "name": "Disable ads",
       "description": null,
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -162,6 +244,10 @@
         {
           "packageName": "io.syncapps.lemmy_sync",
           "name": "io.syncapps.lemmy_sync",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         }
       ],
@@ -170,14 +256,24 @@
     {
       "name": "Disable ads",
       "description": null,
-      "use": true,
+      "default": true,
       "dependencies": [],
       "compatiblePackages": [
         {
           "packageName": "com.laurencedawson.reddit_sync",
           "name": "Sync for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "v23.06.30-13:39"
+            {
+              "version": "v23.06.30-13:39",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -186,7 +282,7 @@
     {
       "name": "Enable Android debugging",
       "description": "Enables Android developer debugging capabilities. Including this patch can slow down the app.",
-      "use": false,
+      "default": false,
       "dependencies": [],
       "compatiblePackages": [],
       "options": []
@@ -194,14 +290,24 @@
     {
       "name": "Fake reddit premium",
       "description": "Allows using pro features without ads.",
-      "use": true,
+      "default": true,
       "dependencies": [],
       "compatiblePackages": [
         {
           "packageName": "com.andrewshu.android.reddit",
           "name": "com.andrewshu.android.reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "5.6.22"
+            {
+              "version": "5.6.22",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -210,7 +316,7 @@
     {
       "name": "Fix /r/all",
       "description": null,
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch",
         "BytecodePatch"
@@ -219,8 +325,18 @@
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -229,7 +345,7 @@
     {
       "name": "Fix /s/ links",
       "description": null,
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -237,8 +353,18 @@
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -247,7 +373,7 @@
     {
       "name": "Fix /s/ links",
       "description": null,
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -255,15 +381,35 @@
         {
           "packageName": "free.reddit.news",
           "name": "free.reddit.news",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "10.2.40"
+            {
+              "version": "10.2.40",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         },
         {
           "packageName": "reddit.news",
           "name": "reddit.news",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "10.2.40"
+            {
+              "version": "10.2.40",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -272,7 +418,7 @@
     {
       "name": "Fix /s/ links",
       "description": null,
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -280,18 +426,36 @@
         {
           "packageName": "com.laurencedawson.reddit_sync",
           "name": "Sync for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "v23.06.30-13:39"
+            {
+              "version": "v23.06.30-13:39",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.pro",
           "name": "Sync for Reddit Pro",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.dev",
           "name": "Sync for Reddit Dev",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         }
       ],
@@ -300,7 +464,7 @@
     {
       "name": "Fix Boost code block rendering",
       "description": "Preserves multiline Reddit code blocks by normalizing inline multiline <code> HTML to Boost's native <pre> renderer path.",
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -308,8 +472,18 @@
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -318,14 +492,24 @@
     {
       "name": "Fix Boost comments Lemmy-style toolbar UI",
       "description": "Removes the duplicate native comments title by disabling the SlidrTheme window title/actionbar layer while preserving Boost's selected light/dark theme, toolbar title, and dynamic sort subtitle.",
-      "use": true,
+      "default": true,
       "dependencies": [],
       "compatiblePackages": [
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -334,7 +518,7 @@
     {
       "name": "Fix Boost navigation bar overlap",
       "description": "Adds runtime system bar inset handling for Boost bottom controls and drawer content on Android 15+ target SDK builds.",
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -342,8 +526,18 @@
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -352,7 +546,7 @@
     {
       "name": "Fix Boost target SDK 35 compatibility",
       "description": "Sets Boost for Reddit's target SDK to 35 and fixes BillingClient receiver registration for newer Android versions.",
-      "use": false,
+      "default": false,
       "dependencies": [
         "ResourcePatch",
         "BytecodePatch"
@@ -361,8 +555,18 @@
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -371,14 +575,24 @@
     {
       "name": "Fix Hide crash",
       "description": "Prevents Boost from crashing when Hide receives an invalid feed/list index.",
-      "use": true,
+      "default": true,
       "dependencies": [],
       "compatiblePackages": [
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -387,7 +601,7 @@
     {
       "name": "Fix Redgifs API",
       "description": null,
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch",
         "BytecodePatch"
@@ -396,15 +610,35 @@
         {
           "packageName": "com.onelouder.baconreader",
           "name": "com.onelouder.baconreader",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "6.1.4"
+            {
+              "version": "6.1.4",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         },
         {
           "packageName": "com.onelouder.baconreader.premium",
           "name": "com.onelouder.baconreader.premium",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "6.1.4"
+            {
+              "version": "6.1.4",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -413,7 +647,7 @@
     {
       "name": "Fix Redgifs API",
       "description": null,
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch",
         "BytecodePatch",
@@ -423,8 +657,18 @@
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -433,7 +677,7 @@
     {
       "name": "Fix Redgifs API",
       "description": null,
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch",
         "BytecodePatch"
@@ -442,18 +686,36 @@
         {
           "packageName": "com.laurencedawson.reddit_sync",
           "name": "Sync for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "v23.06.30-13:39"
+            {
+              "version": "v23.06.30-13:39",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.pro",
           "name": "Sync for Reddit Pro",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.dev",
           "name": "Sync for Reddit Dev",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         }
       ],
@@ -462,14 +724,24 @@
     {
       "name": "Fix download completed notification visibility",
       "description": "Moves completed download notifications to a separate default-importance channel so download completion is visible while progress notifications remain low-priority.",
-      "use": true,
+      "default": true,
       "dependencies": [],
       "compatiblePackages": [
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -478,7 +750,7 @@
     {
       "name": "Fix missing audio in video downloads",
       "description": "Fixes audio missing in videos downloaded from v.redd.it.",
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch",
         "BytecodePatch"
@@ -487,8 +759,18 @@
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -497,24 +779,42 @@
     {
       "name": "Fix post thumbnails",
       "description": "Fixes loading post thumbnails by correcting their URLs.",
-      "use": true,
+      "default": true,
       "dependencies": [],
       "compatiblePackages": [
         {
           "packageName": "com.laurencedawson.reddit_sync",
           "name": "Sync for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "v23.06.30-13:39"
+            {
+              "version": "v23.06.30-13:39",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.pro",
           "name": "Sync for Reddit Pro",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.dev",
           "name": "Sync for Reddit Dev",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         }
       ],
@@ -523,14 +823,24 @@
     {
       "name": "Fix slow Giphy loading",
       "description": "Bypasses Boost's slow Giphy API resolver and uses Boost's direct media.giphy.com MP4 fallback for Giphy posts.",
-      "use": true,
+      "default": true,
       "dependencies": [],
       "compatiblePackages": [
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -539,7 +849,7 @@
     {
       "name": "Fix video downloads",
       "description": "Fixes a bug in Sync's MPD parser resulting in only the audio-track being saved.",
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -547,18 +857,36 @@
         {
           "packageName": "com.laurencedawson.reddit_sync",
           "name": "Sync for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "v23.06.30-13:39"
+            {
+              "version": "v23.06.30-13:39",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.pro",
           "name": "Sync for Reddit Pro",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.dev",
           "name": "Sync for Reddit Dev",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         }
       ],
@@ -567,7 +895,7 @@
     {
       "name": "Hook exception handler",
       "description": "Hook the exception handler in Boost. Don't enable except for development purposes",
-      "use": false,
+      "default": false,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -575,8 +903,18 @@
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -585,7 +923,7 @@
     {
       "name": "Modify login WebView",
       "description": "Modify the WebView used for logging into reddit to prevent login issues",
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -593,15 +931,35 @@
         {
           "packageName": "com.onelouder.baconreader",
           "name": "com.onelouder.baconreader",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "6.1.4"
+            {
+              "version": "6.1.4",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         },
         {
           "packageName": "com.onelouder.baconreader.premium",
           "name": "com.onelouder.baconreader.premium",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "6.1.4"
+            {
+              "version": "6.1.4",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -610,7 +968,7 @@
     {
       "name": "Modify login WebView",
       "description": "Modify the WebView used for logging into reddit to prevent login issues",
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -618,8 +976,18 @@
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -628,7 +996,7 @@
     {
       "name": "Modify login WebView",
       "description": "Modify the WebView used for logging into reddit to prevent login issues",
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -636,11 +1004,19 @@
         {
           "packageName": "ml.docilealligator.infinityforreddit.plus",
           "name": "ml.docilealligator.infinityforreddit.plus",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         },
         {
           "packageName": "ml.docilealligator.infinityforreddit.patreon",
           "name": "ml.docilealligator.infinityforreddit.patreon",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         }
       ],
@@ -649,7 +1025,7 @@
     {
       "name": "Modify login WebView",
       "description": "Modify the WebView used for logging into reddit to prevent login issues",
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -657,16 +1033,28 @@
         {
           "packageName": "o.o.joey",
           "name": "Joey for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         },
         {
           "packageName": "o.o.joey.pro",
           "name": "o.o.joey.pro",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         },
         {
           "packageName": "o.o.joey.dev",
           "name": "o.o.joey.dev",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         }
       ],
@@ -675,7 +1063,7 @@
     {
       "name": "Modify login WebView",
       "description": "Modify the WebView used for logging into reddit to prevent login issues",
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -683,15 +1071,35 @@
         {
           "packageName": "com.andrewshu.android.reddit",
           "name": "com.andrewshu.android.reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "5.6.22"
+            {
+              "version": "5.6.22",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         },
         {
           "packageName": "com.andrewshu.android.redditdonation",
           "name": "com.andrewshu.android.redditdonation",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "5.6.22"
+            {
+              "version": "5.6.22",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -700,7 +1108,7 @@
     {
       "name": "Modify login WebView",
       "description": "Modify the WebView used for logging into reddit to prevent login issues",
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -708,15 +1116,35 @@
         {
           "packageName": "free.reddit.news",
           "name": "free.reddit.news",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "10.2.40"
+            {
+              "version": "10.2.40",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         },
         {
           "packageName": "reddit.news",
           "name": "reddit.news",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "10.2.40"
+            {
+              "version": "10.2.40",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -725,7 +1153,7 @@
     {
       "name": "Modify login WebView",
       "description": "Modify the WebView used for logging into reddit to prevent login issues",
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -733,18 +1161,36 @@
         {
           "packageName": "com.laurencedawson.reddit_sync",
           "name": "Sync for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "v23.06.30-13:39"
+            {
+              "version": "v23.06.30-13:39",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.pro",
           "name": "Sync for Reddit Pro",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.dev",
           "name": "Sync for Reddit Dev",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         }
       ],
@@ -753,14 +1199,24 @@
     {
       "name": "Restore GIF URL insertion",
       "description": "Adds provider-independent manual GIF URL insertion to Boost's existing image menu.",
-      "use": false,
+      "default": false,
       "dependencies": [],
       "compatiblePackages": [
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -769,14 +1225,24 @@
     {
       "name": "Restore GIF search integration probe",
       "description": "Fingerprint-only probe for Boost compose/reply GIF insertion through FormattingBar. No runtime behavior change.",
-      "use": false,
+      "default": false,
       "dependencies": [],
       "compatiblePackages": [
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -785,14 +1251,24 @@
     {
       "name": "Share selected media",
       "description": "Makes Imgur direct media sharing use the selected media item instead of the parent gallery. Can share either the raw media/download URL or the Imgur item permalink.",
-      "use": true,
+      "default": true,
       "dependencies": [],
       "compatiblePackages": [
         {
           "packageName": "com.imgur.mobile",
           "name": "Imgur",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#1BB76E",
+          "signatures": null,
           "targets": [
-            "7.33.0.0"
+            {
+              "version": "7.33.0.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -811,7 +1287,7 @@
     {
       "name": "Share selected media file",
       "description": "Makes Imgur post-detail media long-press share the selected media file. Also replaces Imgur's Download share action with direct file sharing. The selected media is cached privately, shared with Android's share sheet, and is not saved permanently to /sdcard/Download/Imgur.",
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -819,8 +1295,18 @@
         {
           "packageName": "com.imgur.mobile",
           "name": "Imgur",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#1BB76E",
+          "signatures": null,
           "targets": [
-            "7.33.0.0"
+            {
+              "version": "7.33.0.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -829,7 +1315,7 @@
     {
       "name": "Show inline Giphy previews in comments",
       "description": "Adds inline animated Giphy previews below Boost comment text for Reddit Giphy markdown and Giphy links.",
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -837,8 +1323,18 @@
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -847,7 +1343,7 @@
     {
       "name": "Spoof client",
       "description": "Restores functionality of the app by using custom client ID.",
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -855,15 +1351,35 @@
         {
           "packageName": "com.onelouder.baconreader",
           "name": "com.onelouder.baconreader",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "6.1.4"
+            {
+              "version": "6.1.4",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         },
         {
           "packageName": "com.onelouder.baconreader.premium",
           "name": "com.onelouder.baconreader.premium",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "6.1.4"
+            {
+              "version": "6.1.4",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -900,14 +1416,24 @@
     {
       "name": "Spoof client",
       "description": "Restores functionality of the app by using custom client ID.",
-      "use": true,
+      "default": true,
       "dependencies": [],
       "compatiblePackages": [
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -944,7 +1470,7 @@
     {
       "name": "Spoof client",
       "description": "Allows modifying Continuum's client ID, redirect URI and user agent in API Keys settings menu. Patch options will modify default values.",
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch",
         "ResourcePatch"
@@ -953,6 +1479,10 @@
         {
           "packageName": "org.cygnusx1.continuum",
           "name": "org.cygnusx1.continuum",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         }
       ],
@@ -989,7 +1519,7 @@
     {
       "name": "Spoof client",
       "description": "Restores functionality of the app by using custom client ID.",
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch",
         "BytecodePatch",
@@ -999,11 +1529,19 @@
         {
           "packageName": "ml.docilealligator.infinityforreddit.plus",
           "name": "ml.docilealligator.infinityforreddit.plus",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         },
         {
           "packageName": "ml.docilealligator.infinityforreddit.patreon",
           "name": "ml.docilealligator.infinityforreddit.patreon",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         }
       ],
@@ -1040,7 +1578,7 @@
     {
       "name": "Spoof client",
       "description": "Restores functionality of the app by using custom client ID.",
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -1048,16 +1586,28 @@
         {
           "packageName": "o.o.joey",
           "name": "Joey for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         },
         {
           "packageName": "o.o.joey.pro",
           "name": "o.o.joey.pro",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         },
         {
           "packageName": "o.o.joey.dev",
           "name": "o.o.joey.dev",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         }
       ],
@@ -1094,21 +1644,41 @@
     {
       "name": "Spoof client",
       "description": "Restores functionality of the app by using custom client ID.",
-      "use": true,
+      "default": true,
       "dependencies": [],
       "compatiblePackages": [
         {
           "packageName": "com.andrewshu.android.reddit",
           "name": "com.andrewshu.android.reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "5.6.22"
+            {
+              "version": "5.6.22",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         },
         {
           "packageName": "com.andrewshu.android.redditdonation",
           "name": "com.andrewshu.android.redditdonation",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "5.6.22"
+            {
+              "version": "5.6.22",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -1145,21 +1715,41 @@
     {
       "name": "Spoof client",
       "description": "Restores functionality of the app by using custom client ID.",
-      "use": true,
+      "default": true,
       "dependencies": [],
       "compatiblePackages": [
         {
           "packageName": "free.reddit.news",
           "name": "free.reddit.news",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "10.2.40"
+            {
+              "version": "10.2.40",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         },
         {
           "packageName": "reddit.news",
           "name": "reddit.news",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "10.2.40"
+            {
+              "version": "10.2.40",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -1196,7 +1786,7 @@
     {
       "name": "Spoof client",
       "description": "Allows modifying Slide's client ID, redirect URI and user agent in settings. Patch options will modify default values.",
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -1204,6 +1794,10 @@
         {
           "packageName": "me.edgan.redditslide",
           "name": "me.edgan.redditslide",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         }
       ],
@@ -1240,7 +1834,7 @@
     {
       "name": "Spoof client",
       "description": "Restores functionality of the app by using custom client ID.",
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch",
         "BytecodePatch"
@@ -1249,18 +1843,36 @@
         {
           "packageName": "com.laurencedawson.reddit_sync",
           "name": "Sync for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "v23.06.30-13:39"
+            {
+              "version": "v23.06.30-13:39",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.pro",
           "name": "Sync for Reddit Pro",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.dev",
           "name": "Sync for Reddit Dev",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         }
       ],
@@ -1297,14 +1909,24 @@
     {
       "name": "Support keyboard GIF insertion",
       "description": "Enables keyboard GIF/image rich content insertion through Android receive-content when a public URL is available.",
-      "use": false,
+      "default": false,
       "dependencies": [],
       "compatiblePackages": [
         {
           "packageName": "com.rubenmayayo.reddit",
           "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
           "targets": [
-            "1.12.12"
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],
@@ -1313,24 +1935,42 @@
     {
       "name": "Use /user/ endpoint",
       "description": "Replaces the deprecated endpoint for viewing user profiles /u with /user, that used to fix a bug.",
-      "use": true,
+      "default": true,
       "dependencies": [],
       "compatiblePackages": [
         {
           "packageName": "com.laurencedawson.reddit_sync",
           "name": "Sync for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "v23.06.30-13:39"
+            {
+              "version": "v23.06.30-13:39",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.pro",
           "name": "Sync for Reddit Pro",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.dev",
           "name": "Sync for Reddit Dev",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": []
         }
       ],
@@ -1339,7 +1979,7 @@
     {
       "name": "Use public imgur API",
       "description": "Fix imgur albums not loading.",
-      "use": true,
+      "default": true,
       "dependencies": [
         "BytecodePatch"
       ],
@@ -1347,15 +1987,35 @@
         {
           "packageName": "com.andrewshu.android.reddit",
           "name": "com.andrewshu.android.reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "5.6.22"
+            {
+              "version": "5.6.22",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         },
         {
           "packageName": "com.andrewshu.android.redditdonation",
           "name": "com.andrewshu.android.redditdonation",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#607D8B",
+          "signatures": null,
           "targets": [
-            "5.6.22"
+            {
+              "version": "5.6.22",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
           ]
         }
       ],

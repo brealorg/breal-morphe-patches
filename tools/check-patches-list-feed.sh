@@ -43,6 +43,9 @@ TMP="$(mktemp)"
 jq --arg v "$EXPECTED_VERSION" '.version=$v' patches-list.json > "$TMP"
 mv "$TMP" patches-list.json
 
+echo "===== normalize Manager patches-list schema ====="
+python3 tools/normalize-patches-list-manager-schema.py patches-list.json ${WRITE_VERSION:+--version "$WRITE_VERSION"}
+
 echo "===== validate patches-list.json ====="
 python3 - "$EXPECTED_VERSION" <<'PY'
 import json
