@@ -105,7 +105,7 @@ def main() -> int:
     parser.add_argument("--tag", help="Expected release tag. Defaults to morphe-patches-<patch version>.")
     parser.add_argument("--mpp", help="Path to built .mpp. Defaults to patches/build/libs/patches-<version>.mpp.")
     parser.add_argument("--require-description", action="append", default=[], help="Text that must exist in patches-bundle.json description.")
-    parser.add_argument("--marker", action="append", default=[], help="Binary/text marker that must exist in extensions/boostforreddit.mpe.")
+    parser.add_argument("--marker", action="append", default=[], help="Binary/text marker that must exist anywhere in the releasable MPP.")
     parser.add_argument("--stale", action="append", default=[], help="Old value that must not exist in release metadata files.")
     parser.add_argument("--skip-staged-check", action="store_true", help="Do not check for staged build artifacts.")
     args = parser.parse_args()
@@ -200,10 +200,13 @@ def main() -> int:
                 boost_ext = "extensions/boostforreddit.mpe"
                 req(boost_ext in names, f"MPP missing {boost_ext}")
 
-                if boost_ext in names:
-                    data = z.read(boost_ext)
-                    for marker in args.marker:
-                        req(marker.encode("utf-8") in data, f"{boost_ext} missing marker: {marker!r}")
+                mpp_data = b"".join(
+                    z.read(name)
+                    for name in sorted(names)
+                    if not name.endswith("/")
+                )
+                for marker in args.marker:
+                    req(marker.encode("utf-8") in mpp_data, f"releasable MPP missing marker: {marker!r}")
 
                 print("MPP:", mpp_path)
                 print("MPP SHA256:", actual_sha)
