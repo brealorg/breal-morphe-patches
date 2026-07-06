@@ -1,0 +1,49 @@
+name: Release feed smoke
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - '.github/workflows/release-feed-smoke.yml'
+      - 'tools/release-feed-smoke.sh'
+      - 'tools/check-patches-list-feed.sh'
+      - 'tools/normalize-patches-list-*.py'
+      - 'patches-list.json'
+      - 'patches-bundle.json'
+      - 'patches/**'
+      - 'extensions/**'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'settings.gradle.kts'
+      - 'build.gradle.kts'
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-feed-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Feed and MPP smoke
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run smoke
+        run: ./tools/release-feed-smoke.sh
