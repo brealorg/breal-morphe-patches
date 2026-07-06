@@ -63,14 +63,14 @@ Preferred Morphe source setup is the deep link below. Raw `patches-bundle.json` 
 
 | Field | Value |
 |---|---|
-| Version | `1.4.51` |
-| Release tag | `morphe-patches-51` |
-| Asset | `patches-1.4.51.mpp` |
-| SHA256 | `c74ca021680388812091c20b7005e4223d7df902cbba4adfe8503c9d8ac1a5f9` |
+| Version | `1.4.52` |
+| Release tag | `morphe-patches-52` |
+| Asset | `patches-1.4.52.mpp` |
+| SHA256 | `0022b3a53251ed7c3071549a531995296965fffc7ba8aed15d99af3cb4be4dfa` |
 
-SHA256: `c74ca021680388812091c20b7005e4223d7df902cbba4adfe8503c9d8ac1a5f9`
+SHA256: `0022b3a53251ed7c3071549a531995296965fffc7ba8aed15d99af3cb4be4dfa`
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-51/patches-1.4.51.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-52/patches-1.4.52.mpp` |
 
 ## What this bundle does
 
@@ -103,10 +103,10 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.51` • `main` • 34 unique patches • 86 package entries
+> **Patch source version:** `1.4.52` • `main` • 33 unique patches • 85 package entries
 
 <details>
-<summary><strong>Boost for Reddit</strong> • 25 patches</summary>
+<summary><strong>Boost for Reddit</strong> • 24 patches</summary>
 
 
 
@@ -125,9 +125,8 @@ Included Imgur patches:
 | [Disable Boost Crashlytics startup network calls](#disable-boost-crashlytics-startup-network-calls) | Disables Boost's Crashlytics startup initialization while keeping Firebase Analytics and other Firebase components. |  |
 | [Fix /r/all](#fix-r-all) |  |  |
 | [Fix /s/ links](#fix-s-links) |  |  |
-| [Fix Boost code block rendering](#fix-boost-code-block-rendering) | Preserves multiline Reddit code blocks by normalizing inline multiline <code> HTML to Boost's native <pre> renderer path. |  |
+| [Fix Boost code block rendering](#fix-boost-code-block-rendering) | Preserves Reddit code blocks by normalizing multiline <code> HTML and malformed fenced selftext to Boost's native <pre> renderer path. |  |
 | [Fix Boost comments Lemmy-style toolbar UI](#fix-boost-comments-lemmy-style-toolbar-ui) | Removes the duplicate native comments title by disabling the SlidrTheme window title/actionbar layer while preserving Boost's selected light/dark theme, toolbar title, and dynamic sort subtitle. |  |
-| [Fix Boost native image upload](#fix-boost-native-image-upload) | Forces Boost's single-image submit flow to use Reddit's native image submission kind instead of creating external uploaded-media link posts. |  |
 | [Fix Boost navigation bar overlap](#fix-boost-navigation-bar-overlap) | Adds runtime system bar inset handling for Boost bottom controls and drawer content on Android 15+ target SDK builds. |  |
 | [Fix Boost target SDK 35 compatibility](#fix-boost-target-sdk-35-compatibility) | Sets Boost for Reddit's target SDK to 35 and fixes BillingClient receiver registration for newer Android versions. |  |
 | [Fix download completed notification visibility](#fix-download-completed-notification-visibility) | Moves completed download notifications to a separate default-importance channel so download completion is visible while progress notifications remain low-priority. |  |
@@ -498,16 +497,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.51` is prepared and locally verified with:
+Release `1.4.52` is prepared and locally verified with:
 
-- Release tag `morphe-patches-51`.
+- Release tag `morphe-patches-52`.
 - Local built MPP SHA256 matching README.
-`c74ca021680388812091c20b7005e4223d7df902cbba4adfe8503c9d8ac1a5f9`
-- `patches-bundle.json` returning version `v1.4.51`.
-- `patches-bundle.json` pointing to the `morphe-patches-51` asset.
+`0022b3a53251ed7c3071549a531995296965fffc7ba8aed15d99af3cb4be4dfa`
+- `patches-bundle.json` returning version `1.4.52`.
+- `patches-bundle.json` pointing to the `morphe-patches-52` asset.
 - Expected release asset:
-`patches-1.4.51.mpp`
-- `c74ca021680388812091c20b7005e4223d7df902cbba4adfe8503c9d8ac1a5f9  patches-1.4.51.mpp`
+`patches-1.4.52.mpp`
+- `0022b3a53251ed7c3071549a531995296965fffc7ba8aed15d99af3cb4be4dfa  patches-1.4.52.mpp`
 
 ## Development notes
 

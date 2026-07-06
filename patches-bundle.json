@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-06T19:38:23",
-  "description": "Fix Boost native image upload so single-image posts submit as Reddit native images instead of uploaded-media link posts.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-51/patches-1.4.51.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-51/patches-1.4.51.mpp.asc",
-  "version": "1.4.51"
+  "created_at": "2026-07-06T23:57:06",
+  "description": "Boost: Fix malformed Reddit fenced code blocks where language fences like ```lua were rendered as visible text instead of a proper code block.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-52/patches-1.4.52.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-52/patches-1.4.52.mpp.asc",
+  "version": "1.4.52"
 }
