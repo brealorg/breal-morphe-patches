@@ -1,7 +1,7 @@
 {
   "created_at": "2026-07-06T12:41:42",
-  "description": "Manager update-available probe for Issue #8.\nNo runtime patch behavior changes.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-49/patches-1.4.49.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-49/patches-1.4.49.mpp.asc",
-  "version": "v1.4.49"
+  "description": "Issue #8 update-available validation probe.\nNo runtime patch behavior changes.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-50/patches-1.4.50.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-50/patches-1.4.50.mpp.asc",
+  "version": "v1.4.50"
 }
