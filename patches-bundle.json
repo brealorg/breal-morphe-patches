@@ -3,5 +3,5 @@
   "description": "Fix Boost native image upload so single-image posts submit as Reddit native images instead of uploaded-media link posts.\n",
   "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-51/patches-1.4.51.mpp",
   "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-51/patches-1.4.51.mpp.asc",
-  "version": "v1.4.51"
+  "version": "1.4.51"
 }
