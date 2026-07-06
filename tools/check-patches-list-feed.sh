@@ -18,7 +18,7 @@ if [[ -z "$EXPECTED_VERSION" ]]; then
     echo "FAIL: could not read .version from patches-bundle.json" >&2
     exit 1
   fi
-  EXPECTED_VERSION="v${BUNDLE_VERSION}"
+  EXPECTED_VERSION="${BUNDLE_VERSION#v}"
 fi
 
 ORIGINAL="$(mktemp)"
