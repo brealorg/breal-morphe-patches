@@ -2,11 +2,23 @@
 
 ## Add to Morphe
 
-Preferred install/source link:
+### Morphe Manager source URL field
+
+Paste this value into Morphe Manager when adding a remote source:
+
+```text
+github.com/brealorg/breal-morphe-patches
+
+Alternative raw JSON URL:
+
+https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json
+Browser deep link
+
+Use this only from a browser/link handler, not inside the Morphe Manager source URL text field:
 
 https://morphe.software/add-source?github=brealorg/breal-morphe-patches
 
-Manual fallback:
+Manual fallback / repository page:
 
 https://github.com/brealorg/breal-morphe-patches
 
