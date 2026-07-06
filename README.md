@@ -66,9 +66,9 @@ Preferred Morphe source setup is the deep link below. Raw `patches-bundle.json` 
 | Version | `1.4.51` |
 | Release tag | `morphe-patches-51` |
 | Asset | `patches-1.4.51.mpp` |
-| SHA256 | `2485dd5366767af21d9eac4a1626cf0780b56134ad29fbfe1a89d51f4a448099` |
+| SHA256 | `c74ca021680388812091c20b7005e4223d7df902cbba4adfe8503c9d8ac1a5f9` |
 
-SHA256: `2485dd5366767af21d9eac4a1626cf0780b56134ad29fbfe1a89d51f4a448099`
+SHA256: `c74ca021680388812091c20b7005e4223d7df902cbba4adfe8503c9d8ac1a5f9`
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
 | Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-51/patches-1.4.51.mpp` |
 
@@ -502,12 +502,12 @@ Release `1.4.51` is prepared and locally verified with:
 
 - Release tag `morphe-patches-51`.
 - Local built MPP SHA256 matching README.
-`2485dd5366767af21d9eac4a1626cf0780b56134ad29fbfe1a89d51f4a448099`
+`c74ca021680388812091c20b7005e4223d7df902cbba4adfe8503c9d8ac1a5f9`
 - `patches-bundle.json` returning version `v1.4.51`.
 - `patches-bundle.json` pointing to the `morphe-patches-51` asset.
 - Expected release asset:
 `patches-1.4.51.mpp`
-- `2485dd5366767af21d9eac4a1626cf0780b56134ad29fbfe1a89d51f4a448099  patches-1.4.51.mpp`
+- `c74ca021680388812091c20b7005e4223d7df902cbba4adfe8503c9d8ac1a5f9  patches-1.4.51.mpp`
 
 ## Development notes
 
