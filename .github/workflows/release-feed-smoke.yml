@@ -22,6 +22,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 concurrency:
   group: release-feed-smoke-${{ github.ref }}
@@ -31,6 +32,9 @@ jobs:
   smoke:
     name: Feed and MPP smoke
     runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout
