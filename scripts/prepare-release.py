@@ -329,5 +329,22 @@ def main() -> int:
     return 0
 
 
+
+def run_manager_update_changelog_guard() -> None:
+    """Fail release prep if CHANGELOG.md cannot drive Morphe Manager update badges."""
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    repo_root = Path(__file__).resolve().parent.parent
+    guard = repo_root / "tools" / "check-manager-update-changelog.py"
+    subprocess.run(
+        [sys.executable, str(guard), "--repo-root", str(repo_root)],
+        check=True,
+    )
+
 if __name__ == "__main__":
-    raise SystemExit(main())
+    rc = main()
+    if rc is None or rc == 0:
+        run_manager_update_changelog_guard()
+    raise SystemExit(rc)

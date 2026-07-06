@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.52](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-51...morphe-patches-52) (2026-07-06)
+
+* **Boost for Reddit:** Preserve Morphe Manager update detection with Manager-compatible Boost changelog scope for the 1.4.52 bundle.
+
 ## [1.4.51](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-50...morphe-patches-51) (2026-07-06)
 
 * **Boost for Reddit:** Fix native image upload so single-image posts submit as Reddit native image posts instead of uploaded-media link posts.
