@@ -139,7 +139,12 @@ def main() -> int:
 
     req(f"version = {version}" in gradle, f"gradle.properties does not contain: version = {version}")
 
-    req(bundle.get("version") == version, f"patches-bundle.json version is {bundle.get('version')!r}, expected {version!r}")
+    bundle_version = str(bundle.get("version") or "")
+    accepted_bundle_versions = {version, f"v{version}"}
+    req(
+        bundle_version in accepted_bundle_versions,
+        f"patches-bundle.json version is {bundle.get('version')!r}, expected {version!r} or {f'v{version}'!r}",
+    )
     req(bundle.get("download_url") == expected_url, "patches-bundle.json download_url does not match expected release URL")
 
     description = bundle.get("description", "")
