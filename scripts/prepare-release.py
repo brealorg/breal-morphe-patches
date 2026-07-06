@@ -301,7 +301,7 @@ def main() -> int:
     write(gradle_path, gradle_text)
 
     update_bundle_json(bundle_path, version, tag, changelog_lines)
-    run(["./tools/check-patches-list-feed.sh", "--write", f"v{version}"])
+    run(["./tools/check-patches-list-feed.sh", "--write", version])
     run([
         sys.executable,
         ".github/scripts/generate_patches_readme.py",

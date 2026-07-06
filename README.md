@@ -91,7 +91,7 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `v1.4.47` • `main` • 33 unique patches • 85 package entries
+> **Patch source version:** `1.4.47` • `main` • 33 unique patches • 85 package entries
 
 <details>
 <summary><strong>Boost for Reddit</strong> • 24 patches</summary>

@@ -258,7 +258,7 @@ def check_bundle(
 
 
 def check_patches_list(verdict: Verdict, label: str, data: dict[str, Any], *, version: str) -> None:
-    expected = f"v{version}"
+    expected = version
     verdict.require(data.get("version") == expected, f"{label}: version={data.get('version')!r}, expected {expected!r}")
     patches = data.get("patches")
     verdict.require(isinstance(patches, list) and len(patches) > 0, f"{label}: patches list missing or empty")
