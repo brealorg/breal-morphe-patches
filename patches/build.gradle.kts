@@ -12,9 +12,13 @@ patches {
     }
 }
 
+// Runtime classpath for local patches-list generator.
+val patchListGeneratorClasspath: Configuration by configurations.creating
+
 dependencies {
     // Used by JsonGenerator.
     implementation(libs.gson)
+    patchListGeneratorClasspath(libs.gson)
 
     // Required due to smali, or build fails. Can be removed once smali is bumped.
     implementation(libs.guava)
@@ -40,8 +44,8 @@ tasks {
 
         dependsOn(build)
 
-        classpath = sourceSets["main"].runtimeClasspath
-        mainClass.set("app.morphe.util.PatchListGeneratorKt")
+        classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
+        mainClass.set("util.PatchListGeneratorKt")
     }
     // Used by gradle-semantic-release-plugin.
     publish {

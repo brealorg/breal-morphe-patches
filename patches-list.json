@@ -1,4 +1,5 @@
 {
+  "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
   "version": "1.4.50",
   "patches": [
     {
@@ -171,7 +172,15 @@
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.dev",
@@ -180,7 +189,15 @@
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         }
       ],
       "options": []
@@ -228,7 +245,15 @@
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         }
       ],
       "options": []
@@ -243,12 +268,20 @@
       "compatiblePackages": [
         {
           "packageName": "io.syncapps.lemmy_sync",
-          "name": "io.syncapps.lemmy_sync",
+          "name": "Sync for Lemmy",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         }
       ],
       "options": []
@@ -295,7 +328,7 @@
       "compatiblePackages": [
         {
           "packageName": "com.andrewshu.android.reddit",
-          "name": "com.andrewshu.android.reddit",
+          "name": "rif is fun",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
@@ -380,7 +413,7 @@
       "compatiblePackages": [
         {
           "packageName": "free.reddit.news",
-          "name": "free.reddit.news",
+          "name": "Relay for Reddit",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
@@ -397,7 +430,7 @@
         },
         {
           "packageName": "reddit.news",
-          "name": "reddit.news",
+          "name": "Relay for Reddit Pro",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
@@ -447,7 +480,15 @@
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.dev",
@@ -456,7 +497,15 @@
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         }
       ],
       "options": []
@@ -609,7 +658,7 @@
       "compatiblePackages": [
         {
           "packageName": "com.onelouder.baconreader",
-          "name": "com.onelouder.baconreader",
+          "name": "BaconReader",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
@@ -626,7 +675,7 @@
         },
         {
           "packageName": "com.onelouder.baconreader.premium",
-          "name": "com.onelouder.baconreader.premium",
+          "name": "BaconReader Premium",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
@@ -707,7 +756,15 @@
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.dev",
@@ -716,7 +773,15 @@
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         }
       ],
       "options": []
@@ -806,7 +871,15 @@
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.dev",
@@ -815,7 +888,15 @@
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         }
       ],
       "options": []
@@ -878,7 +959,15 @@
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.dev",
@@ -887,7 +976,15 @@
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         }
       ],
       "options": []
@@ -930,7 +1027,7 @@
       "compatiblePackages": [
         {
           "packageName": "com.onelouder.baconreader",
-          "name": "com.onelouder.baconreader",
+          "name": "BaconReader",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
@@ -947,7 +1044,7 @@
         },
         {
           "packageName": "com.onelouder.baconreader.premium",
-          "name": "com.onelouder.baconreader.premium",
+          "name": "BaconReader Premium",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
@@ -1003,21 +1100,37 @@
       "compatiblePackages": [
         {
           "packageName": "ml.docilealligator.infinityforreddit.plus",
-          "name": "ml.docilealligator.infinityforreddit.plus",
+          "name": "Infinity for Reddit+",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         },
         {
           "packageName": "ml.docilealligator.infinityforreddit.patreon",
-          "name": "ml.docilealligator.infinityforreddit.patreon",
+          "name": "Infinity for Reddit (Patreon)",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         }
       ],
       "options": []
@@ -1037,25 +1150,49 @@
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         },
         {
           "packageName": "o.o.joey.pro",
-          "name": "o.o.joey.pro",
+          "name": "Joey for Reddit Pro",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         },
         {
           "packageName": "o.o.joey.dev",
-          "name": "o.o.joey.dev",
+          "name": "Joey for Reddit Dev",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         }
       ],
       "options": []
@@ -1070,7 +1207,7 @@
       "compatiblePackages": [
         {
           "packageName": "com.andrewshu.android.reddit",
-          "name": "com.andrewshu.android.reddit",
+          "name": "rif is fun",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
@@ -1087,7 +1224,7 @@
         },
         {
           "packageName": "com.andrewshu.android.redditdonation",
-          "name": "com.andrewshu.android.redditdonation",
+          "name": "rif is fun golden platinum",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
@@ -1115,7 +1252,7 @@
       "compatiblePackages": [
         {
           "packageName": "free.reddit.news",
-          "name": "free.reddit.news",
+          "name": "Relay for Reddit",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
@@ -1132,7 +1269,7 @@
         },
         {
           "packageName": "reddit.news",
-          "name": "reddit.news",
+          "name": "Relay for Reddit Pro",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
@@ -1182,7 +1319,15 @@
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.dev",
@@ -1191,7 +1336,15 @@
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         }
       ],
       "options": []
@@ -1350,7 +1503,7 @@
       "compatiblePackages": [
         {
           "packageName": "com.onelouder.baconreader",
-          "name": "com.onelouder.baconreader",
+          "name": "BaconReader",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
@@ -1367,7 +1520,7 @@
         },
         {
           "packageName": "com.onelouder.baconreader.premium",
-          "name": "com.onelouder.baconreader.premium",
+          "name": "BaconReader Premium",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
@@ -1478,12 +1631,20 @@
       "compatiblePackages": [
         {
           "packageName": "org.cygnusx1.continuum",
-          "name": "org.cygnusx1.continuum",
+          "name": "Continuum",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         }
       ],
       "options": [
@@ -1528,21 +1689,37 @@
       "compatiblePackages": [
         {
           "packageName": "ml.docilealligator.infinityforreddit.plus",
-          "name": "ml.docilealligator.infinityforreddit.plus",
+          "name": "Infinity for Reddit+",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         },
         {
           "packageName": "ml.docilealligator.infinityforreddit.patreon",
-          "name": "ml.docilealligator.infinityforreddit.patreon",
+          "name": "Infinity for Reddit (Patreon)",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         }
       ],
       "options": [
@@ -1590,25 +1767,49 @@
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         },
         {
           "packageName": "o.o.joey.pro",
-          "name": "o.o.joey.pro",
+          "name": "Joey for Reddit Pro",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         },
         {
           "packageName": "o.o.joey.dev",
-          "name": "o.o.joey.dev",
+          "name": "Joey for Reddit Dev",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         }
       ],
       "options": [
@@ -1649,7 +1850,7 @@
       "compatiblePackages": [
         {
           "packageName": "com.andrewshu.android.reddit",
-          "name": "com.andrewshu.android.reddit",
+          "name": "rif is fun",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
@@ -1666,7 +1867,7 @@
         },
         {
           "packageName": "com.andrewshu.android.redditdonation",
-          "name": "com.andrewshu.android.redditdonation",
+          "name": "rif is fun golden platinum",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
@@ -1720,7 +1921,7 @@
       "compatiblePackages": [
         {
           "packageName": "free.reddit.news",
-          "name": "free.reddit.news",
+          "name": "Relay for Reddit",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
@@ -1737,7 +1938,7 @@
         },
         {
           "packageName": "reddit.news",
-          "name": "reddit.news",
+          "name": "Relay for Reddit Pro",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
@@ -1793,12 +1994,20 @@
       "compatiblePackages": [
         {
           "packageName": "me.edgan.redditslide",
-          "name": "me.edgan.redditslide",
+          "name": "Slide (fork)",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         }
       ],
       "options": [
@@ -1864,7 +2073,15 @@
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.dev",
@@ -1873,7 +2090,15 @@
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         }
       ],
       "options": [
@@ -1962,7 +2187,15 @@
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         },
         {
           "packageName": "com.laurencedawson.reddit_sync.dev",
@@ -1971,7 +2204,15 @@
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
           "signatures": null,
-          "targets": []
+          "targets": [
+            {
+              "version": "",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
         }
       ],
       "options": []
@@ -1986,7 +2227,7 @@
       "compatiblePackages": [
         {
           "packageName": "com.andrewshu.android.reddit",
-          "name": "com.andrewshu.android.reddit",
+          "name": "rif is fun",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
@@ -2003,7 +2244,7 @@
         },
         {
           "packageName": "com.andrewshu.android.redditdonation",
-          "name": "com.andrewshu.android.redditdonation",
+          "name": "rif is fun golden platinum",
           "description": null,
           "apkFileType": "APK_REQUIRED",
           "appIconColor": "#607D8B",
