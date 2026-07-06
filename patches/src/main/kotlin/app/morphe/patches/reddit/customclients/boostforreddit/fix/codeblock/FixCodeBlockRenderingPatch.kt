@@ -17,7 +17,7 @@ private const val CODEBLOCK_NORMALIZER_DESCRIPTOR =
 @Suppress("unused")
 val fixCodeBlockRenderingPatch = bytecodePatch(
     name = "Fix Boost code block rendering",
-    description = "Preserves multiline Reddit code blocks by normalizing inline multiline <code> HTML to Boost's native <pre> renderer path.",
+    description = "Preserves Reddit code blocks by normalizing multiline <code> HTML and malformed fenced selftext to Boost\'s native <pre> renderer path.",
     default = true
 ) {
     dependsOn(sharedExtensionPatch)
@@ -31,5 +31,31 @@ val fixCodeBlockRenderingPatch = bytecodePatch(
                 move-result-object p0
                 """
         )
+
+        boostTableTextViewSetTextHtmlFingerprint.method.addInstructions(
+            0,
+            """
+                invoke-static {p1}, $CODEBLOCK_NORMALIZER_DESCRIPTOR->normalize(Ljava/lang/String;)Ljava/lang/String;
+                move-result-object p1
+                """
+        )
+
+        boostLinkTextViewSetTextHtmlParsedFingerprint.method.addInstructions(
+            0,
+            """
+                invoke-static {p1}, $CODEBLOCK_NORMALIZER_DESCRIPTOR->normalize(Ljava/lang/String;)Ljava/lang/String;
+                move-result-object p1
+            """,
+        )
+
+        boostSubmissionViewHolderSelfPreviewHtmlFingerprint.method.addInstructions(
+            7,
+            """
+                invoke-static {p1}, $CODEBLOCK_NORMALIZER_DESCRIPTOR->normalize(Ljava/lang/String;)Ljava/lang/String;
+                move-result-object p1
+            """,
+        )
+
+
     }
 }
