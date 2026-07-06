@@ -63,14 +63,14 @@ Preferred Morphe source setup is the deep link below. Raw `patches-bundle.json` 
 
 | Field | Value |
 |---|---|
-| Version | `1.4.50` |
-| Release tag | `morphe-patches-50` |
-| Asset | `patches-1.4.50.mpp` |
-| SHA256 | `12a11e5a25118cbe1edfc517ca045317ebcaa22f470adfe4a4a38cae282e12b2` |
+| Version | `1.4.51` |
+| Release tag | `morphe-patches-51` |
+| Asset | `patches-1.4.51.mpp` |
+| SHA256 | `2485dd5366767af21d9eac4a1626cf0780b56134ad29fbfe1a89d51f4a448099` |
 
-SHA256: `12a11e5a25118cbe1edfc517ca045317ebcaa22f470adfe4a4a38cae282e12b2`
+SHA256: `2485dd5366767af21d9eac4a1626cf0780b56134ad29fbfe1a89d51f4a448099`
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-50/patches-1.4.50.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-51/patches-1.4.51.mpp` |
 
 ## What this bundle does
 
@@ -103,10 +103,10 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.50` • `main` • 33 unique patches • 85 package entries
+> **Patch source version:** `1.4.51` • `main` • 34 unique patches • 86 package entries
 
 <details>
-<summary><strong>Boost for Reddit</strong> • 24 patches</summary>
+<summary><strong>Boost for Reddit</strong> • 25 patches</summary>
 
 
 
@@ -127,6 +127,7 @@ Included Imgur patches:
 | [Fix /s/ links](#fix-s-links) |  |  |
 | [Fix Boost code block rendering](#fix-boost-code-block-rendering) | Preserves multiline Reddit code blocks by normalizing inline multiline <code> HTML to Boost's native <pre> renderer path. |  |
 | [Fix Boost comments Lemmy-style toolbar UI](#fix-boost-comments-lemmy-style-toolbar-ui) | Removes the duplicate native comments title by disabling the SlidrTheme window title/actionbar layer while preserving Boost's selected light/dark theme, toolbar title, and dynamic sort subtitle. |  |
+| [Fix Boost native image upload](#fix-boost-native-image-upload) | Forces Boost's single-image submit flow to use Reddit's native image submission kind instead of creating external uploaded-media link posts. |  |
 | [Fix Boost navigation bar overlap](#fix-boost-navigation-bar-overlap) | Adds runtime system bar inset handling for Boost bottom controls and drawer content on Android 15+ target SDK builds. |  |
 | [Fix Boost target SDK 35 compatibility](#fix-boost-target-sdk-35-compatibility) | Sets Boost for Reddit's target SDK to 35 and fixes BillingClient receiver registration for newer Android versions. |  |
 | [Fix download completed notification visibility](#fix-download-completed-notification-visibility) | Moves completed download notifications to a separate default-importance channel so download completion is visible while progress notifications remain low-priority. |  |
@@ -173,6 +174,11 @@ Included Imgur patches:
 
 
 
+**Supported versions:**
+
+|  |
+| :---: |
+
 | Patch | Description | Options |
 |---|---|---|
 | [Disable Sync for Lemmy bottom sheet](#disable-sync-for-lemmy-bottom-sheet) | Disables the bottom sheet at the startup that asks you to signup to "Sync for Lemmy". |  |
@@ -190,6 +196,11 @@ Included Imgur patches:
 <summary><strong>Sync for Reddit Dev</strong> • 8 patches</summary>
 
 
+
+**Supported versions:**
+
+|  |
+| :---: |
 
 | Patch | Description | Options |
 |---|---|---|
@@ -209,6 +220,11 @@ Included Imgur patches:
 
 
 
+**Supported versions:**
+
+|  |
+| :---: |
+
 | Patch | Description | Options |
 |---|---|---|
 | [Disable ads](#disable-ads) |  |  |
@@ -218,9 +234,14 @@ Included Imgur patches:
 </details>
 
 <details>
-<summary><strong>io.syncapps.lemmy_sync</strong> • 1 patch</summary>
+<summary><strong>Sync for Lemmy</strong> • 1 patch</summary>
 
 
+
+**Supported versions:**
+
+|  |
+| :---: |
 
 | Patch | Description | Options |
 |---|---|---|
@@ -229,7 +250,7 @@ Included Imgur patches:
 </details>
 
 <details>
-<summary><strong>com.andrewshu.android.reddit</strong> • 4 patches</summary>
+<summary><strong>rif is fun</strong> • 4 patches</summary>
 
 
 
@@ -248,7 +269,7 @@ Included Imgur patches:
 </details>
 
 <details>
-<summary><strong>free.reddit.news</strong> • 3 patches</summary>
+<summary><strong>Relay for Reddit</strong> • 3 patches</summary>
 
 
 
@@ -266,7 +287,7 @@ Included Imgur patches:
 </details>
 
 <details>
-<summary><strong>reddit.news</strong> • 3 patches</summary>
+<summary><strong>Relay for Reddit Pro</strong> • 3 patches</summary>
 
 
 
@@ -284,7 +305,7 @@ Included Imgur patches:
 </details>
 
 <details>
-<summary><strong>com.onelouder.baconreader</strong> • 3 patches</summary>
+<summary><strong>BaconReader</strong> • 3 patches</summary>
 
 
 
@@ -302,7 +323,7 @@ Included Imgur patches:
 </details>
 
 <details>
-<summary><strong>com.onelouder.baconreader.premium</strong> • 3 patches</summary>
+<summary><strong>BaconReader Premium</strong> • 3 patches</summary>
 
 
 
@@ -320,21 +341,14 @@ Included Imgur patches:
 </details>
 
 <details>
-<summary><strong>ml.docilealligator.infinityforreddit.plus</strong> • 2 patches</summary>
+<summary><strong>Infinity for Reddit+</strong> • 2 patches</summary>
 
 
 
-| Patch | Description | Options |
-|---|---|---|
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
-| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+**Supported versions:**
 
-</details>
-
-<details>
-<summary><strong>ml.docilealligator.infinityforreddit.patreon</strong> • 2 patches</summary>
-
-
+|  |
+| :---: |
 
 | Patch | Description | Options |
 |---|---|---|
@@ -344,21 +358,14 @@ Included Imgur patches:
 </details>
 
 <details>
-<summary><strong>o.o.joey.pro</strong> • 2 patches</summary>
+<summary><strong>Infinity for Reddit (Patreon)</strong> • 2 patches</summary>
 
 
 
-| Patch | Description | Options |
-|---|---|---|
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
-| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+**Supported versions:**
 
-</details>
-
-<details>
-<summary><strong>o.o.joey.dev</strong> • 2 patches</summary>
-
-
+|  |
+| :---: |
 
 | Patch | Description | Options |
 |---|---|---|
@@ -368,7 +375,41 @@ Included Imgur patches:
 </details>
 
 <details>
-<summary><strong>com.andrewshu.android.redditdonation</strong> • 3 patches</summary>
+<summary><strong>Joey for Reddit Pro</strong> • 2 patches</summary>
+
+
+
+**Supported versions:**
+
+|  |
+| :---: |
+
+| Patch | Description | Options |
+|---|---|---|
+| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+
+</details>
+
+<details>
+<summary><strong>Joey for Reddit Dev</strong> • 2 patches</summary>
+
+
+
+**Supported versions:**
+
+|  |
+| :---: |
+
+| Patch | Description | Options |
+|---|---|---|
+| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+
+</details>
+
+<details>
+<summary><strong>rif is fun golden platinum</strong> • 3 patches</summary>
 
 
 
@@ -403,9 +444,14 @@ Included Imgur patches:
 </details>
 
 <details>
-<summary><strong>org.cygnusx1.continuum</strong> • 1 patch</summary>
+<summary><strong>Continuum</strong> • 1 patch</summary>
 
 
+
+**Supported versions:**
+
+|  |
+| :---: |
 
 | Patch | Description | Options |
 |---|---|---|
@@ -414,9 +460,14 @@ Included Imgur patches:
 </details>
 
 <details>
-<summary><strong>me.edgan.redditslide</strong> • 1 patch</summary>
+<summary><strong>Slide (fork)</strong> • 1 patch</summary>
 
 
+
+**Supported versions:**
+
+|  |
+| :---: |
 
 | Patch | Description | Options |
 |---|---|---|
@@ -447,16 +498,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.50` is prepared and locally verified with:
+Release `1.4.51` is prepared and locally verified with:
 
-- Release tag `morphe-patches-50`.
+- Release tag `morphe-patches-51`.
 - Local built MPP SHA256 matching README.
-`12a11e5a25118cbe1edfc517ca045317ebcaa22f470adfe4a4a38cae282e12b2`
-- `patches-bundle.json` returning version `v1.4.50`.
-- `patches-bundle.json` pointing to the `morphe-patches-50` asset.
+`2485dd5366767af21d9eac4a1626cf0780b56134ad29fbfe1a89d51f4a448099`
+- `patches-bundle.json` returning version `v1.4.51`.
+- `patches-bundle.json` pointing to the `morphe-patches-51` asset.
 - Expected release asset:
-`patches-1.4.50.mpp`
-- `12a11e5a25118cbe1edfc517ca045317ebcaa22f470adfe4a4a38cae282e12b2  patches-1.4.50.mpp`
+`patches-1.4.51.mpp`
+- `2485dd5366767af21d9eac4a1626cf0780b56134ad29fbfe1a89d51f4a448099  patches-1.4.51.mpp`
 
 ## Development notes
 
