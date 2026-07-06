@@ -440,7 +440,7 @@ Release `1.4.48` is prepared and locally verified with:
 - Release tag `morphe-patches-48`.
 - Local built MPP SHA256 matching README.
 `2d025f80b12985a242ba0510632df93c6733f5e03671824f1b71a8c9a0842a04`
-- `patches-bundle.json` returning version `1.4.48`.
+- `patches-bundle.json` returning version `v1.4.48`.
 - `patches-bundle.json` pointing to the `morphe-patches-48` asset.
 - Expected release asset:
 `patches-1.4.48.mpp`

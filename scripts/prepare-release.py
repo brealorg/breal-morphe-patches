@@ -116,7 +116,7 @@ def replace_readme_verification(text: str, version: str, tag: str, mpp_name: str
         f"- Release tag `{tag}`.\n"
         "- Local built MPP SHA256 matching README.\n"
         f"`{sha}`\n"
-        f"- `patches-bundle.json` returning version `{version}`.\n"
+        f"- `patches-bundle.json` returning version `v{version}`.\n"
         f"- `patches-bundle.json` pointing to the `{tag}` asset.\n"
         "- Expected release asset:\n"
         f"`{mpp_name}`\n"
@@ -155,7 +155,7 @@ def update_bundle_json(path: Path, version: str, tag: str, changelog_lines: list
 
     mpp_name = mpp_name_for(version)
     data["created_at"] = datetime.now().replace(microsecond=0).isoformat()
-    data["version"] = version
+    data["version"] = f"v{version}"
     download_url = f"https://github.com/brealorg/breal-morphe-patches/releases/download/{tag}/{mpp_name}"
     data["download_url"] = download_url
     data["signature_download_url"] = f"{download_url}.asc"

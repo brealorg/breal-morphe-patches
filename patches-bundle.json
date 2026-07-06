@@ -3,5 +3,5 @@
   "description": "Manager update notification probe for Issue #8.\nNo runtime patch changes; this release validates Morphe Manager update discovery/toast behavior.\n",
   "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-48/patches-1.4.48.mpp",
   "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-48/patches-1.4.48.mpp.asc",
-  "version": "1.4.48"
+  "version": "v1.4.48"
 }

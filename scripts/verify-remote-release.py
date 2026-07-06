@@ -245,7 +245,7 @@ def check_bundle(
     expected_url: str,
     expected_sig_url: str,
 ) -> None:
-    verdict.require(bundle.get("version") == version, f"{label}: version={bundle.get('version')!r}, expected {version!r}")
+    verdict.require(bundle.get("version") == f"v{version}", f"{label}: version={bundle.get('version')!r}, expected {f'v{version}'!r}")
     verdict.require(bundle.get("download_url") == expected_url, f"{label}: download_url mismatch")
     verdict.require(bundle.get("signature_download_url") == expected_sig_url, f"{label}: signature_download_url mismatch")
 
