@@ -110,5 +110,34 @@ val fixHideInvalidIndexPatch = bytecodePatch(
                 )
             }
         }
+
+        // Feed/list action guard for SubmissionRecyclerViewLinearMiniCardsAdsFragment.s1(index).
+        //
+        // Issue #19 logcat shows Boost can pass an invalid converted list index
+        // from O2(index), notably -1, into both ArrayList.get(index) and
+        // ArrayList.remove(index). The older Hide guards cover O(...) and C0(...),
+        // but this click-path reaches s1(I) directly.
+        feedActionS1InvalidIndexFingerprint.method.apply {
+            val settingsIndex = indexOfFirstInstructionOrThrow {
+                opcode == Opcode.INVOKE_STATIC &&
+                    getReference<MethodReference>()?.toString() == "Lid/b;->v0()Lid/b;"
+            }
+            val returnIndex = indexOfFirstInstructionReversedOrThrow {
+                opcode == Opcode.RETURN_VOID
+            }
+
+            addInstructionsWithLabels(
+                settingsIndex,
+                """
+                    if-ltz v0, :morphe_skip_s1_invalid_index
+                    iget-object v1, p0, Lcom/rubenmayayo/reddit/ui/fragments/b;->d:Ljava/util/ArrayList;
+                    invoke-virtual {v1}, Ljava/util/ArrayList;->size()I
+                    move-result v2
+                    if-ge v0, v2, :morphe_skip_s1_invalid_index
+                """,
+                ExternalLabel("morphe_skip_s1_invalid_index", getInstruction(returnIndex)),
+            )
+        }
+
     }
 }

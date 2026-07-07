@@ -41,3 +41,13 @@ internal val hideFragmentC0Fingerprints = hideFragmentC0ClassTypes.map { classTy
         },
     )
 }
+
+internal val feedActionS1InvalidIndexFingerprint = Fingerprint(
+    returnType = "V",
+    parameters = listOf("I"),
+    custom = { method, classDef ->
+        classDef.type == "Lcom/rubenmayayo/reddit/ui/fragments/j;" &&
+            method.name == "s1"
+    },
+)
+
