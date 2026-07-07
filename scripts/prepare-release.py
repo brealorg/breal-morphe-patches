@@ -222,6 +222,53 @@ def run_release_gate(
     run(cmd)
 
 
+
+def previous_release_tag_for(version: str) -> str:
+    normalized = version.strip().removeprefix("v")
+    parts = normalized.split(".")
+    if len(parts) != 3 or not all(part.isdigit() for part in parts):
+        raise SystemExit(f"Cannot infer previous release tag from non-semver version: {version!r}")
+
+    previous_patch = int(parts[2]) - 1
+    if previous_patch < 0:
+        raise SystemExit(f"Cannot infer previous release tag from version: {version!r}")
+
+    return f"morphe-patches-{previous_patch}"
+
+
+def run_manager_changelog_update(
+    repo_root: Path,
+    version: str,
+    tag: str,
+    changelog_lines: list[str],
+) -> None:
+    if not changelog_lines:
+        return
+
+    updater = repo_root / "tools" / "update-manager-changelog.py"
+    if not updater.exists():
+        raise SystemExit(f"Missing Manager changelog updater: {updater}")
+
+    command = [
+        sys.executable,
+        str(updater),
+        "--repo-root",
+        str(repo_root),
+        "--version",
+        version,
+        "--tag",
+        tag,
+        "--previous-tag",
+        previous_release_tag_for(version),
+        "--scope",
+        "Boost for Reddit",
+    ]
+
+    for line in changelog_lines:
+        command.extend(["--text", line])
+
+    run(command)
+
 def print_summary(version: str, tag: str, mpp: Path | None, sha: str | None) -> None:
     print()
     print("===== prepare-release summary =====")
@@ -301,6 +348,7 @@ def main() -> int:
     write(gradle_path, gradle_text)
 
     update_bundle_json(bundle_path, version, tag, changelog_lines)
+    run_manager_changelog_update(Path.cwd(), version, tag, changelog_lines)
     run(["./tools/check-patches-list-feed.sh", "--write", version])
     run([
         sys.executable,
