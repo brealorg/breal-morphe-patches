@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.59](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-58...morphe-patches-59) (2026-07-07)
+
+* **Boost for Reddit:** Boost for Reddit: Make Disable ads tolerate already-stripped AppLovin/Google ad manifest entries so j-hc/revanced-magisk-module can patch stripped APK inputs.
+
 ## [1.4.58](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-57...morphe-patches-58) (2026-07-07)
 
 * **Boost for Reddit:** Fix Boost feed actions crashing when an invalid list index is produced. Guard the Hide/Mark-as-read feed action path before Boost reads or removes the item.

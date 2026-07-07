@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-07T23:30:36",
-  "description": "Fix Boost feed actions crashing when an invalid list index is produced.\nGuard the Hide/Mark-as-read feed action path before Boost reads or removes the item.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-58/patches-1.4.58.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-58/patches-1.4.58.mpp.asc",
-  "version": "1.4.58"
+  "created_at": "2026-07-07T23:57:45",
+  "description": "Boost for Reddit: Make Disable ads tolerate already-stripped AppLovin/Google ad manifest entries so j-hc/revanced-magisk-module can patch stripped APK inputs.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-59/patches-1.4.59.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-59/patches-1.4.59.mpp.asc",
+  "version": "1.4.59"
 }
