@@ -24,7 +24,7 @@ private const val INLINE_GIPHY_EXTENSION_DESCRIPTOR =
 @Suppress("unused")
 val inlineGiphyCommentPreviewPatch = bytecodePatch(
     name = "Show inline Giphy previews in comments",
-    description = "Adds inline animated Giphy previews below Boost comment text for Reddit Giphy markdown and Giphy links.",
+    description = "Adds inline media previews below Boost comment text for Giphy links and direct static image URLs.",
     default = true
 ) {
     dependsOn(sharedExtensionPatch)

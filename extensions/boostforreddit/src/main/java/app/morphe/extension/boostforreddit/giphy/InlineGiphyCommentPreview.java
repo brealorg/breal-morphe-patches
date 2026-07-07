@@ -43,6 +43,8 @@ public final class InlineGiphyCommentPreview {
             "morphe_boost_direct_reddit_gif_tap_action";
     private static final String COMMENT_DIRECT_GIF_ROUTE_MARKER =
             "morphe_boost_comment_direct_reddit_gif_route";
+    private static final String COMMENT_STATIC_IMAGE_URL_PREVIEW_MARKER =
+            "morphe_boost_comment_static_image_url_preview_v1";
     private static final String PREF_GIPHY_PREVIEW_TAP_ACTION =
             "morphe_boost_giphy_preview_tap_action";
     private static final String PREF_STATIC_PREVIEW_TAP_ACTION =
@@ -64,6 +66,9 @@ public final class InlineGiphyCommentPreview {
 
     private static final Pattern DIRECT_PREVIEW_URL_PATTERN =
             Pattern.compile("https?://(?:external-preview|preview)\\.redd\\.it/[^\\s\"'<>]+", Pattern.CASE_INSENSITIVE);
+
+    private static final Pattern DIRECT_STATIC_IMAGE_URL_PATTERN =
+            Pattern.compile("https?://(?:i\\.imgur\\.com|i\\.redd\\.it)/[^\\s\"'<>]+?\\.(?:png|jpe?g|webp)(?:\\?[^\\s\"'<>)]*)?", Pattern.CASE_INSENSITIVE);
 
     private static final Pattern DIRECT_GIF_URL_PATTERN =
             Pattern.compile("https?://[^\\s\"'<>]+?\\.gif(?:\\?[^\\s\"'<>)]*)?", Pattern.CASE_INSENSITIVE);
@@ -922,7 +927,35 @@ public final class InlineGiphyCommentPreview {
 
         String lower = url.toLowerCase(java.util.Locale.US);
         return lower.contains("://preview.redd.it/")
-                || lower.contains("://external-preview.redd.it/");
+                || lower.contains("://external-preview.redd.it/")
+                || isDirectStaticImageUrl(lower);
+    }
+
+    private static boolean isDirectStaticImageUrl(String url) {
+        if (url == null) return false;
+
+        String lower = url.toLowerCase(java.util.Locale.US);
+
+        int queryIndex = lower.indexOf('?');
+        if (queryIndex >= 0) {
+            lower = lower.substring(0, queryIndex);
+        }
+
+        int fragmentIndex = lower.indexOf('#');
+        if (fragmentIndex >= 0) {
+            lower = lower.substring(0, fragmentIndex);
+        }
+
+        boolean supportedHost = lower.startsWith("https://i.imgur.com/")
+                || lower.startsWith("http://i.imgur.com/")
+                || lower.startsWith("https://i.redd.it/")
+                || lower.startsWith("http://i.redd.it/");
+
+        return supportedHost
+                && (lower.endsWith(".png")
+                || lower.endsWith(".jpg")
+                || lower.endsWith(".jpeg")
+                || lower.endsWith(".webp"));
     }
 
     private static boolean isDirectIRedditGif(String url) {
@@ -1133,6 +1166,13 @@ public final class InlineGiphyCommentPreview {
             return new PreviewSource(url, url);
         }
 
+        Matcher staticImage = DIRECT_STATIC_IMAGE_URL_PATTERN.matcher(normalized);
+        if (staticImage.find()) {
+            String url = cleanUrlTail(staticImage.group(0));
+            Log.d(LOG_TAG, COMMENT_STATIC_IMAGE_URL_PREVIEW_MARKER + ": found static image url preview " + url);
+            return new PreviewSource(url, url);
+        }
+
         Matcher directGif = DIRECT_GIF_URL_PATTERN.matcher(normalized);
         if (directGif.find()) {
             String url = directGif.group();
@@ -1198,6 +1238,7 @@ public final class InlineGiphyCommentPreview {
         // Boost stores some comment HTML escaped as &lt;...&gt;, so handle that before stripping plain URLs.
         value = value.replaceAll("(?is)&lt;a\\s+[^&]*href=[\\\"']https?://(?:www\\.)?giphy\\.com/gifs/[^\\\"']+[\\\"'][^&]*&gt;.*?&lt;/a&gt;", "");
         value = value.replaceAll("(?is)&lt;a\\s+[^&]*href=[\\\"']https?://media\\.giphy\\.com/media/[A-Za-z0-9_-]+/giphy\\.(?:gif|mp4)[^\\\"']*[\\\"'][^&]*&gt;.*?&lt;/a&gt;", "");
+        value = value.replaceAll("(?is)&lt;a\\s+[^&]*href=[\\\"']https?://(?:i\\.imgur\\.com|i\\.redd\\.it)/[^\\\"'&]+?\\.(?:png|jpe?g|webp)(?:\\?[^\\\"']*)?[\\\"'][^&]*&gt;.*?&lt;/a&gt;", "");
 
         // Clean up malformed leftovers from earlier passes, e.g. &lt;a href=" target="_blank"&gt;
         value = value.replaceAll("(?is)&lt;a\\s+[^&]*href=[\\\"']\\s*target=[\\\"']_blank[\\\"'][^&]*&gt;", "");
@@ -1205,6 +1246,7 @@ public final class InlineGiphyCommentPreview {
 
         value = value.replaceAll("(?is)<a\\s+[^>]*href=[\"']https?://(?:www\\.)?giphy\\.com/gifs/[^\"']+[\"'][^>]*>.*?</a>", "");
         value = value.replaceAll("(?is)<a\\s+[^>]*href=[\"']https?://media\\.giphy\\.com/media/[A-Za-z0-9_-]+/giphy\\.(?:gif|mp4)[^\"']*[\"'][^>]*>.*?</a>", "");
+        value = value.replaceAll("(?is)<a\\s+[^>]*href=[\"']https?://(?:i\\.imgur\\.com|i\\.redd\\.it)/[^\"'>]+?\\.(?:png|jpe?g|webp)(?:\\?[^\"']*)?[\"'][^>]*>.*?</a>", "");
 
         return value;
     }
@@ -1216,12 +1258,14 @@ public final class InlineGiphyCommentPreview {
         if (value == null) return null;
 
         return value
-                .replaceAll("(?i)<img[^>]+(?:giphy|external-preview\\.redd\\.it|preview\\.redd\\.it)[^>]*>", "")
+                .replaceAll("(?i)<img[^>]+(?:giphy|external-preview\\.redd\\.it|preview\\.redd\\.it|i\\.imgur\\.com|i\\.redd\\.it)[^>]*>", "")
                 .replaceAll("(?i)!\\[gif\\]\\(giphy\\|[A-Za-z0-9_-]+\\)", "")
                 .replaceAll("(?i)!\\[[^\\]]*\\]\\(https?://(?:external-preview|preview)\\.redd\\.it/[^\\s)]+\\)", "")
+                .replaceAll("(?i)!\\[[^\\]]*\\]\\(https?://(?:i\\.imgur\\.com|i\\.redd\\.it)/[^\\s)]+?\\.(?:png|jpe?g|webp)(?:\\?[^\\s)]*)?\\)", "")
                 .replaceAll("(?i)https?://(?:www\\.)?giphy\\.com/gifs/\\S+", "")
                 .replaceAll("(?i)https?://media\\.giphy\\.com/media/[A-Za-z0-9_-]+/giphy\\.(?:gif|mp4)", "")
                 .replaceAll("(?i)https?://(?:external-preview|preview)\\.redd\\.it/\\S+", "")
+                .replaceAll("(?i)https?://(?:i\\.imgur\\.com|i\\.redd\\.it)/[^\\s\"'<>]+?\\.(?:png|jpe?g|webp)(?:\\?[^\\s\"'<>)]*)?", "")
                 .replaceAll("(?i)https?://[^\\s\"'<>]+?\\.gif(?:\\?[^\\s\"'<>)]*)?", "")
                 .trim();
     }
