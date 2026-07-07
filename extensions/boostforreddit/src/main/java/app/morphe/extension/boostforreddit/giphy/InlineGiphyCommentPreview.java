@@ -918,6 +918,29 @@ public final class InlineGiphyCommentPreview {
                 || lower.contains("://media.giphy.com/");
     }
 
+    private static boolean isRedditProfileOrAvatarImageUrl(String url) {
+        if (url == null) return false;
+        String lower = url.toLowerCase(java.util.Locale.US);
+
+        boolean redditProfileImageHost =
+                lower.contains("://preview.redd.it/")
+                        || lower.contains("://external-preview.redd.it/")
+                        || lower.contains("://styles.redditmedia.com/")
+                        || lower.contains("://i.redd.it/");
+
+        if (!redditProfileImageHost) {
+            return false;
+        }
+
+        return lower.contains("snoovatar")
+                || lower.contains("avatar_default")
+                || lower.contains("/avatar")
+                || lower.contains("profileicon")
+                || lower.contains("communityicon")
+                || lower.contains("/styles/profileicon_")
+                || lower.contains("/styles/communityicon_");
+    }
+
     private static boolean isStaticPreview(String mediaUrl, String sourceUrl) {
         return isStaticPreviewUrl(mediaUrl) || isStaticPreviewUrl(sourceUrl);
     }
@@ -1161,14 +1184,22 @@ public final class InlineGiphyCommentPreview {
         String normalized = normalizeText(value);
 
         Matcher direct = DIRECT_PREVIEW_URL_PATTERN.matcher(normalized);
-        if (direct.find()) {
+        while (direct.find()) {
             String url = cleanUrlTail(direct.group(0));
+            if (isRedditProfileOrAvatarImageUrl(url)) {
+                Log.d(LOG_TAG, "morphe_boost_skip_profile_avatar_preview_v1: ignored profile/avatar preview " + url);
+                continue;
+            }
             return new PreviewSource(url, url);
         }
 
         Matcher staticImage = DIRECT_STATIC_IMAGE_URL_PATTERN.matcher(normalized);
-        if (staticImage.find()) {
+        while (staticImage.find()) {
             String url = cleanUrlTail(staticImage.group(0));
+            if (isRedditProfileOrAvatarImageUrl(url)) {
+                Log.d(LOG_TAG, "morphe_boost_skip_profile_avatar_preview_v1: ignored profile/avatar static image " + url);
+                continue;
+            }
             Log.d(LOG_TAG, COMMENT_STATIC_IMAGE_URL_PREVIEW_MARKER + ": found static image url preview " + url);
             return new PreviewSource(url, url);
         }
