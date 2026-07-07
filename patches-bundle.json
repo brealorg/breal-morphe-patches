@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-07T10:20:42",
-  "description": "Boost: ignore Reddit profile/avatar image URLs in comment preview extraction so profile pictures no longer render as large inline media.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-54/patches-1.4.54.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-54/patches-1.4.54.mpp.asc",
-  "version": "1.4.54"
+  "created_at": "2026-07-07T11:35:20",
+  "description": "Boost: fix crash in Random subreddit fallback caused by Jackson JsonNode runtime API mismatch\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-55/patches-1.4.55.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-55/patches-1.4.55.mpp.asc",
+  "version": "1.4.55"
 }

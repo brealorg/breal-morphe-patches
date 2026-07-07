@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.55](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-54...morphe-patches-55) (2026-07-07)
+
+* **Boost for Reddit:** Fix Random subreddit crash caused by Jackson JsonNode runtime API mismatch.
+
 ## [1.4.54](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-53...morphe-patches-54) (2026-07-07)
 
 * **Boost for Reddit:** Ignore Reddit profile/avatar image URLs in comment preview extraction so profile pictures no longer render as large inline media.
