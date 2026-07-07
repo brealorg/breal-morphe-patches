@@ -5,7 +5,6 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
-import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
@@ -30,10 +29,18 @@ val fixImageWidgetClickTargetPatch = bytecodePatch(
                     getReference<MethodReference>()?.toString() == PENDING_INTENT_GET_ACTIVITY_REFERENCE
             }
 
-            val pendingIntentFlagsIndex = indexOfFirstInstructionReversedOrThrow {
-                opcode == Opcode.INVOKE_STATIC &&
-                    getReference<MethodReference>()?.toString() == BOOST_PENDING_INTENT_FLAGS_REFERENCE
-            }
+            val pendingIntentFlagsIndex = implementation!!.instructions
+                .withIndex()
+                .filter { (index, instruction) ->
+                    index < getActivityIndex &&
+                        instruction.opcode == Opcode.INVOKE_STATIC &&
+                        instruction.getReference<MethodReference>()?.toString() == BOOST_PENDING_INTENT_FLAGS_REFERENCE
+                }
+                .lastOrNull()
+                ?.index
+                ?: throw IllegalStateException(
+                    "Could not find ImageWidgetProvider h0.D flags call before CommentsActivity PendingIntent.getActivity"
+                )
 
             if (pendingIntentFlagsIndex >= getActivityIndex) {
                 throw IllegalStateException(
