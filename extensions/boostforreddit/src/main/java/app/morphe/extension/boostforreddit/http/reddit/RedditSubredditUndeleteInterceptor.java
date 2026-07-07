@@ -185,12 +185,10 @@ public class RedditSubredditUndeleteInterceptor implements Interceptor {
                     "data", child
             )));
 
-            JsonNode createdUtc = child.get("created_utc");
-            if (createdUtc == null || !createdUtc.canConvertToLong()) {
+            Long timestamp = parseCreatedUtcEpochSeconds(child.get("created_utc"));
+            if (timestamp == null) {
                 continue;
             }
-
-            long timestamp = createdUtc.asLong();
             if (timestamp < earliestTimestamp) {
                 earliestTimestamp = timestamp;
             }
@@ -217,6 +215,33 @@ public class RedditSubredditUndeleteInterceptor implements Interceptor {
         listingData.replace("after", new TextNode(convertUnixTimestamp(earliestTimestamp)));
         listingData.replace("before", new TextNode(convertUnixTimestamp(latestTimestamp)));
         return HttpUtils.makeJsonResponse(request, listing);
+    }
+
+    private static Long parseCreatedUtcEpochSeconds(JsonNode node) {
+        if (node == null) {
+            return null;
+        }
+
+        try {
+            String value = node.asText();
+            if (value == null) {
+                return null;
+            }
+
+            value = value.trim();
+            if (value.isEmpty()) {
+                return null;
+            }
+
+            int decimalIndex = value.indexOf('.');
+            if (decimalIndex > 0) {
+                value = value.substring(0, decimalIndex);
+            }
+
+            return Long.parseLong(value);
+        } catch (RuntimeException ignored) {
+            return null;
+        }
     }
 
     private static boolean isGlobalListingSubreddit(String subredditName) {
