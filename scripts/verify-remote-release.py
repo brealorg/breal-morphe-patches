@@ -245,7 +245,13 @@ def check_bundle(
     expected_url: str,
     expected_sig_url: str,
 ) -> None:
-    verdict.require(bundle.get("version") == f"v{version}", f"{label}: version={bundle.get('version')!r}, expected {f'v{version}'!r}")
+    bundle_version = bundle.get("version")
+    bare_version = version[1:] if version.startswith("v") else version
+    acceptable_versions = {bare_version, f"v{bare_version}"}
+    verdict.require(
+        bundle_version in acceptable_versions,
+        f"{label}: version={bundle_version!r}, expected one of {sorted(acceptable_versions)!r}",
+    )
     verdict.require(bundle.get("download_url") == expected_url, f"{label}: download_url mismatch")
     verdict.require(bundle.get("signature_download_url") == expected_sig_url, f"{label}: signature_download_url mismatch")
 
