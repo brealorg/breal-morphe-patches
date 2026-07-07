@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-07T11:35:20",
-  "description": "Boost: fix crash in Random subreddit fallback caused by Jackson JsonNode runtime API mismatch\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-55/patches-1.4.55.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-55/patches-1.4.55.mpp.asc",
-  "version": "1.4.55"
+  "created_at": "2026-07-07T14:29:04",
+  "description": "Fix Boost Random subreddit by resolving a live non-NSFW subreddit through Reddit search with subscriber-count filtering.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-56/patches-1.4.56.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-56/patches-1.4.56.mpp.asc",
+  "version": "1.4.56"
 }

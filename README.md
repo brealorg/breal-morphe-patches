@@ -63,14 +63,14 @@ Preferred Morphe source setup is the deep link below. Raw `patches-bundle.json` 
 
 | Field | Value |
 |---|---|
-| Version | `1.4.55` |
-| Release tag | `morphe-patches-55` |
-| Asset | `patches-1.4.55.mpp` |
-| SHA256 | `7f0672c6767f34c07cc4af871ccc365b22efe7bfe891b230bf84af90b0d358d5` |
+| Version | `1.4.56` |
+| Release tag | `morphe-patches-56` |
+| Asset | `patches-1.4.56.mpp` |
+| SHA256 | `4b03b9b96e87d2cc69f65b3da0f743e93f82179a41581d4ec5a0599c4a8e2c3d` |
 
-SHA256: `7f0672c6767f34c07cc4af871ccc365b22efe7bfe891b230bf84af90b0d358d5`
+SHA256: `4b03b9b96e87d2cc69f65b3da0f743e93f82179a41581d4ec5a0599c4a8e2c3d`
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-55/patches-1.4.55.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-56/patches-1.4.56.mpp` |
 
 ## What this bundle does
 
@@ -103,10 +103,10 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.55` • `main` • 34 unique patches • 86 package entries
+> **Patch source version:** `1.4.56` • `main` • 35 unique patches • 87 package entries
 
 <details>
-<summary><strong>Boost for Reddit</strong> • 25 patches</summary>
+<summary><strong>Boost for Reddit</strong> • 26 patches</summary>
 
 
 
@@ -133,6 +133,7 @@ Included Imgur patches:
 | [Fix download completed notification visibility](#fix-download-completed-notification-visibility) | Moves completed download notifications to a separate default-importance channel so download completion is visible while progress notifications remain low-priority. |  |
 | [Fix Hide crash](#fix-hide-crash) | Prevents Boost from crashing when Hide receives an invalid feed/list index. |  |
 | [Fix missing audio in video downloads](#fix-missing-audio-in-video-downloads) | Fixes audio missing in videos downloaded from v.redd.it. |  |
+| [Fix Random subreddit](#fix-random-subreddit) | Normalizes Boost's broken r/random route by resolving a live non-NSFW subreddit through Reddit search and subscriber-count filtering. |  |
 | [Fix Redgifs API](#fix-redgifs-api) |  |  |
 | [Fix slow Giphy loading](#fix-slow-giphy-loading) | Bypasses Boost's slow Giphy API resolver and uses Boost's direct media.giphy.com MP4 fallback for Giphy posts. |  |
 | [Hook exception handler](#hook-exception-handler) | Hook the exception handler in Boost. Don't enable except for development purposes |  |
@@ -498,16 +499,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.55` is prepared and locally verified with:
+Release `1.4.56` is prepared and locally verified with:
 
-- Release tag `morphe-patches-55`.
+- Release tag `morphe-patches-56`.
 - Local built MPP SHA256 matching README.
-`7f0672c6767f34c07cc4af871ccc365b22efe7bfe891b230bf84af90b0d358d5`
-- `patches-bundle.json` returning version `1.4.55`.
-- `patches-bundle.json` pointing to the `morphe-patches-55` asset.
+`4b03b9b96e87d2cc69f65b3da0f743e93f82179a41581d4ec5a0599c4a8e2c3d`
+- `patches-bundle.json` returning version `1.4.56`.
+- `patches-bundle.json` pointing to the `morphe-patches-56` asset.
 - Expected release asset:
-`patches-1.4.55.mpp`
-- `7f0672c6767f34c07cc4af871ccc365b22efe7bfe891b230bf84af90b0d358d5  patches-1.4.55.mpp`
+`patches-1.4.56.mpp`
+- `4b03b9b96e87d2cc69f65b3da0f743e93f82179a41581d4ec5a0599c4a8e2c3d  patches-1.4.56.mpp`
 
 ## Development notes
 

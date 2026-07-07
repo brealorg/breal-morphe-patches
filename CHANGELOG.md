@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.56](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-55...morphe-patches-56) (2026-07-07)
+
+* **Boost for Reddit:** Fix Boost Random subreddit by resolving a live non-NSFW subreddit through Reddit search with subscriber-count filtering.
+
 ## [1.4.55](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-54...morphe-patches-55) (2026-07-07)
 
 * **Boost for Reddit:** Fix Random subreddit crash caused by Jackson JsonNode runtime API mismatch.
