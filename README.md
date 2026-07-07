@@ -63,14 +63,14 @@ Preferred Morphe source setup is the deep link below. Raw `patches-bundle.json` 
 
 | Field | Value |
 |---|---|
-| Version | `1.4.52` |
-| Release tag | `morphe-patches-52` |
-| Asset | `patches-1.4.52.mpp` |
-| SHA256 | `0022b3a53251ed7c3071549a531995296965fffc7ba8aed15d99af3cb4be4dfa` |
+| Version | `1.4.53` |
+| Release tag | `morphe-patches-53` |
+| Asset | `patches-1.4.53.mpp` |
+| SHA256 | `28691c5d989db038b6d70cd68631c911dcf69042b88f82cdc373a31ee519d287` |
 
-SHA256: `0022b3a53251ed7c3071549a531995296965fffc7ba8aed15d99af3cb4be4dfa`
+SHA256: `28691c5d989db038b6d70cd68631c911dcf69042b88f82cdc373a31ee519d287`
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-52/patches-1.4.52.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-53/patches-1.4.53.mpp` |
 
 ## What this bundle does
 
@@ -103,10 +103,10 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.52` • `main` • 33 unique patches • 85 package entries
+> **Patch source version:** `1.4.53` • `main` • 34 unique patches • 86 package entries
 
 <details>
-<summary><strong>Boost for Reddit</strong> • 24 patches</summary>
+<summary><strong>Boost for Reddit</strong> • 25 patches</summary>
 
 
 
@@ -127,6 +127,7 @@ Included Imgur patches:
 | [Fix /s/ links](#fix-s-links) |  |  |
 | [Fix Boost code block rendering](#fix-boost-code-block-rendering) | Preserves Reddit code blocks by normalizing multiline <code> HTML and malformed fenced selftext to Boost's native <pre> renderer path. |  |
 | [Fix Boost comments Lemmy-style toolbar UI](#fix-boost-comments-lemmy-style-toolbar-ui) | Removes the duplicate native comments title by disabling the SlidrTheme window title/actionbar layer while preserving Boost's selected light/dark theme, toolbar title, and dynamic sort subtitle. |  |
+| [Fix Boost native image upload](#fix-boost-native-image-upload) | Forces Boost's single-image submit flow to use Reddit's native image submission kind instead of creating external uploaded-media link posts. |  |
 | [Fix Boost navigation bar overlap](#fix-boost-navigation-bar-overlap) | Adds runtime system bar inset handling for Boost bottom controls and drawer content on Android 15+ target SDK builds. |  |
 | [Fix Boost target SDK 35 compatibility](#fix-boost-target-sdk-35-compatibility) | Sets Boost for Reddit's target SDK to 35 and fixes BillingClient receiver registration for newer Android versions. |  |
 | [Fix download completed notification visibility](#fix-download-completed-notification-visibility) | Moves completed download notifications to a separate default-importance channel so download completion is visible while progress notifications remain low-priority. |  |
@@ -138,7 +139,7 @@ Included Imgur patches:
 | [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
 | [Restore GIF search integration probe](#restore-gif-search-integration-probe) | Fingerprint-only probe for Boost compose/reply GIF insertion through FormattingBar. No runtime behavior change. |  |
 | [Restore GIF URL insertion](#restore-gif-url-insertion) | Adds provider-independent manual GIF URL insertion to Boost's existing image menu. |  |
-| [Show inline Giphy previews in comments](#show-inline-giphy-previews-in-comments) | Adds inline animated Giphy previews below Boost comment text for Reddit Giphy markdown and Giphy links. |  |
+| [Show inline Giphy previews in comments](#show-inline-giphy-previews-in-comments) | Adds inline media previews below Boost comment text for Giphy links and direct static image URLs. |  |
 | [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
 | [Support keyboard GIF insertion](#support-keyboard-gif-insertion) | Enables keyboard GIF/image rich content insertion through Android receive-content when a public URL is available. |  |
 
@@ -497,16 +498,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.52` is prepared and locally verified with:
+Release `1.4.53` is prepared and locally verified with:
 
-- Release tag `morphe-patches-52`.
+- Release tag `morphe-patches-53`.
 - Local built MPP SHA256 matching README.
-`0022b3a53251ed7c3071549a531995296965fffc7ba8aed15d99af3cb4be4dfa`
-- `patches-bundle.json` returning version `1.4.52`.
-- `patches-bundle.json` pointing to the `morphe-patches-52` asset.
+`28691c5d989db038b6d70cd68631c911dcf69042b88f82cdc373a31ee519d287`
+- `patches-bundle.json` returning version `1.4.53`.
+- `patches-bundle.json` pointing to the `morphe-patches-53` asset.
 - Expected release asset:
-`patches-1.4.52.mpp`
-- `0022b3a53251ed7c3071549a531995296965fffc7ba8aed15d99af3cb4be4dfa  patches-1.4.52.mpp`
+`patches-1.4.53.mpp`
+- `28691c5d989db038b6d70cd68631c911dcf69042b88f82cdc373a31ee519d287  patches-1.4.53.mpp`
 
 ## Development notes
 

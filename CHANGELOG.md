@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.53](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-52...morphe-patches-53) (2026-07-07)
+
+* **Boost for Reddit:** Render direct `i.imgur.com` and `i.redd.it` static image URLs inline in comment bodies, including uploaded Imgur image links after submit/refresh.
+
 ## [1.4.52](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-51...morphe-patches-52) (2026-07-06)
 
 * **Boost for Reddit:** Preserve Morphe Manager update detection with Manager-compatible Boost changelog scope for the 1.4.52 bundle.
