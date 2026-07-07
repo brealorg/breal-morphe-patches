@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.54](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-53...morphe-patches-54) (2026-07-07)
+
+* **Boost for Reddit:** Ignore Reddit profile/avatar image URLs in comment preview extraction so profile pictures no longer render as large inline media.
+
 ## [1.4.53](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-52...morphe-patches-53) (2026-07-07)
 
 * **Boost for Reddit:** Render direct `i.imgur.com` and `i.redd.it` static image URLs inline in comment bodies, including uploaded Imgur image links after submit/refresh.

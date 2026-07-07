@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-07T02:41:47",
-  "description": "Boost: render direct i.imgur.com and i.redd.it static image URLs inline in comment bodies.\nFixes uploaded Imgur image links appearing only as plain text after submit/refresh.\nRuntime validated in Boost Dev with https://i.imgur.com/F08f7Sb.png: inline preview visible, marker seen, crash scan clean.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-53/patches-1.4.53.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-53/patches-1.4.53.mpp.asc",
-  "version": "1.4.53"
+  "created_at": "2026-07-07T10:20:42",
+  "description": "Boost: ignore Reddit profile/avatar image URLs in comment preview extraction so profile pictures no longer render as large inline media.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-54/patches-1.4.54.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-54/patches-1.4.54.mpp.asc",
+  "version": "1.4.54"
 }

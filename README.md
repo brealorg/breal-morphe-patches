@@ -63,14 +63,14 @@ Preferred Morphe source setup is the deep link below. Raw `patches-bundle.json` 
 
 | Field | Value |
 |---|---|
-| Version | `1.4.53` |
-| Release tag | `morphe-patches-53` |
-| Asset | `patches-1.4.53.mpp` |
-| SHA256 | `28691c5d989db038b6d70cd68631c911dcf69042b88f82cdc373a31ee519d287` |
+| Version | `1.4.54` |
+| Release tag | `morphe-patches-54` |
+| Asset | `patches-1.4.54.mpp` |
+| SHA256 | `d1c6a4516eaf900524b2c3dd3c70b9d06e2c48a5491851514e964150691b0baf` |
 
-SHA256: `28691c5d989db038b6d70cd68631c911dcf69042b88f82cdc373a31ee519d287`
+SHA256: `d1c6a4516eaf900524b2c3dd3c70b9d06e2c48a5491851514e964150691b0baf`
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-53/patches-1.4.53.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-54/patches-1.4.54.mpp` |
 
 ## What this bundle does
 
@@ -103,7 +103,7 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.53` • `main` • 34 unique patches • 86 package entries
+> **Patch source version:** `1.4.54` • `main` • 34 unique patches • 86 package entries
 
 <details>
 <summary><strong>Boost for Reddit</strong> • 25 patches</summary>
@@ -498,16 +498,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.53` is prepared and locally verified with:
+Release `1.4.54` is prepared and locally verified with:
 
-- Release tag `morphe-patches-53`.
+- Release tag `morphe-patches-54`.
 - Local built MPP SHA256 matching README.
-`28691c5d989db038b6d70cd68631c911dcf69042b88f82cdc373a31ee519d287`
-- `patches-bundle.json` returning version `1.4.53`.
-- `patches-bundle.json` pointing to the `morphe-patches-53` asset.
+`d1c6a4516eaf900524b2c3dd3c70b9d06e2c48a5491851514e964150691b0baf`
+- `patches-bundle.json` returning version `1.4.54`.
+- `patches-bundle.json` pointing to the `morphe-patches-54` asset.
 - Expected release asset:
-`patches-1.4.53.mpp`
-- `28691c5d989db038b6d70cd68631c911dcf69042b88f82cdc373a31ee519d287  patches-1.4.53.mpp`
+`patches-1.4.54.mpp`
+- `d1c6a4516eaf900524b2c3dd3c70b9d06e2c48a5491851514e964150691b0baf  patches-1.4.54.mpp`
 
 ## Development notes
 
