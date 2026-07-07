@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.57](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-56...morphe-patches-57) (2026-07-07)
+
+* **Boost for Reddit:** Fix image widget click target so the widget opens the visible post instead of a stale cached post. Runtime validated from real Kotlin/MPP-derived Boost Dev build with `dat=morphe-widget-image://open/...` and runtime classifier PASS.
+
 ## [1.4.56](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-55...morphe-patches-56) (2026-07-07)
 
 * **Boost for Reddit:** Fix Boost Random subreddit by resolving a live non-NSFW subreddit through Reddit search with subscriber-count filtering.
@@ -46,7 +50,6 @@
 * include app names in patches list feed ([85a8164](https://github.com/brealorg/breal-morphe-patches/commit/85a816451b987e67e49c8f80025781a2e927792d))
 
 # Changelog
-
 
 ## 1.4.43
 

@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.4.56",
+  "version": "1.4.57",
   "patches": [
     {
       "name": "Add archive links to context menu",
@@ -541,6 +541,32 @@
     {
       "name": "Fix Boost comments Lemmy-style toolbar UI",
       "description": "Removes the duplicate native comments title by disabling the SlidrTheme window title/actionbar layer while preserving Boost's selected light/dark theme, toolbar title, and dynamic sort subtitle.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.rubenmayayo.reddit",
+          "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Fix Boost image widget click target",
+      "description": "Prevents Boost's image widget from opening a stale post by making the CommentsActivity PendingIntent data unique per widget update.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [

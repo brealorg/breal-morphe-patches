@@ -63,14 +63,14 @@ Preferred Morphe source setup is the deep link below. Raw `patches-bundle.json` 
 
 | Field | Value |
 |---|---|
-| Version | `1.4.56` |
-| Release tag | `morphe-patches-56` |
-| Asset | `patches-1.4.56.mpp` |
-| SHA256 | `000493b20bbe3e6cd6d8e539298eec3b92c75af4c665a55bb924b92d9297f53a` |
+| Version | `1.4.57` |
+| Release tag | `morphe-patches-57` |
+| Asset | `patches-1.4.57.mpp` |
+| SHA256 | `5ec25ad1c978bdf1b62e8950f0032cbf66d784fd60c6c22f11d88711f0781fb5` |
 
-SHA256: `000493b20bbe3e6cd6d8e539298eec3b92c75af4c665a55bb924b92d9297f53a`
+SHA256: `5ec25ad1c978bdf1b62e8950f0032cbf66d784fd60c6c22f11d88711f0781fb5`
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-56/patches-1.4.56.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-57/patches-1.4.57.mpp` |
 
 ## What this bundle does
 
@@ -103,10 +103,10 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.56` • `main` • 35 unique patches • 87 package entries
+> **Patch source version:** `1.4.57` • `main` • 36 unique patches • 88 package entries
 
 <details>
-<summary><strong>Boost for Reddit</strong> • 26 patches</summary>
+<summary><strong>Boost for Reddit</strong> • 27 patches</summary>
 
 
 
@@ -127,6 +127,7 @@ Included Imgur patches:
 | [Fix /s/ links](#fix-s-links) |  |  |
 | [Fix Boost code block rendering](#fix-boost-code-block-rendering) | Preserves Reddit code blocks by normalizing multiline <code> HTML and malformed fenced selftext to Boost's native <pre> renderer path. |  |
 | [Fix Boost comments Lemmy-style toolbar UI](#fix-boost-comments-lemmy-style-toolbar-ui) | Removes the duplicate native comments title by disabling the SlidrTheme window title/actionbar layer while preserving Boost's selected light/dark theme, toolbar title, and dynamic sort subtitle. |  |
+| [Fix Boost image widget click target](#fix-boost-image-widget-click-target) | Prevents Boost's image widget from opening a stale post by making the CommentsActivity PendingIntent data unique per widget update. |  |
 | [Fix Boost native image upload](#fix-boost-native-image-upload) | Forces Boost's single-image submit flow to use Reddit's native image submission kind instead of creating external uploaded-media link posts. |  |
 | [Fix Boost navigation bar overlap](#fix-boost-navigation-bar-overlap) | Adds runtime system bar inset handling for Boost bottom controls and drawer content on Android 15+ target SDK builds. |  |
 | [Fix Boost target SDK 35 compatibility](#fix-boost-target-sdk-35-compatibility) | Sets Boost for Reddit's target SDK to 35 and fixes BillingClient receiver registration for newer Android versions. |  |
@@ -499,16 +500,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.56` is prepared and locally verified with:
+Release `1.4.57` is prepared and locally verified with:
 
-- Release tag `morphe-patches-56`.
+- Release tag `morphe-patches-57`.
 - Local built MPP SHA256 matching README.
-`000493b20bbe3e6cd6d8e539298eec3b92c75af4c665a55bb924b92d9297f53a`
-- `patches-bundle.json` returning version `1.4.56`.
-- `patches-bundle.json` pointing to the `morphe-patches-56` asset.
+`5ec25ad1c978bdf1b62e8950f0032cbf66d784fd60c6c22f11d88711f0781fb5`
+- `patches-bundle.json` returning version `1.4.57`.
+- `patches-bundle.json` pointing to the `morphe-patches-57` asset.
 - Expected release asset:
-`patches-1.4.56.mpp`
-- `000493b20bbe3e6cd6d8e539298eec3b92c75af4c665a55bb924b92d9297f53a  patches-1.4.56.mpp`
+`patches-1.4.57.mpp`
+- `5ec25ad1c978bdf1b62e8950f0032cbf66d784fd60c6c22f11d88711f0781fb5  patches-1.4.57.mpp`
 
 ## Development notes
 

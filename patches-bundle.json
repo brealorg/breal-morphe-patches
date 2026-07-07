@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-07T14:29:04",
-  "description": "Fix Boost Random subreddit by resolving a live non-NSFW subreddit through Reddit search with subscriber-count filtering.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-56/patches-1.4.56.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-56/patches-1.4.56.mpp.asc",
-  "version": "1.4.56"
+  "created_at": "2026-07-07T21:50:57",
+  "description": "Fix Boost image widget click target so the widget opens the visible post instead of a stale cached post.\nRuntime validated on real Kotlin/MPP-derived Boost Dev build: CommentsActivity starts with dat=morphe-widget-image://open/... and runtime classifier PASS.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-57/patches-1.4.57.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-57/patches-1.4.57.mpp.asc",
+  "version": "1.4.57"
 }
