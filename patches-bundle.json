@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-07T21:50:57",
-  "description": "Fix Boost image widget click target so the widget opens the visible post instead of a stale cached post.\nRuntime validated on real Kotlin/MPP-derived Boost Dev build: CommentsActivity starts with dat=morphe-widget-image://open/... and runtime classifier PASS.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-57/patches-1.4.57.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-57/patches-1.4.57.mpp.asc",
-  "version": "1.4.57"
+  "created_at": "2026-07-07T23:30:36",
+  "description": "Fix Boost feed actions crashing when an invalid list index is produced.\nGuard the Hide/Mark-as-read feed action path before Boost reads or removes the item.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-58/patches-1.4.58.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-58/patches-1.4.58.mpp.asc",
+  "version": "1.4.58"
 }

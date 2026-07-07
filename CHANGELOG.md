@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.58](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-57...morphe-patches-58) (2026-07-07)
+
+* **Boost for Reddit:** Fix Boost feed actions crashing when an invalid list index is produced. Guard the Hide/Mark-as-read feed action path before Boost reads or removes the item.
+
 ## [1.4.57](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-56...morphe-patches-57) (2026-07-07)
 
 * **Boost for Reddit:** Fix image widget click target so the widget opens the visible post instead of a stale cached post. Runtime validated from real Kotlin/MPP-derived Boost Dev build with `dat=morphe-widget-image://open/...` and runtime classifier PASS.
