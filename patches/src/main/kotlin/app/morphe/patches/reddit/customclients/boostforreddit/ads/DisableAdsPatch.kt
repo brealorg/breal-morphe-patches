@@ -36,24 +36,21 @@ private val removeBoostAdInitProvidersPatch = resourcePatch(
 
     execute {
         document("AndroidManifest.xml").use { document ->
-            fun removeElementByAndroidName(tagName: String, androidName: String) {
+            fun removeElementsByAndroidName(tagName: String, androidName: String) {
                 val nodes = document.getElementsByTagName(tagName)
                 val matches = (0 until nodes.length)
                     .map { nodes.item(it) as Element }
                     .filter { it.getAttribute("android:name") == androidName }
 
-                require(matches.size == 1) {
-                    "Expected exactly one <$tagName android:name=\"$androidName\">, found ${matches.size}"
+                matches.forEach { node ->
+                    node.parentNode.removeChild(node)
                 }
-
-                val node = matches.single()
-                node.parentNode.removeChild(node)
             }
 
-            removeElementByAndroidName("meta-data", "applovin.sdk.key")
-            removeElementByAndroidName("meta-data", "com.google.android.gms.ads.APPLICATION_ID")
-            removeElementByAndroidName("provider", "com.applovin.sdk.AppLovinInitProvider")
-            removeElementByAndroidName("provider", "com.google.android.gms.ads.MobileAdsInitProvider")
+            removeElementsByAndroidName("meta-data", "applovin.sdk.key")
+            removeElementsByAndroidName("meta-data", "com.google.android.gms.ads.APPLICATION_ID")
+            removeElementsByAndroidName("provider", "com.applovin.sdk.AppLovinInitProvider")
+            removeElementsByAndroidName("provider", "com.google.android.gms.ads.MobileAdsInitProvider")
         }
     }
 }
