@@ -28,6 +28,7 @@ public class ArcticShift {
     }
 
     private static final String ARCTIC_SHIFT_BASE_URL = "https://arctic-shift.photon-reddit.com/api/";
+    private static final String ARCTIC_SHIFT_NULL_DATA_MARKER = "morphe_boost_arcticshift_null_data_fail_open";
 
     private static final String[] POSTS_FIELDS = {
             "id", "title", "author", "author_fullname", "author_flair_text", "crosspost_parent",
@@ -47,13 +48,13 @@ public class ArcticShift {
 
     public static ArrayNode getIds(SubmissionType submissionType, Iterable<String> ids) throws IOException {
         String url = ARCTIC_SHIFT_BASE_URL + submissionType.toString().toLowerCase() + "/ids?ids=" + String.join(",", ids);
-        return (ArrayNode) makeApiCall(url).get("data");
+        return getArrayDataOrEmpty(makeApiCall(url), submissionType.toString().toLowerCase() + "/ids");
     }
 
     public static ArrayNode getCommentTree(String linkId) throws IOException {
         //return queryArcticShiftForCommentTree(id, null, null, null, null);
         String url = ARCTIC_SHIFT_BASE_URL + "comments/tree?limit=25000&link_id=" + linkId;
-        return (ArrayNode) makeApiCall(url).get("data");
+        return getArrayDataOrEmpty(makeApiCall(url), "comments/tree");
     }
 
     public static JsonNode getSubredditInfoById(String id) throws IOException {
@@ -89,7 +90,19 @@ public class ArcticShift {
             url += "&before=" + after;
         }
 
-        return (ArrayNode) makeApiCall(url).get("data");
+        return getArrayDataOrEmpty(makeApiCall(url), "posts/search");
+    }
+
+    private static ArrayNode getArrayDataOrEmpty(JsonNode rootNode, String context) {
+        JsonNode dataNode = rootNode == null ? null : rootNode.get("data");
+        if (dataNode != null && dataNode.isArray()) {
+            return (ArrayNode) dataNode;
+        }
+        LoggingUtils.logInfo(true, () -> ARCTIC_SHIFT_NULL_DATA_MARKER
+                + ": non-array data for "
+                + context
+                + ", skipping Arctic Shift fallback");
+        return new ArrayNode(com.fasterxml.jackson.databind.node.JsonNodeFactory.instance);
     }
 
     public static void updateSubmissionNode(ObjectNode oldNode, JsonNode newNode) {
