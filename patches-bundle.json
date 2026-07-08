@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-08T18:05:31",
-  "description": "Boost: fix Inline Media Previews so mixed link/media comments keep the original tappable URL while still rendering the inline preview.\nRuntime validated on Issue #29 repro: inline preview visible, original x.com link opens, v3 skip marker absent, no fatal or ActivityNotFound exceptions.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-61/patches-1.4.61.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-61/patches-1.4.61.mpp.asc",
-  "version": "1.4.61"
+  "created_at": "2026-07-08T18:52:34",
+  "description": "Bug Fixes: Boost comments now fail open when Arctic Shift returns empty/invalid data, preventing intermittent comment-load errors.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-62/patches-1.4.62.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-62/patches-1.4.62.mpp.asc",
+  "version": "1.4.62"
 }

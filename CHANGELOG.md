@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.62](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-61...morphe-patches-62) (2026-07-08)
+
+* **Boost for Reddit:** Bug Fixes: Boost comments now fail open when Arctic Shift returns empty/invalid data, preventing intermittent comment-load errors.
+
 ## [1.4.61](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-60...morphe-patches-61) (2026-07-08)
 
 * **Boost for Reddit:** Boost: fix Inline Media Previews so mixed link/media comments keep the original tappable URL while still rendering the inline preview. Runtime validated on Issue #29 repro: inline preview visible, original x.com link opens, v3 skip marker absent, no fatal or ActivityNotFound exceptions.
