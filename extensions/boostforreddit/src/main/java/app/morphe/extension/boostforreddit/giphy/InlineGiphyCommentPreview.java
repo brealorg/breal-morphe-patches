@@ -63,8 +63,6 @@ public final class InlineGiphyCommentPreview {
     private static final String DEFAULT_GIPHY_PREVIEW_TAP_ACTION = TAP_ACTION_VIDEO_VIEWER;
     private static final String DEFAULT_STATIC_PREVIEW_TAP_ACTION = TAP_ACTION_IMAGE_VIEWER;
     private static final Map<Object, PreviewSource> PREVIEW_SOURCES = new WeakHashMap<>();
-
-    private static final Pattern ANY_HTTP_URL_PATTERN = Pattern.compile("https?://[^\\s\"'<>]+", Pattern.CASE_INSENSITIVE);
     private static final Pattern DIRECT_PREVIEW_URL_PATTERN =
             Pattern.compile("https?://(?:external-preview|preview)\\.redd\\.it/[^\\s\"'<>]+", Pattern.CASE_INSENSITIVE);
 
@@ -111,14 +109,8 @@ public final class InlineGiphyCommentPreview {
 
             PreviewSource previewSource = findPreviewSource(commentModel);
             if (previewSource == null) return;
-
-            
-            if (hasAnyHttpUrlInCommentModel(commentModel)) {
-                PREVIEW_SOURCES.remove(commentModel);
-                Log.d(LOG_TAG, "morphe_boost_skip_any_http_link_inline_preview_v3");
-                return;
-            }
-PREVIEW_SOURCES.put(commentModel, previewSource);
+            PREVIEW_SOURCES.put(commentModel, previewSource);
+            Log.d(LOG_TAG, "morphe_boost_preserve_links_inline_preview_v4 source");
 
             // Issue #29: preserve Boost's original comment text/HTML before native link spans are built.
             // Rewriting CommentModel string fields here can corrupt normal link targets in mixed link+media comments.
@@ -152,14 +144,8 @@ PREVIEW_SOURCES.put(commentModel, previewSource);
             if (previewSource == null || previewSource.gifUrl == null || previewSource.gifUrl.length() == 0) {
                 return;
             }
-
-            
-            if (hasAnyHttpUrlInCommentModel(commentModel)) {
-                PREVIEW_SOURCES.remove(commentModel);
-                Log.d(LOG_TAG, "morphe_boost_skip_any_http_link_inline_preview_v3 bind");
-                return;
-            }
-final Context context = itemView.getContext();
+            Log.d(LOG_TAG, "morphe_boost_preserve_links_inline_preview_v4 bind");
+            final Context context = itemView.getContext();
             final String gifUrl = previewSource.gifUrl;
             final String sourceUrl = previewSource.sourceUrl;
             final String previewAlignment = getPreviewAlignment(context);
@@ -221,38 +207,6 @@ final Context context = itemView.getContext();
         }
     }
 
-
-    private static boolean hasAnyHttpUrlInCommentModel(Object commentModel) {
-        try {
-            if (commentModel == null) return false;
-
-            Class cls = commentModel.getClass();
-            while (cls != null) {
-                Field[] fields = cls.getDeclaredFields();
-                for (Field field : fields) {
-                    try {
-                        if (field.getType() != String.class) continue;
-                        if (Modifier.isStatic(field.getModifiers())) continue;
-
-                        field.setAccessible(true);
-                        Object value = field.get(commentModel);
-                        if (!(value instanceof String)) continue;
-
-                        Matcher matcher = ANY_HTTP_URL_PATTERN.matcher((String) value);
-                        if (matcher.find()) {
-                            return true;
-                        }
-                    } catch (Throwable ignored) {
-                    }
-                }
-                cls = cls.getSuperclass();
-            }
-
-            return false;
-        } catch (Throwable ignored) {
-            return false;
-        }
-    }
 
     private static boolean isInlineMediaPreviewsEnabled(Context context) {
         if (context == null) {
