@@ -7,7 +7,7 @@ import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 @Suppress("unused")
 val boostMorpheSettingsSkeletonPatch = resourcePatch(
     name = "Boost Morphe settings",
-    description = "Adds Boost Morphe settings for inline media previews, source text visibility, and preview alignment.",
+    description = "Adds Boost Morphe settings for inline media previews, adaptive refresh rate, source text visibility, and preview alignment.",
     default = false
 ) {
     compatibleWith(*BoostCompatible)
@@ -19,6 +19,12 @@ val boostMorpheSettingsSkeletonPatch = resourcePatch(
                 <?xml version="1.0" encoding="utf-8"?>
                 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
                     <PreferenceCategory android:title="Morphe">
+                        <CheckBoxPreference
+                            android:key="morphe_boost_prefer_high_refresh_rate"
+                            android:title="Prefer high refresh rate"
+                            android:summary="Ask Android to use a high refresh rate for Boost windows on adaptive-refresh displays."
+                            android:defaultValue="true" />
+
                         <CheckBoxPreference
                             android:key="morphe_boost_inline_media_previews_enabled"
                             android:title="Enable inline media previews"
@@ -109,6 +115,12 @@ val boostMorpheSettingsSkeletonPatch = resourcePatch(
                         android:fragment="com.rubenmayayo.reddit.ui.preferences.v2.PreferenceFragmentMiscCompat" />
 
                     <PreferenceCategory android:title="Morphe">
+                        <CheckBoxPreference
+                            android:key="morphe_boost_prefer_high_refresh_rate"
+                            android:title="Prefer high refresh rate"
+                            android:summary="Ask Android to use a high refresh rate for Boost windows on adaptive-refresh displays."
+                            android:defaultValue="true" />
+
                         <CheckBoxPreference
                             android:key="morphe_boost_inline_media_previews_enabled"
                             android:title="Enable inline media previews"

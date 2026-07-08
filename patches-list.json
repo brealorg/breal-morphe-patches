@@ -90,7 +90,7 @@
     },
     {
       "name": "Boost Morphe settings",
-      "description": "Adds Boost Morphe settings for inline media previews, source text visibility, and preview alignment.",
+      "description": "Adds Boost Morphe settings for inline media previews, adaptive refresh rate, source text visibility, and preview alignment.",
       "default": false,
       "dependencies": [],
       "compatiblePackages": [

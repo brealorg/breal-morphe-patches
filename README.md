@@ -120,7 +120,7 @@ Included Imgur patches:
 | [Add archive links to context menu](#add-archive-links-to-context-menu) |  |  |
 | [Automatically undelete Imgur images](#automatically-undelete-imgur-images) |  |  |
 | [Automatically undelete Reddit content](#automatically-undelete-reddit-content) |  |  |
-| [Boost Morphe settings](#boost-morphe-settings) | Adds Boost Morphe settings for inline media previews, source text visibility, and preview alignment. |  |
+| [Boost Morphe settings](#boost-morphe-settings) | Adds Boost Morphe settings for inline media previews, adaptive refresh rate, source text visibility, and preview alignment. |  |
 | [Disable ads](#disable-ads) |  |  |
 | [Disable Boost Crashlytics startup network calls](#disable-boost-crashlytics-startup-network-calls) | Disables Boost's Crashlytics startup initialization while keeping Firebase Analytics and other Firebase components. |  |
 | [Fix /r/all](#fix-r-all) |  |  |
