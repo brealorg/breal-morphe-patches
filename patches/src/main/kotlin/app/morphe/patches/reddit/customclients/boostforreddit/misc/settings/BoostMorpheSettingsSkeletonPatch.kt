@@ -7,7 +7,7 @@ import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 @Suppress("unused")
 val boostMorpheSettingsSkeletonPatch = resourcePatch(
     name = "Boost Morphe settings",
-    description = "Adds Boost Morphe settings for inline media previews, adaptive refresh rate, source text visibility, and preview alignment.",
+    description = "Adds Boost Morphe settings for inline media previews, undelete toggles, adaptive refresh rate, source text visibility, and preview alignment.",
     default = false
 ) {
     compatibleWith(*BoostCompatible)
@@ -67,6 +67,18 @@ val boostMorpheSettingsSkeletonPatch = resourcePatch(
                             android:key="morphe_boost_inline_media_preview_show_source_text"
                             android:title="Show source text with preview"
                             android:summary="Keep the original link text visible with the preview."
+                            android:defaultValue="false" />
+
+                        <CheckBoxPreference
+                            android:key="morphe_boost_reddit_undelete_enabled"
+                            android:title="Automatically undelete Reddit content"
+                            android:summary="Try to restore supported deleted Reddit posts/comments from archive sources. Disabled by default to keep normal browsing stable."
+                            android:defaultValue="false" />
+
+                        <CheckBoxPreference
+                            android:key="morphe_boost_imgur_undelete_enabled"
+                            android:title="Automatically undelete Imgur images"
+                            android:summary="Try to restore supported missing Imgur media from archive sources. Disabled by default."
                             android:defaultValue="false" />
                     </PreferenceCategory>
                 </PreferenceScreen>
@@ -163,6 +175,18 @@ val boostMorpheSettingsSkeletonPatch = resourcePatch(
                             android:key="morphe_boost_inline_media_preview_show_source_text"
                             android:title="Show source text with preview"
                             android:summary="Keep the original link text visible with the preview."
+                            android:defaultValue="false" />
+
+                        <CheckBoxPreference
+                            android:key="morphe_boost_reddit_undelete_enabled"
+                            android:title="Automatically undelete Reddit content"
+                            android:summary="Try to restore supported deleted Reddit posts/comments from archive sources. Disabled by default to keep normal browsing stable."
+                            android:defaultValue="false" />
+
+                        <CheckBoxPreference
+                            android:key="morphe_boost_imgur_undelete_enabled"
+                            android:title="Automatically undelete Imgur images"
+                            android:summary="Try to restore supported missing Imgur media from archive sources. Disabled by default."
                             android:defaultValue="false" />
                     </PreferenceCategory>
                 </PreferenceScreen>

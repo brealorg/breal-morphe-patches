@@ -33,6 +33,7 @@ import app.morphe.extension.boostforreddit.http.AutoSavingCache;
 import app.morphe.extension.boostforreddit.http.HttpUtils;
 import app.morphe.extension.boostforreddit.utils.Emojis;
 import app.morphe.extension.boostforreddit.utils.LoggingUtils;
+import app.morphe.extension.boostforreddit.utils.BoostUndeleteSettings;
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.Request;
@@ -48,6 +49,10 @@ public class RedditSubredditUndeleteInterceptor implements Interceptor {
     @Override
     public Response intercept(@NotNull Chain chain) throws IOException {
         Request request = chain.request();
+        if (!BoostUndeleteSettings.isRedditUndeleteEnabled()) {
+            return chain.proceed(request);
+        }
+
         String url = request.url().toString();
 
         Matcher matcher = SUBREDDIT_ABOUT_API_REGEX.matcher(url);

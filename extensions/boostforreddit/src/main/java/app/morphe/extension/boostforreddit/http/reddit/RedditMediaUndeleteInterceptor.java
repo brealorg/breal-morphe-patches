@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import app.morphe.extension.boostforreddit.http.HttpUtils;
+import app.morphe.extension.boostforreddit.utils.BoostUndeleteSettings;
 import app.morphe.extension.boostforreddit.http.wayback.WaybackMachine;
 import app.morphe.extension.boostforreddit.http.wayback.WaybackResponse;
 import okhttp3.Interceptor;
@@ -31,6 +32,10 @@ public class RedditMediaUndeleteInterceptor implements Interceptor {
     @Override
     public Response intercept(Chain chain) throws IOException {
         Request request = chain.request();
+        if (!BoostUndeleteSettings.isRedditUndeleteEnabled()) {
+            return chain.proceed(request);
+        }
+
         String host = request.url().host();
 
         String contentUrl;

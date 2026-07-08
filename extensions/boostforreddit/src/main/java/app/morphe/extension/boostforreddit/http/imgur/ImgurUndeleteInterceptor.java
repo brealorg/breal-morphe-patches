@@ -29,6 +29,7 @@ import app.morphe.extension.boostforreddit.http.AutoSavingCache;
 import app.morphe.extension.boostforreddit.http.HttpUtils;
 import app.morphe.extension.boostforreddit.http.wayback.WaybackMachine;
 import app.morphe.extension.boostforreddit.http.wayback.WaybackResponse;
+import app.morphe.extension.boostforreddit.utils.BoostUndeleteSettings;
 import okhttp3.Interceptor;
 import okhttp3.Response;
 import okhttp3.Request;
@@ -40,6 +41,10 @@ public class ImgurUndeleteInterceptor implements Interceptor {
     @Override
     public Response intercept(Chain chain) throws IOException {
         Request request = chain.request();
+        if (!BoostUndeleteSettings.isImgurUndeleteEnabled()) {
+            return chain.proceed(request);
+        }
+
         String host = request.url().host();
 
         if (!host.contains("imgur.com") && !host.contains("imgur-apiv3.p.rapidapi.com")) {

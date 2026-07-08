@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 
 import app.morphe.extension.boostforreddit.utils.EditableObjectNode;
 import app.morphe.extension.boostforreddit.utils.LoggingUtils;
+import app.morphe.extension.boostforreddit.utils.BoostUndeleteSettings;
 import app.morphe.extension.boostforreddit.utils.MarkdownRenderer;
 import app.morphe.extension.boostforreddit.http.arcticshift.ArcticShift;
 import app.morphe.extension.boostforreddit.http.AutoSavingCache;
@@ -51,6 +52,10 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
     @Override
     public Response intercept(@NotNull Chain chain) throws IOException {
         Request request = chain.request();
+        if (!BoostUndeleteSettings.isRedditUndeleteEnabled()) {
+            return chain.proceed(request);
+        }
+
         String url = request.url().toString();
 
         if (!SUBMISSION_API_REGEX.matcher(url).find()) {
