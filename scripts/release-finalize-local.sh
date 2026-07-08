@@ -7,8 +7,23 @@ TAG=""
 NAME=""
 CHANGELOG_ARGS=()
 
+usage() {
+  cat <<'EOF'
+Usage:
+  scripts/release-finalize-local.sh --version VERSION --tag TAG --changelog TEXT [options]
+
+Options:
+  --version VERSION   Release version, e.g. 1.4.62. Required.
+  --tag TAG           Release tag, e.g. morphe-patches-62. Required.
+  --name NAME         Candidate/runtime name suffix. Optional.
+  --changelog TEXT    Manager-facing release description. Required; repeatable.
+  -h, --help          Show this help.
+EOF
+}
+
 while [ "$#" -gt 0 ]; do
   case "$1" in
+    -h|--help) usage; exit 0 ;;
     --version) VERSION="${2:-}"; shift 2 ;;
     --tag) TAG="${2:-}"; shift 2 ;;
     --name) NAME="${2:-}"; shift 2 ;;
