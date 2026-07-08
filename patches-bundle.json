@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-07T23:57:45",
-  "description": "Boost for Reddit: Make Disable ads tolerate already-stripped AppLovin/Google ad manifest entries so j-hc/revanced-magisk-module can patch stripped APK inputs.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-59/patches-1.4.59.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-59/patches-1.4.59.mpp.asc",
-  "version": "1.4.59"
+  "created_at": "2026-07-08T11:55:32",
+  "description": "Add optional Boost high refresh-rate preference that requests Android preferredRefreshRate=120.0 on adaptive-refresh displays. Runtime validated in Boost Dev on Android 17 with MainActivity, MediaVideoActivity, and CommentsActivity logging preferredRefreshRate=120.0 and no real Boost Dev hard crash observed; exact panel Hz was not independently measured.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-60/patches-1.4.60.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-60/patches-1.4.60.mpp.asc",
+  "version": "1.4.60"
 }
