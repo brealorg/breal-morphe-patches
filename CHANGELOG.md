@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.63](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-62...morphe-patches-63) (2026-07-08)
+
+* **Boost for Reddit:** Boost: add runtime settings for Reddit/Imgur undelete and restore deleted Reddit media loaded through Glide/Wayback.
+
 ## [1.4.62](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-61...morphe-patches-62) (2026-07-08)
 
 * **Boost for Reddit:** Bug Fixes: Boost comments now fail open when Arctic Shift returns empty/invalid data, preventing intermittent comment-load errors.

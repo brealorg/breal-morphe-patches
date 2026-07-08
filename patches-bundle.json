@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-08T18:52:34",
-  "description": "Bug Fixes: Boost comments now fail open when Arctic Shift returns empty/invalid data, preventing intermittent comment-load errors.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-62/patches-1.4.62.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-62/patches-1.4.62.mpp.asc",
-  "version": "1.4.62"
+  "created_at": "2026-07-08T22:25:04",
+  "description": "Boost: add runtime settings for Reddit/Imgur undelete and restore deleted Reddit media loaded through Glide/Wayback.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-63/patches-1.4.63.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-63/patches-1.4.63.mpp.asc",
+  "version": "1.4.63"
 }
