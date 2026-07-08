@@ -113,9 +113,9 @@ public final class InlineGiphyCommentPreview {
 
             PREVIEW_SOURCES.put(commentModel, previewSource);
 
-            if (!isSourceTextWithPreviewEnabled(context)) {
-                replaceGiphyStringFields(commentModel);
-            }
+            // Issue #29: preserve Boost's original comment text/HTML before native link spans are built.
+            // Rewriting CommentModel string fields here can corrupt normal link targets in mixed link+media comments.
+            // Keep preview extraction/rendering active, but leave source text intact until cleanup is span-safe.
         } catch (Throwable throwable) {
         }
     }
