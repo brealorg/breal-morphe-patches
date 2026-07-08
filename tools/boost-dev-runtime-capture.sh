@@ -146,6 +146,13 @@ if [ -z "$SERIAL" ]; then
   exit 2
 fi
 
+# PL-10: runtime scripts must use the explicit serial passed by the caller.
+# ANDROID_SERIAL is intentionally ignored by all adb calls in this script via
+# `env -u ANDROID_SERIAL adb -s "$SERIAL" ...`; make that visible in logs.
+if [ -n "${ANDROID_SERIAL:-}" ] && [ "${ANDROID_SERIAL}" != "$SERIAL" ]; then
+  echo "INFO: ignoring ANDROID_SERIAL=${ANDROID_SERIAL}; using explicit --serial=${SERIAL}" >&2
+fi
+
 timestamp="$(date +%Y%m%d-%H%M%S)"
 OUT_DIR="${OUT_ROOT%/}/${NAME}.${timestamp}"
 mkdir -p "$OUT_DIR"
