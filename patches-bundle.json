@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-08T11:55:32",
-  "description": "Add optional Boost high refresh-rate preference that requests Android preferredRefreshRate=120.0 on adaptive-refresh displays. Runtime validated in Boost Dev on Android 17 with MainActivity, MediaVideoActivity, and CommentsActivity logging preferredRefreshRate=120.0 and no real Boost Dev hard crash observed; exact panel Hz was not independently measured.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-60/patches-1.4.60.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-60/patches-1.4.60.mpp.asc",
-  "version": "1.4.60"
+  "created_at": "2026-07-08T18:05:31",
+  "description": "Boost: fix Inline Media Previews so mixed link/media comments keep the original tappable URL while still rendering the inline preview.\nRuntime validated on Issue #29 repro: inline preview visible, original x.com link opens, v3 skip marker absent, no fatal or ActivityNotFound exceptions.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-61/patches-1.4.61.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-61/patches-1.4.61.mpp.asc",
+  "version": "1.4.61"
 }

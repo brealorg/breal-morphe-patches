@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.61](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-60...morphe-patches-61) (2026-07-08)
+
+* **Boost for Reddit:** Boost: fix Inline Media Previews so mixed link/media comments keep the original tappable URL while still rendering the inline preview. Runtime validated on Issue #29 repro: inline preview visible, original x.com link opens, v3 skip marker absent, no fatal or ActivityNotFound exceptions.
+
 ## [1.4.60](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-59...morphe-patches-60) (2026-07-08)
 
 * **Boost for Reddit:** Add optional Boost high refresh-rate preference that requests Android preferredRefreshRate=120.0 on adaptive-refresh displays. Runtime validated in Boost Dev on Android 17 with MainActivity, MediaVideoActivity, and CommentsActivity logging preferredRefreshRate=120.0 and no real Boost Dev hard crash observed; exact panel Hz was not independently measured.
