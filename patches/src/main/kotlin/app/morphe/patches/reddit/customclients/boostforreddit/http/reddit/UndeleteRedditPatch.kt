@@ -35,6 +35,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 
 
 internal const val OKHTTP_EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/boostforreddit/http/OkHttpRequestHook;"
+private const val GLIDE_REDDIT_MEDIA_WAYBACK_DESCRIPTOR = "Lapp/morphe/extension/boostforreddit/http/reddit/GlideRedditMediaWayback;"
 internal const val EXTRA_EMOJI_CONTEXT_KEY = "extraEmoji"
 internal const val EXTRA_EMOJI_GETTER = "getExtraEmoji"
 
@@ -56,6 +57,33 @@ val undeleteRedditPatch = bytecodePatch(
                 invoke-static       { v0 }, $OKHTTP_EXTENSION_CLASS_DESCRIPTOR->installInterceptor(Lokhttp3/OkHttpClient${'$'}Builder;)Lokhttp3/OkHttpClient${'$'}Builder;
                 move-result-object  v0
                 """
+            )
+        }
+
+        // Glide's HttpUrlFetcher uses HttpURLConnection directly, bypassing Boost's OkHttp/JRAW hooks.
+        // Hook its HTTP failure path so deleted i.redd.it / preview.redd.it media can be restored from Wayback.
+        glideHttpUrlFetcherFetchFingerprint.method.apply {
+            val responseCodeIndex = indexOfFirstInstructionReversed {
+                val methodReference = getReference<MethodReference>()
+                opcode == Opcode.INVOKE_STATIC &&
+                    methodReference?.definingClass == "Lcom/bumptech/glide/load/data/j;" &&
+                    methodReference.name == "f"
+            }
+            val insertIndex = responseCodeIndex - 2
+            addInstructionsWithLabels(
+                insertIndex,
+                """
+                iget-object         p3, p0, Lcom/bumptech/glide/load/data/j;->e:Ljava/net/HttpURLConnection;
+                invoke-static       {p3}, Lcom/bumptech/glide/load/data/j;->f(Ljava/net/HttpURLConnection;)I
+                move-result         p3
+                iget-object         p4, p0, Lcom/bumptech/glide/load/data/j;->e:Ljava/net/HttpURLConnection;
+                invoke-static       {p4, p3}, $GLIDE_REDDIT_MEDIA_WAYBACK_DESCRIPTOR->open(Ljava/net/HttpURLConnection;I)Ljava/io/InputStream;
+                move-result-object  p4
+                if-eqz              p4, :morphe_glide_wayback_continue
+                iput-object         p4, p0, Lcom/bumptech/glide/load/data/j;->f:Ljava/io/InputStream;
+                return-object       p4
+                """,
+                ExternalLabel("morphe_glide_wayback_continue", getInstruction(insertIndex))
             )
         }
 

@@ -76,3 +76,10 @@ internal val stateSubmissionViewHasValidRemovalReasonFingerprint = Fingerprint(
     accessFlags = listOf(AccessFlags.PRIVATE),
     strings = listOf("reddit"),
 )
+
+internal val glideHttpUrlFetcherFetchFingerprint = Fingerprint(
+    definingClass = "Lcom/bumptech/glide/load/data/j;",
+    name = "j",
+    returnType = "Ljava/io/InputStream;",
+    parameters = listOf("Ljava/net/URL", "I", "Ljava/net/URL", "Ljava/util/Map")
+)
