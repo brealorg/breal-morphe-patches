@@ -4,16 +4,20 @@ mark_fail() { echo "FAIL: $*"; FAIL=1; }
 
 VERSION=""
 TAG=""
+RELEASE_NOTES_FILE=""
 
 usage() {
   cat <<'EOF'
 Usage:
-  scripts/release-publish-existing.sh --version VERSION --tag TAG
+  scripts/release-publish-existing.sh --version VERSION --tag TAG --release-notes-file PATH
 
 Options:
-  --version VERSION   Release version, e.g. 1.4.62. Required.
-  --tag TAG           Release tag, e.g. morphe-patches-62. Required.
-  -h, --help          Show this help.
+  --version VERSION             Release version, e.g. 1.4.62. Required.
+  --tag TAG                     Release tag, e.g. morphe-patches-62. Required.
+  --release-notes-file PATH     Human-readable GitHub release notes. Required.
+                                Must include app/area, Changes, User impact.
+                                Validation details are appended automatically.
+  -h, --help                    Show this help.
 EOF
 }
 
@@ -22,12 +26,15 @@ while [ "$#" -gt 0 ]; do
     -h|--help) usage; exit 0 ;;
     --version) VERSION="${2:-}"; shift 2 ;;
     --tag) TAG="${2:-}"; shift 2 ;;
+    --release-notes-file) RELEASE_NOTES_FILE="${2:-}"; shift 2 ;;
     *) echo "FAIL: unknown arg: $1"; exit 2 ;;
   esac
 done
 
 [ -n "$VERSION" ] || { echo "FAIL: --version required"; exit 2; }
 [ -n "$TAG" ] || { echo "FAIL: --tag required"; exit 2; }
+[ -n "$RELEASE_NOTES_FILE" ] || { echo "FAIL: --release-notes-file required"; exit 2; }
+[ -f "$RELEASE_NOTES_FILE" ] || { echo "FAIL: release notes file not found: $RELEASE_NOTES_FILE"; exit 2; }
 
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 1
 cd "$ROOT" || exit 1
@@ -46,6 +53,7 @@ echo "TAG=$TAG"
 echo "MPP=$MPP"
 echo "ASC=$ASC"
 echo "OUT=$OUT"
+echo "RELEASE_NOTES_FILE=$RELEASE_NOTES_FILE"
 
 echo
 echo "===== precheck: no builds, no metadata writes ====="
@@ -90,17 +98,36 @@ if [ "$FAIL" -eq 0 ]; then
 fi
 
 echo
-echo "===== create GitHub release ====="
+echo "===== compose and validate GitHub release notes ====="
 NOTES="$OUT/release-notes.md"
-cat > "$NOTES" <<EOF
-Morphe patch bundle ${VERSION}
+if [ "$FAIL" -eq 0 ]; then
+  cat "$RELEASE_NOTES_FILE" > "$NOTES" || mark_fail "could not copy release notes file"
+  {
+    echo
+    echo "### Validation"
+    echo
+    echo "- Final local release gate passed before publish."
+    echo "- README SHA is aligned to the published MPP."
+    echo "- Release tag: \`$TAG\`."
+    echo "- Release asset: \`patches-${VERSION}.mpp\`."
+    echo "- Signature asset: \`patches-${VERSION}.mpp.asc\`."
+    echo "- MPP SHA256: \`$MPP_SHA\`."
+  } >> "$NOTES"
 
-Validation:
-- Final local release gate passed before publish.
-- README SHA is aligned to the published MPP.
-- Assets: patches-${VERSION}.mpp and patches-${VERSION}.mpp.asc.
-EOF
+  python3 scripts/validate-release-notes.py \
+    --notes-file "$NOTES" \
+    --version "$VERSION" \
+    --tag "$TAG" \
+    --asset "patches-${VERSION}.mpp" \
+    --sha256 "$MPP_SHA" \
+    --require-sha \
+    2>&1 | tee "$OUT/validate-release-notes.txt"
+  RC=${PIPESTATUS[0]}
+  [ "$RC" -eq 0 ] || mark_fail "release notes validation failed rc=$RC"
+fi
 
+echo
+echo "===== create GitHub release ====="
 if [ "$FAIL" -eq 0 ]; then
   gh release create "$TAG" "$MPP" "$ASC" \
     --title "Morphe patch bundle ${VERSION}" \

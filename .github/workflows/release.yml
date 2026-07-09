@@ -11,6 +11,10 @@ on:
         description: 'Manager-facing release description'
         required: true
         type: string
+      release_notes:
+        description: 'Human-readable GitHub Release notes: title, app/area, Changes, User impact'
+        required: true
+        type: string
       markers:
         description: 'Optional release-gate markers, one per line'
         required: false
@@ -41,6 +45,7 @@ jobs:
     env:
       VERSION: ${{ inputs.version }}
       CHANGELOG: ${{ inputs.changelog }}
+      RELEASE_NOTES: ${{ inputs.release_notes }}
       MARKERS: ${{ inputs.markers }}
       PUBLISH: ${{ inputs.publish }}
       CONFIRM: ${{ inputs.confirm }}
@@ -65,6 +70,11 @@ jobs:
 
           if [ -z "$CHANGELOG" ]; then
             echo "changelog input is required"
+            exit 1
+          fi
+
+          if [ -z "$RELEASE_NOTES" ]; then
+            echo "release_notes input is required"
             exit 1
           fi
 
@@ -201,6 +211,37 @@ jobs:
           sha256sum "$ASSET_PATH"
           ls -lh "$ASSET_PATH" "$ASSET_PATH.asc"
 
+
+      - name: Validate GitHub release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ASSET_PATH="patches/build/libs/$ASSET"
+          NOTES_FILE="release-notes-$VERSION.md"
+          LOCAL_SHA="$(sha256sum "$ASSET_PATH" | awk '{print $1}')"
+
+          printf '%s\n' "$RELEASE_NOTES" > "$NOTES_FILE"
+          {
+            echo
+            echo "### Validation"
+            echo
+            echo "- Final local release gate passed before publish."
+            echo "- README SHA is aligned to the published MPP."
+            echo "- Release tag: \`$TAG\`."
+            echo "- Release asset: \`$ASSET\`."
+            echo "- Signature asset: \`$ASSET.asc\`."
+            echo "- MPP SHA256: \`$LOCAL_SHA\`."
+          } >> "$NOTES_FILE"
+
+          python3 scripts/validate-release-notes.py \
+            --notes-file "$NOTES_FILE" \
+            --version "$VERSION" \
+            --tag "$TAG" \
+            --asset "$ASSET" \
+            --sha256 "$LOCAL_SHA" \
+            --require-sha
+
       - name: Show prepared release diff
         shell: bash
         run: |
@@ -250,6 +291,7 @@ jobs:
           git push origin HEAD:dev
           git push origin "$TAG"
 
+
       - name: Create GitHub release
         if: ${{ inputs.publish == true }}
         shell: bash
@@ -258,12 +300,20 @@ jobs:
 
           ASSET_PATH="patches/build/libs/$ASSET"
           NOTES_FILE="release-notes-$VERSION.md"
+          LOCAL_SHA="$(sha256sum "$ASSET_PATH" | awk '{print $1}')"
 
-          printf '%s\n' "$CHANGELOG" > "$NOTES_FILE"
+          test -s "$NOTES_FILE"
+
+          python3 scripts/validate-release-notes.py \
+            --notes-file "$NOTES_FILE" \
+            --version "$VERSION" \
+            --tag "$TAG" \
+            --asset "$ASSET" \
+            --sha256 "$LOCAL_SHA" \
+            --require-sha
 
           gh release create "$TAG" \
-            "$ASSET_PATH" \
-            "$ASSET_PATH.asc" \
+            "$ASSET_PATH" "$ASSET_PATH.asc" \
             --title "Morphe patch bundle $VERSION" \
             --notes-file "$NOTES_FILE"
 

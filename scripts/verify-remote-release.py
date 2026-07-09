@@ -28,6 +28,12 @@ FORBIDDEN_MANAGER_DESCRIPTION_FRAGMENTS = (
 )
 
 MAX_MANAGER_DESCRIPTION_LENGTH = 700
+MIN_GITHUB_RELEASE_NOTES_LENGTH = 450
+REQUIRED_GITHUB_RELEASE_NOTE_SECTIONS = (
+    "### Changes",
+    "### User impact",
+    "### Validation",
+)
 
 
 class Verdict:
@@ -226,6 +232,76 @@ def inspect_mpp(path: Path) -> tuple[list[str], bool]:
         dex_entries = sorted(name for name in names if Path(name).name.endswith(".dex"))
         has_boost_ext = "extensions/boostforreddit.mpe" in names
     return dex_entries, has_boost_ext
+
+
+def github_release_by_tag(owner: str, repo: str, tag: str, *, token: str | None) -> dict[str, Any]:
+    url = f"https://api.github.com/repos/{owner}/{repo}/releases/tags/{tag}"
+    return http_json(url, token=token)
+
+
+def release_note_concrete_bullets(body: str) -> list[str]:
+    bullets: list[str] = []
+    for line in body.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith(("-", "*", "•")):
+            continue
+        normalized = stripped.lstrip("-*•").strip()
+        if not normalized:
+            continue
+        if normalized.startswith("Final local release gate passed"):
+            continue
+        if normalized.startswith("README SHA is aligned"):
+            continue
+        if normalized.startswith("Release tag:"):
+            continue
+        if normalized.startswith("Release asset:"):
+            continue
+        if normalized.startswith("Signature asset:"):
+            continue
+        if normalized.startswith("MPP SHA256:"):
+            continue
+        bullets.append(normalized)
+    return bullets
+
+
+def release_notes_have_app_heading(body: str) -> bool:
+    for heading in re.findall(r"(?m)^###\s+(.+?)\s*$", body):
+        normalized = heading.strip().lower()
+        if normalized in {"changes", "user impact", "validation"}:
+            continue
+        if normalized:
+            return True
+    return False
+
+
+def validate_github_release_notes(
+    verdict: Verdict,
+    *,
+    release: dict[str, Any],
+    version: str,
+    tag: str,
+    asset_name: str,
+    sha256: str | None,
+) -> None:
+    body = str(release.get("body") or "").strip()
+    label = "GitHub Release body"
+
+    verdict.require(release.get("tag_name") == tag, f"GitHub Release tag_name={release.get('tag_name')!r}, expected {tag!r}")
+    verdict.require(str(release.get("name") or ""), "GitHub Release title/name missing")
+    verdict.require(len(body) >= MIN_GITHUB_RELEASE_NOTES_LENGTH, f"{label} too short: {len(body)} chars")
+
+    title = f"Morphe patch bundle {version}"
+    verdict.require(title in body, f"{label} missing title text: {title!r}")
+    verdict.require(release_notes_have_app_heading(body), f"{label} missing app/area heading")
+    for section in REQUIRED_GITHUB_RELEASE_NOTE_SECTIONS:
+        verdict.require(section in body, f"{label} missing required section: {section}")
+
+    verdict.require(bool(release_note_concrete_bullets(body)), f"{label} missing concrete non-validation change bullet")
+    verdict.require(tag in body, f"{label} missing release tag {tag!r}")
+    verdict.require(asset_name in body, f"{label} missing asset name {asset_name!r}")
+
+    if sha256:
+        verdict.require(sha256 in body, f"{label} missing MPP SHA256 {sha256}")
 
 
 def expected_asset_name(version: str) -> str:
@@ -584,6 +660,21 @@ def main() -> int:
     print(f"Asset: {asset_name}")
     if remote_asset_sha:
         print(f"Remote asset SHA256: {remote_asset_sha}")
+
+        # PL-11: verify public GitHub Release notes after remote asset SHA is known.
+        try:
+            release_payload = github_release_by_tag(owner, repo, tag, token=token)
+            verdict.note(f"GitHub Release URL: {release_payload.get('html_url') or release_payload.get('url')}")
+            validate_github_release_notes(
+                verdict,
+                release=release_payload,
+                version=version,
+                tag=tag,
+                asset_name=asset_name,
+                sha256=remote_asset_sha,
+            )
+        except Exception as e:
+            verdict.fail(f"GitHub Release notes verification failed: {e}")
     return 0
 
 

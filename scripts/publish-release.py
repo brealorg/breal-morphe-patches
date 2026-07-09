@@ -253,18 +253,56 @@ def release_gate_cmd(args: argparse.Namespace, asset_path: Path) -> list[str]:
 
 
 def write_release_notes_file(args: argparse.Namespace) -> Path:
-    if args.notes_file:
-        path = Path(args.notes_file)
-        require(path.exists(), f"notes file does not exist: {path}")
-        return path
+    require(args.notes_file, "--notes-file is required; GitHub Release notes must not fall back to patches-bundle.json description")
 
-    bundle = read_json(ROOT / "patches-bundle.json")
-    description = str(bundle.get("description", "")).strip()
-    if not description:
-        description = f"Release {args.version}"
+    source = Path(args.notes_file)
+    require(source.exists(), f"notes file does not exist: {source}")
+
+    asset = f"patches-{args.version}.mpp"
+    mpp = ROOT / "patches" / "build" / "libs" / asset
+    asset_sha = sha256_file(mpp) if mpp.exists() else ""
+
+    validation_lines = [
+        "",
+        "### Validation",
+        "",
+        "- Final local release gate passed before publish.",
+        "- README SHA is aligned to the published MPP.",
+        f"- Release tag: `{args.tag}`.",
+        f"- Release asset: `{asset}`.",
+        f"- Signature asset: `{asset}.asc`.",
+    ]
+    if asset_sha:
+        validation_lines.append(f"- MPP SHA256: `{asset_sha}`.")
 
     tmp = Path(tempfile.mkdtemp(prefix="morphe-release-notes-")) / f"release-notes-{args.version}.md"
-    tmp.write_text(description + "\n", encoding="utf-8")
+    tmp.write_text(
+        source.read_text(encoding="utf-8").rstrip()
+        + "\n"
+        + "\n".join(validation_lines)
+        + "\n",
+        encoding="utf-8",
+    )
+
+    cmd = [
+        sys.executable,
+        "scripts/validate-release-notes.py",
+        "--notes-file",
+        str(tmp),
+        "--version",
+        args.version,
+        "--tag",
+        args.tag,
+        "--asset",
+        asset,
+    ]
+    if asset_sha:
+        cmd.extend(["--sha256", asset_sha, "--require-sha"])
+
+    proc = subprocess.run(cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
+    print(proc.stdout, end="")
+    require(proc.returncode == 0, f"release notes validation failed rc={proc.returncode}")
+
     return tmp
 
 
@@ -381,7 +419,7 @@ def main() -> int:
     parser.add_argument("--remote", default="origin", help="Git remote. Default: origin")
     parser.add_argument("--asset", help="MPP asset path. Defaults to patches/build/libs/patches-<version>.mpp")
     parser.add_argument("--signature", help="Detached signature path. Defaults to <asset>.asc")
-    parser.add_argument("--notes-file", help="Release notes file. Defaults to patches-bundle.json description.")
+    parser.add_argument("--notes-file", required=True, help="Human-readable GitHub Release notes file. Required; never falls back to Manager description.")
     parser.add_argument("--title", help="GitHub release title. Defaults to Morphe patch bundle <version>.")
     parser.add_argument("--marker", action="append", default=[], help="Marker passed through to release-gate.py")
     parser.add_argument("--stale", action="append", default=[], help="Stale value passed through to release-gate.py")
