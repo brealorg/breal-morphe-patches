@@ -5,11 +5,8 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 import app.morphe.patches.reddit.customclients.boostforreddit.misc.extension.sharedExtensionPatch
 import app.morphe.util.getReference
-import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 @Suppress("unused")
 val boostSearchDefaultDiscoveryPatch = bytecodePatch(
@@ -27,19 +24,13 @@ val boostSearchDefaultDiscoveryPatch = bytecodePatch(
          * v5m keeps Random, displays cached active subreddits instantly, refreshes source-specific popular/HOT posts, and renames the Reddit search filter from Community to Subreddit.
          */
         searchGenericActivityDefaultGoToFingerprint.method.apply {
-            val randomStringIndex = indexOfFirstInstructionOrThrow {
-                opcode == Opcode.CONST_STRING &&
-                    getReference<StringReference>()?.string == "random"
-            }
-
-            val randomRowAddIndex = indexOfFirstInstructionOrThrow(randomStringIndex) {
-                opcode == Opcode.INVOKE_VIRTUAL &&
-                    getReference<MethodReference>()?.toString() ==
-                    "Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z"
-            }
-
+            /*
+             * Insert at Q1 method entry. The previous tail insertion was still
+             * branch-skippable because Boost's cond label stayed attached to
+             * return-void. Entry injection proves whether Q1 is the active path.
+             */
             addInstructions(
-                randomRowAddIndex + 1,
+                0,
                 """
                     iget-object v0, p0, Lcom/rubenmayayo/reddit/ui/search/SearchAbstractActivity;->b:Ljava/util/ArrayList;
                     invoke-static {p0, v0}, Lapp/morphe/extension/boostforreddit/search/SearchExploreRows;->appendOrRefresh(Landroid/app/Activity;Ljava/util/ArrayList;)V
