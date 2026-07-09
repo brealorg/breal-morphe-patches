@@ -45,9 +45,8 @@ def is_newer(old: object, new: object) -> bool:
 
 
 def scope_matches(scope: str, app_scope: str) -> bool:
-    scope_l = scope.lower()
-    app_l = app_scope.lower()
-    return scope_l == app_l or scope_l.startswith(app_l + " - ")
+    """Manager app scope must match Compatibility.name exactly."""
+    return scope == app_scope
 
 
 def parse_changelog(text: str) -> list[ChangelogEntry]:
