@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.65](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-64...morphe-patches-65) (2026-07-10)
+
+* **Boost for Reddit:** Boost: run search discovery at SearchGenericActivity Q1 entry so Active subreddits render reliably before Random branch checks.
+
 ## [1.4.64](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-63...morphe-patches-64) (2026-07-09)
 
 * **Boost for Reddit:** Boost search default discovery: Adds an instant Active subreddits landing and Reddit-native Subreddit labels.
