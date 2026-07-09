@@ -63,14 +63,14 @@ Preferred Morphe source setup is the deep link below. Raw `patches-bundle.json` 
 
 | Field | Value |
 |---|---|
-| Version | `1.4.63` |
-| Release tag | `morphe-patches-63` |
-| Asset | `patches-1.4.63.mpp` |
-| SHA256 | `3ea0ef62c6953c16d6cc0ce5d9622c6b8133f17090fb00ae6687fa321f27a631` |
+| Version | `1.4.64` |
+| Release tag | `morphe-patches-64` |
+| Asset | `patches-1.4.64.mpp` |
+| SHA256 | `b3e4f9a974ca42c78d73d4460a3b8140c78829f243bd1ddfff992b0dc0139ca5` |
 
-SHA256: `3ea0ef62c6953c16d6cc0ce5d9622c6b8133f17090fb00ae6687fa321f27a631`
+SHA256: `b3e4f9a974ca42c78d73d4460a3b8140c78829f243bd1ddfff992b0dc0139ca5`
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-63/patches-1.4.63.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-64/patches-1.4.64.mpp` |
 
 ## What this bundle does
 
@@ -103,10 +103,10 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.63` • `main` • 37 unique patches • 89 package entries
+> **Patch source version:** `1.4.64` • `main` • 38 unique patches • 90 package entries
 
 <details>
-<summary><strong>Boost for Reddit</strong> • 28 patches</summary>
+<summary><strong>Boost for Reddit</strong> • 29 patches</summary>
 
 
 
@@ -121,6 +121,7 @@ Included Imgur patches:
 | [Automatically undelete Imgur images](#automatically-undelete-imgur-images) |  |  |
 | [Automatically undelete Reddit content](#automatically-undelete-reddit-content) |  |  |
 | [Boost Morphe settings](#boost-morphe-settings) | Adds Boost Morphe settings for inline media previews, undelete toggles, adaptive refresh rate, source text visibility, and preview alignment. |  |
+| [Boost search default discovery](#boost-search-default-discovery) | Starts Boost search on an instant cached active-subreddit landing with Reddit-native labels. |  |
 | [Disable ads](#disable-ads) |  |  |
 | [Disable Boost Crashlytics startup network calls](#disable-boost-crashlytics-startup-network-calls) | Disables Boost's Crashlytics startup initialization while keeping Firebase Analytics and other Firebase components. |  |
 | [Fix /r/all](#fix-r-all) |  |  |
@@ -501,16 +502,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.63` is prepared and locally verified with:
+Release `1.4.64` is prepared and locally verified with:
 
-- Release tag `morphe-patches-63`.
+- Release tag `morphe-patches-64`.
 - Local built MPP SHA256 matching README.
-`3ea0ef62c6953c16d6cc0ce5d9622c6b8133f17090fb00ae6687fa321f27a631`
-- `patches-bundle.json` returning version `1.4.63`.
-- `patches-bundle.json` pointing to the `morphe-patches-63` asset.
+`b3e4f9a974ca42c78d73d4460a3b8140c78829f243bd1ddfff992b0dc0139ca5`
+- `patches-bundle.json` returning version `1.4.64`.
+- `patches-bundle.json` pointing to the `morphe-patches-64` asset.
 - Expected release asset:
-`patches-1.4.63.mpp`
-- `3ea0ef62c6953c16d6cc0ce5d9622c6b8133f17090fb00ae6687fa321f27a631  patches-1.4.63.mpp`
+`patches-1.4.64.mpp`
+- `b3e4f9a974ca42c78d73d4460a3b8140c78829f243bd1ddfff992b0dc0139ca5  patches-1.4.64.mpp`
 
 ## Development notes
 

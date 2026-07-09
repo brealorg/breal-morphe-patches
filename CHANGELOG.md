@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.64](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-63...morphe-patches-64) (2026-07-09)
+
+* **Boost for Reddit:** Boost search default discovery: Adds an instant Active subreddits landing and Reddit-native Subreddit labels.
+
 ## [1.4.63](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-62...morphe-patches-63) (2026-07-08)
 
 * **Boost for Reddit:** Boost: add runtime settings for Reddit/Imgur undelete and restore deleted Reddit media loaded through Glide/Wayback.

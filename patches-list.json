@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.4.63",
+  "version": "1.4.64",
   "patches": [
     {
       "name": "Add archive links to context menu",
@@ -93,6 +93,34 @@
       "description": "Adds Boost Morphe settings for inline media previews, undelete toggles, adaptive refresh rate, source text visibility, and preview alignment.",
       "default": false,
       "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.rubenmayayo.reddit",
+          "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Boost search default discovery",
+      "description": "Starts Boost search on an instant cached active-subreddit landing with Reddit-native labels.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
       "compatiblePackages": [
         {
           "packageName": "com.rubenmayayo.reddit",

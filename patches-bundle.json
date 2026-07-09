@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-08T22:25:04",
-  "description": "Boost: add runtime settings for Reddit/Imgur undelete and restore deleted Reddit media loaded through Glide/Wayback.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-63/patches-1.4.63.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-63/patches-1.4.63.mpp.asc",
-  "version": "1.4.63"
+  "created_at": "2026-07-09T23:39:41",
+  "description": "Boost search default discovery: Adds an instant Active subreddits landing and Reddit-native Subreddit labels.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-64/patches-1.4.64.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-64/patches-1.4.64.mpp.asc",
+  "version": "1.4.64"
 }
