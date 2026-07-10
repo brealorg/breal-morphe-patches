@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Pure release-state model and classifier for Morphe Issue #43.
+"""Release state, deterministic planning, and read-only local Git observation.
 
-This checkpoint intentionally contains no Git, GitHub, filesystem, network,
-GPG, build, upload, or mutation logic. Observation collection and CLI wiring
-will be added separately after the pure state model is accepted.
+This Issue #43 checkpoint adds local Git inspection only. It contains no
+GitHub, network, GPG, build, upload, publication, or mutation logic.
 """
 
 from __future__ import annotations
@@ -12,8 +11,11 @@ from dataclasses import asdict, dataclass, fields, is_dataclass
 from enum import Enum
 import hashlib
 import json
+import os
+from pathlib import Path
 import re
-from typing import Any
+import subprocess
+from typing import Any, Protocol, Sequence
 
 
 _SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -919,7 +921,374 @@ def generate_release_plan(
     )
 
 
+@dataclass(frozen=True, slots=True)
+class GitCommandResult:
+    args: tuple[str, ...]
+    returncode: int
+    stdout: str
+    stderr: str
+
+
+class GitRunner(Protocol):
+    def run(
+        self,
+        repo_path: Path,
+        args: Sequence[str],
+    ) -> GitCommandResult:
+        ...
+
+
+@dataclass(frozen=True, slots=True)
+class SubprocessGitRunner:
+    """Execute read-only Git commands without a shell."""
+
+    git_executable: str = "git"
+
+    def run(
+        self,
+        repo_path: Path,
+        args: Sequence[str],
+    ) -> GitCommandResult:
+        command = (
+            self.git_executable,
+            "-C",
+            str(repo_path),
+            *tuple(args),
+        )
+        env = os.environ.copy()
+        env.update(
+            {
+                "GIT_OPTIONAL_LOCKS": "0",
+                "GIT_TERMINAL_PROMPT": "0",
+                "LC_ALL": "C",
+            }
+        )
+
+        try:
+            completed = subprocess.run(
+                command,
+                check=False,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                env=env,
+            )
+        except FileNotFoundError as exc:
+            return GitCommandResult(
+                args=tuple(command),
+                returncode=127,
+                stdout="",
+                stderr=str(exc),
+            )
+        except OSError as exc:
+            return GitCommandResult(
+                args=tuple(command),
+                returncode=126,
+                stdout="",
+                stderr=str(exc),
+            )
+
+        return GitCommandResult(
+            args=tuple(command),
+            returncode=completed.returncode,
+            stdout=completed.stdout,
+            stderr=completed.stderr,
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class LocalGitObservationResult:
+    repo_root: str | None
+    current_branch: str | None
+    safety: SafetyObservations
+    local: LocalObservations
+    errors: tuple[str, ...] = ()
+    warnings: tuple[str, ...] = ()
+
+    def as_dict(self) -> dict[str, Any]:
+        return _jsonable(self)
+
+
+def _git_error(
+    label: str,
+    result: GitCommandResult,
+) -> str:
+    detail = result.stderr.strip() or result.stdout.strip() or "no diagnostic output"
+    return f"{label} failed with exit {result.returncode}: {detail}"
+
+
+def _resolve_commit_ref(
+    runner: GitRunner,
+    repo_path: Path,
+    ref: str,
+    *,
+    label: str,
+    errors: list[str],
+) -> str | None:
+    result = runner.run(
+        repo_path,
+        ("rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"),
+    )
+    if result.returncode == 0:
+        value = result.stdout.strip()
+        if _SHA1_RE.fullmatch(value):
+            return value
+        errors.append(f"{label} returned an invalid commit object ID: {value!r}")
+        return None
+    if result.returncode == 1:
+        return None
+
+    errors.append(_git_error(label, result))
+    return None
+
+
+def _observe_cleanliness(
+    runner: GitRunner,
+    repo_path: Path,
+    errors: list[str],
+) -> tuple[bool, bool]:
+    unstaged = runner.run(
+        repo_path,
+        ("diff", "--quiet", "--no-ext-diff", "--"),
+    )
+    if unstaged.returncode not in {0, 1}:
+        errors.append(_git_error("unstaged worktree check", unstaged))
+
+    staged = runner.run(
+        repo_path,
+        ("diff", "--cached", "--quiet", "--no-ext-diff", "--"),
+    )
+    if staged.returncode not in {0, 1}:
+        errors.append(_git_error("staged index check", staged))
+
+    untracked = runner.run(
+        repo_path,
+        ("ls-files", "--others", "--exclude-standard", "-z"),
+    )
+    if untracked.returncode != 0:
+        errors.append(_git_error("untracked file check", untracked))
+
+    worktree_clean = (
+        unstaged.returncode == 0
+        and untracked.returncode == 0
+        and not untracked.stdout
+    )
+    index_clean = staged.returncode == 0
+    return worktree_clean, index_clean
+
+
+def _observe_ref_relation(
+    runner: GitRunner,
+    repo_path: Path,
+    observed_commit: str | None,
+    target_commit: str,
+    *,
+    label: str,
+    errors: list[str],
+    warnings: list[str],
+) -> RefRelation:
+    if observed_commit is None:
+        return RefRelation.ABSENT
+    if observed_commit == target_commit:
+        return RefRelation.EQUAL
+
+    target_exists = runner.run(
+        repo_path,
+        ("cat-file", "-e", f"{target_commit}^{{commit}}"),
+    )
+    if target_exists.returncode != 0:
+        warnings.append(
+            f"cannot classify {label}: release commit is unavailable in the local object database"
+        )
+        return RefRelation.UNKNOWN
+
+    observed_is_ancestor = runner.run(
+        repo_path,
+        ("merge-base", "--is-ancestor", observed_commit, target_commit),
+    )
+    if observed_is_ancestor.returncode not in {0, 1}:
+        errors.append(_git_error(f"{label} ancestor check", observed_is_ancestor))
+        return RefRelation.UNKNOWN
+    if observed_is_ancestor.returncode == 0:
+        return RefRelation.ANCESTOR
+
+    target_is_ancestor = runner.run(
+        repo_path,
+        ("merge-base", "--is-ancestor", target_commit, observed_commit),
+    )
+    if target_is_ancestor.returncode not in {0, 1}:
+        errors.append(_git_error(f"{label} ahead check", target_is_ancestor))
+        return RefRelation.UNKNOWN
+    if target_is_ancestor.returncode == 0:
+        return RefRelation.AHEAD
+
+    return RefRelation.DIVERGENT
+
+
+def observe_local_git(
+    repo_path: str | Path,
+    identity: ReleaseIdentity,
+    *,
+    runner: GitRunner | None = None,
+) -> LocalGitObservationResult:
+    """Observe local Git state without changing refs, index, worktree, or config."""
+
+    requested_path = Path(repo_path)
+    active_runner = runner or SubprocessGitRunner()
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    repo_root_result = active_runner.run(
+        requested_path,
+        ("rev-parse", "--show-toplevel"),
+    )
+    tools_available = repo_root_result.returncode not in {126, 127}
+
+    if repo_root_result.returncode != 0:
+        errors.append(_git_error("repository discovery", repo_root_result))
+        safety = SafetyObservations(
+            current_branch_is_main=False,
+            worktree_clean=False,
+            index_clean=False,
+            required_tools_available=tools_available,
+            observations_complete=False,
+        )
+        return LocalGitObservationResult(
+            repo_root=None,
+            current_branch=None,
+            safety=safety,
+            local=LocalObservations(),
+            errors=tuple(errors),
+            warnings=tuple(warnings),
+        )
+
+    repo_root = repo_root_result.stdout.strip()
+    if not repo_root:
+        errors.append("repository discovery returned an empty repository root")
+        safety = SafetyObservations(
+            current_branch_is_main=False,
+            worktree_clean=False,
+            index_clean=False,
+            required_tools_available=tools_available,
+            observations_complete=False,
+        )
+        return LocalGitObservationResult(
+            repo_root=None,
+            current_branch=None,
+            safety=safety,
+            local=LocalObservations(),
+            errors=tuple(errors),
+            warnings=tuple(warnings),
+        )
+
+    canonical_repo = Path(repo_root)
+
+    branch_result = active_runner.run(
+        canonical_repo,
+        ("symbolic-ref", "--quiet", "--short", "HEAD"),
+    )
+    if branch_result.returncode == 0:
+        current_branch = branch_result.stdout.strip() or None
+    elif branch_result.returncode == 1:
+        current_branch = None
+        warnings.append("HEAD is detached")
+    else:
+        current_branch = None
+        errors.append(_git_error("current branch observation", branch_result))
+
+    worktree_clean, index_clean = _observe_cleanliness(
+        active_runner,
+        canonical_repo,
+        errors,
+    )
+
+    main_commit = _resolve_commit_ref(
+        active_runner,
+        canonical_repo,
+        "refs/heads/main",
+        label="local main resolution",
+        errors=errors,
+    )
+    dev_commit = _resolve_commit_ref(
+        active_runner,
+        canonical_repo,
+        "refs/heads/dev",
+        label="local dev resolution",
+        errors=errors,
+    )
+    tag_commit = _resolve_commit_ref(
+        active_runner,
+        canonical_repo,
+        f"refs/tags/{identity.tag}",
+        label="local release tag resolution",
+        errors=errors,
+    )
+
+    tag_type = active_runner.run(
+        canonical_repo,
+        ("cat-file", "-t", f"refs/tags/{identity.tag}"),
+    )
+    if tag_type.returncode == 0:
+        object_type = tag_type.stdout.strip()
+        if object_type == "tag":
+            tag_is_annotated: bool | None = True
+        elif object_type == "commit":
+            tag_is_annotated = False
+        else:
+            tag_is_annotated = False
+            warnings.append(
+                f"release tag points to unexpected Git object type: {object_type!r}"
+            )
+    elif tag_type.returncode in {1, 128} and tag_commit is None:
+        tag_is_annotated = None
+    else:
+        tag_is_annotated = None
+        errors.append(_git_error("local release tag type observation", tag_type))
+
+    dev_relation = _observe_ref_relation(
+        active_runner,
+        canonical_repo,
+        dev_commit,
+        identity.release_commit,
+        label="local dev relation",
+        errors=errors,
+        warnings=warnings,
+    )
+
+    observations_complete = not errors and dev_relation is not RefRelation.UNKNOWN
+
+    local = LocalObservations(
+        main_commit=main_commit,
+        dev_commit=dev_commit,
+        dev_relation_to_target=dev_relation,
+        tag_commit=tag_commit,
+        tag_is_annotated=tag_is_annotated,
+    )
+    safety = SafetyObservations(
+        current_branch_is_main=current_branch == "main",
+        worktree_clean=worktree_clean,
+        index_clean=index_clean,
+        required_tools_available=tools_available,
+        observations_complete=observations_complete,
+    )
+
+    return LocalGitObservationResult(
+        repo_root=str(canonical_repo),
+        current_branch=current_branch,
+        safety=safety,
+        local=local,
+        errors=tuple(errors),
+        warnings=tuple(warnings),
+    )
+
+
 __all__ = [
+    "GitCommandResult",
+    "GitRunner",
+    "LocalGitObservationResult",
+    "SubprocessGitRunner",
+    "observe_local_git",
     "GitHubReleaseObservations",
     "PlanDisposition",
     "PlanFact",
