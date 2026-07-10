@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-10T00:36:47",
-  "description": "Boost: run search discovery at SearchGenericActivity Q1 entry so Active subreddits render reliably before Random branch checks.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-65/patches-1.4.65.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-65/patches-1.4.65.mpp.asc",
-  "version": "1.4.65"
+  "created_at": "2026-07-10T18:08:31",
+  "description": "Boost inline media previews can hide only the source URL while preserving the preview, remaining comment text, unrelated links, and Boost viewer behavior.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-66/patches-1.4.66.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-66/patches-1.4.66.mpp.asc",
+  "version": "1.4.66"
 }

@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.66](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-65...morphe-patches-66) (2026-07-10)
+
+* **Boost for Reddit:** Boost inline media previews can hide only the source URL while preserving the preview, remaining comment text, unrelated links, and Boost viewer behavior.
+
 ## [1.4.65](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-64...morphe-patches-65) (2026-07-10)
 
 * **Boost for Reddit:** Boost: run search discovery at SearchGenericActivity Q1 entry so Active subreddits render reliably before Random branch checks.
