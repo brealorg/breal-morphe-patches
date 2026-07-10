@@ -8,8 +8,10 @@ will be added separately after the pure state model is accepted.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, fields, is_dataclass
 from enum import Enum
+import hashlib
+import json
 import re
 from typing import Any
 
@@ -439,13 +441,496 @@ def classify_release_state(
     )
 
 
+class PlanDisposition(str, Enum):
+    APPLY_REQUIRED = "APPLY_REQUIRED"
+    NOOP_ALREADY_SATISFIED = "NOOP_ALREADY_SATISFIED"
+    CONFLICT_ABORT = "CONFLICT_ABORT"
+    OBSERVATION_FAILED = "OBSERVATION_FAILED"
+
+
+class PlanOperationType(str, Enum):
+    FINALIZE_LOCAL = "FINALIZE_LOCAL"
+    ALIGN_LOCAL_DEV = "ALIGN_LOCAL_DEV"
+    PUSH_RELEASE_REFS_ATOMIC = "PUSH_RELEASE_REFS_ATOMIC"
+    CREATE_DRAFT_RELEASE = "CREATE_DRAFT_RELEASE"
+    UPLOAD_MPP_ASSET = "UPLOAD_MPP_ASSET"
+    UPLOAD_SIGNATURE_ASSET = "UPLOAD_SIGNATURE_ASSET"
+    VERIFY_DRAFT_ASSETS = "VERIFY_DRAFT_ASSETS"
+    PUBLISH_DRAFT_RELEASE = "PUBLISH_DRAFT_RELEASE"
+    VERIFY_PUBLISHED_RELEASE = "VERIFY_PUBLISHED_RELEASE"
+
+
+@dataclass(frozen=True, slots=True)
+class PlanFact:
+    path: str
+    expected: Any
+
+
+@dataclass(frozen=True, slots=True)
+class PlanOperation:
+    sequence: int
+    operation_id: str
+    operation_type: PlanOperationType
+    mutates_state: bool
+    preconditions: tuple[PlanFact, ...]
+    desired_result: tuple[PlanFact, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class ReleasePlan:
+    schema_version: int
+    release_identity: ReleaseIdentity
+    disposition: PlanDisposition
+    observed_state: ReleaseState
+    next_action: NextAction
+    executable: bool
+    observation_fingerprint: str
+    plan_hash: str
+    operations: tuple[PlanOperation, ...]
+    conflicts: tuple[str, ...] = ()
+    warnings: tuple[str, ...] = ()
+    blocking_reasons: tuple[str, ...] = ()
+
+    def as_dict(self) -> dict[str, Any]:
+        return _jsonable(self)
+
+    def to_json(self, *, indent: int | None = 2) -> str:
+        return json.dumps(
+            self.as_dict(),
+            indent=indent,
+            sort_keys=True,
+            separators=(",", ":") if indent is None else None,
+        )
+
+
+def _jsonable(value: Any) -> Any:
+    if isinstance(value, Enum):
+        return value.value
+    if is_dataclass(value):
+        return {
+            field.name: _jsonable(getattr(value, field.name))
+            for field in fields(value)
+        }
+    if isinstance(value, dict):
+        return {
+            str(key): _jsonable(item)
+            for key, item in sorted(value.items(), key=lambda pair: str(pair[0]))
+        }
+    if isinstance(value, (tuple, list)):
+        return [_jsonable(item) for item in value]
+    return value
+
+
+def _canonical_sha256(value: Any) -> str:
+    encoded = json.dumps(
+        _jsonable(value),
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=True,
+    ).encode("utf-8")
+    return f"sha256:{hashlib.sha256(encoded).hexdigest()}"
+
+
+def _fact(path: str, expected: Any) -> PlanFact:
+    return PlanFact(path=path, expected=expected)
+
+
+def _add_operation(
+    operations: list[PlanOperation],
+    operation_type: PlanOperationType,
+    *,
+    mutates_state: bool,
+    preconditions: tuple[PlanFact, ...],
+    desired_result: tuple[PlanFact, ...],
+) -> None:
+    operations.append(
+        PlanOperation(
+            sequence=len(operations) + 1,
+            operation_id=operation_type.value.lower(),
+            operation_type=operation_type,
+            mutates_state=mutates_state,
+            preconditions=preconditions,
+            desired_result=desired_result,
+        )
+    )
+
+
+def _remote_refs_complete(
+    identity: ReleaseIdentity,
+    remote: RemoteGitObservations,
+) -> bool:
+    return all(
+        (
+            _relation_matches_target(
+                remote.main_commit,
+                remote.main_relation_to_target,
+                identity.release_commit,
+            ),
+            _relation_matches_target(
+                remote.dev_commit,
+                remote.dev_relation_to_target,
+                identity.release_commit,
+            ),
+            remote.tag_commit == identity.release_commit,
+        )
+    )
+
+
+def _draft_assets_verified(
+    identity: ReleaseIdentity,
+    github: GitHubReleaseObservations,
+) -> bool:
+    return all(
+        (
+            github.mpp_asset_count == 1,
+            github.signature_asset_count == 1,
+            github.remote_mpp_sha256 == identity.mpp_sha256,
+            github.remote_signature_valid is True,
+            github.remote_mpp_structure_valid is True,
+        )
+    )
+
+
+def _build_plan_operations(
+    identity: ReleaseIdentity,
+    observations: ReleaseObservations,
+    state_result: ReleaseStateResult,
+) -> tuple[PlanOperation, ...]:
+    operations: list[PlanOperation] = []
+
+    if state_result.state is ReleaseState.PUBLISHED_AND_VERIFIED:
+        return ()
+
+    if state_result.state is ReleaseState.PUBLISHED_NOT_VERIFIED:
+        _add_operation(
+            operations,
+            PlanOperationType.VERIFY_PUBLISHED_RELEASE,
+            mutates_state=False,
+            preconditions=(
+                _fact("github.is_draft", False),
+                _fact("github.tag", identity.tag),
+            ),
+            desired_result=(
+                _fact("verification.full_verifier_status", VerifierStatus.PASS.value),
+                _fact("github.remote_mpp_sha256", identity.mpp_sha256),
+            ),
+        )
+        return tuple(operations)
+
+    remote_complete = _remote_refs_complete(identity, observations.remote)
+    local_valid = _local_release_valid(identity, observations.local)
+    local_dev_equal = (
+        observations.local.dev_commit == identity.release_commit
+        or observations.local.dev_relation_to_target is RefRelation.EQUAL
+    )
+
+    if not remote_complete:
+        if not local_valid:
+            _add_operation(
+                operations,
+                PlanOperationType.FINALIZE_LOCAL,
+                mutates_state=True,
+                preconditions=(
+                    _fact("release_identity.release_commit", identity.release_commit),
+                    _fact("release_identity.mpp_sha256", identity.mpp_sha256),
+                ),
+                desired_result=(
+                    _fact("local.release_valid", True),
+                    _fact("local.main_commit", identity.release_commit),
+                    _fact("local.tag_commit", identity.release_commit),
+                ),
+            )
+
+        if not local_dev_equal:
+            _add_operation(
+                operations,
+                PlanOperationType.ALIGN_LOCAL_DEV,
+                mutates_state=True,
+                preconditions=(
+                    _fact("local.dev_commit", observations.local.dev_commit),
+                    _fact(
+                        "local.dev_relation_to_target",
+                        observations.local.dev_relation_to_target.value,
+                    ),
+                ),
+                desired_result=(
+                    _fact("local.dev_commit", identity.release_commit),
+                ),
+            )
+
+        _add_operation(
+            operations,
+            PlanOperationType.PUSH_RELEASE_REFS_ATOMIC,
+            mutates_state=True,
+            preconditions=(
+                _fact("remote.main_commit", observations.remote.main_commit),
+                _fact("remote.dev_commit", observations.remote.dev_commit),
+                _fact("remote.tag_commit", observations.remote.tag_commit),
+                _fact("local.main_commit", identity.release_commit),
+                _fact("local.dev_commit", identity.release_commit),
+                _fact("local.tag_commit", identity.release_commit),
+            ),
+            desired_result=(
+                _fact("remote.main_commit", identity.release_commit),
+                _fact("remote.dev_commit", identity.release_commit),
+                _fact("remote.tag_commit", identity.release_commit),
+            ),
+        )
+
+    github = observations.github
+
+    if not github.present:
+        _add_operation(
+            operations,
+            PlanOperationType.CREATE_DRAFT_RELEASE,
+            mutates_state=True,
+            preconditions=(
+                _fact("remote.release_refs_complete", True),
+                _fact("github.present", False),
+            ),
+            desired_result=(
+                _fact("github.present", True),
+                _fact("github.is_draft", True),
+                _fact("github.tag", identity.tag),
+            ),
+        )
+        _add_operation(
+            operations,
+            PlanOperationType.UPLOAD_MPP_ASSET,
+            mutates_state=True,
+            preconditions=(
+                _fact("github.is_draft", True),
+                _fact("local.mpp_sha256", identity.mpp_sha256),
+            ),
+            desired_result=(_fact("github.mpp_asset_count", 1),),
+        )
+        _add_operation(
+            operations,
+            PlanOperationType.UPLOAD_SIGNATURE_ASSET,
+            mutates_state=True,
+            preconditions=(
+                _fact("github.is_draft", True),
+                _fact("local.signature_valid", True),
+            ),
+            desired_result=(_fact("github.signature_asset_count", 1),),
+        )
+        _add_operation(
+            operations,
+            PlanOperationType.VERIFY_DRAFT_ASSETS,
+            mutates_state=False,
+            preconditions=(
+                _fact("github.mpp_asset_count", 1),
+                _fact("github.signature_asset_count", 1),
+            ),
+            desired_result=(
+                _fact("github.remote_mpp_sha256", identity.mpp_sha256),
+                _fact("github.remote_signature_valid", True),
+                _fact("github.remote_mpp_structure_valid", True),
+            ),
+        )
+        _add_operation(
+            operations,
+            PlanOperationType.PUBLISH_DRAFT_RELEASE,
+            mutates_state=True,
+            preconditions=(
+                _fact("github.is_draft", True),
+                _fact("github.draft_assets_verified", True),
+            ),
+            desired_result=(_fact("github.is_draft", False),),
+        )
+    elif github.is_draft is True:
+        if github.mpp_asset_count == 0:
+            _add_operation(
+                operations,
+                PlanOperationType.UPLOAD_MPP_ASSET,
+                mutates_state=True,
+                preconditions=(
+                    _fact("github.is_draft", True),
+                    _fact("local.mpp_sha256", identity.mpp_sha256),
+                ),
+                desired_result=(_fact("github.mpp_asset_count", 1),),
+            )
+        if github.signature_asset_count == 0:
+            _add_operation(
+                operations,
+                PlanOperationType.UPLOAD_SIGNATURE_ASSET,
+                mutates_state=True,
+                preconditions=(
+                    _fact("github.is_draft", True),
+                    _fact("local.signature_valid", True),
+                ),
+                desired_result=(_fact("github.signature_asset_count", 1),),
+            )
+        if not _draft_assets_verified(identity, github):
+            _add_operation(
+                operations,
+                PlanOperationType.VERIFY_DRAFT_ASSETS,
+                mutates_state=False,
+                preconditions=(
+                    _fact("github.mpp_asset_count", 1),
+                    _fact("github.signature_asset_count", 1),
+                ),
+                desired_result=(
+                    _fact("github.remote_mpp_sha256", identity.mpp_sha256),
+                    _fact("github.remote_signature_valid", True),
+                    _fact("github.remote_mpp_structure_valid", True),
+                ),
+            )
+        _add_operation(
+            operations,
+            PlanOperationType.PUBLISH_DRAFT_RELEASE,
+            mutates_state=True,
+            preconditions=(
+                _fact("github.is_draft", True),
+                _fact("github.draft_assets_verified", True),
+            ),
+            desired_result=(_fact("github.is_draft", False),),
+        )
+
+    _add_operation(
+        operations,
+        PlanOperationType.VERIFY_PUBLISHED_RELEASE,
+        mutates_state=False,
+        preconditions=(
+            _fact("github.is_draft", False),
+            _fact("github.tag", identity.tag),
+        ),
+        desired_result=(
+            _fact("verification.full_verifier_status", VerifierStatus.PASS.value),
+            _fact("github.remote_mpp_sha256", identity.mpp_sha256),
+        ),
+    )
+    return tuple(operations)
+
+
+def _plan_blocking_reasons(
+    identity: ReleaseIdentity,
+    observations: ReleaseObservations,
+    operations: tuple[PlanOperation, ...],
+) -> tuple[str, ...]:
+    reasons: list[str] = []
+    safety = observations.safety
+    mutating = any(operation.mutates_state for operation in operations)
+
+    if mutating:
+        if not safety.current_branch_is_main:
+            reasons.append("current branch is not main")
+        if not safety.worktree_clean:
+            reasons.append("worktree is not clean")
+        if not safety.index_clean:
+            reasons.append("index is not clean")
+        if not safety.required_tools_available:
+            reasons.append("one or more required tools are unavailable")
+
+    operation_types = {operation.operation_type for operation in operations}
+    finalization_planned = PlanOperationType.FINALIZE_LOCAL in operation_types
+
+    if (
+        PlanOperationType.UPLOAD_MPP_ASSET in operation_types
+        and not finalization_planned
+    ):
+        if not observations.local.mpp_present:
+            reasons.append("canonical local MPP is unavailable for upload")
+        elif observations.local.mpp_sha256 != identity.mpp_sha256:
+            reasons.append("canonical local MPP digest does not match the release identity")
+        elif observations.local.mpp_structure_valid is not True:
+            reasons.append("canonical local MPP structure is not verified")
+
+    if (
+        PlanOperationType.UPLOAD_SIGNATURE_ASSET in operation_types
+        and not finalization_planned
+    ):
+        if not observations.local.signature_present:
+            reasons.append("canonical detached signature is unavailable for upload")
+        elif observations.local.signature_valid is not True:
+            reasons.append("canonical detached signature is not verified")
+
+    return tuple(dict.fromkeys(reasons))
+
+
+def generate_release_plan(
+    identity: ReleaseIdentity,
+    observations: ReleaseObservations,
+) -> ReleasePlan:
+    """Generate a deterministic operation plan without performing I/O."""
+
+    state_result = classify_release_state(identity, observations)
+    observation_fingerprint = _canonical_sha256(
+        {
+            "release_identity": identity,
+            "observations": observations,
+        }
+    )
+
+    if state_result.state is ReleaseState.INCONSISTENT_ABORT:
+        disposition = PlanDisposition.CONFLICT_ABORT
+        operations: tuple[PlanOperation, ...] = ()
+        blocking_reasons = state_result.reasons
+    elif not observations.safety.observations_complete:
+        disposition = PlanDisposition.OBSERVATION_FAILED
+        operations = ()
+        blocking_reasons = ("one or more required observations are incomplete",)
+    elif state_result.state is ReleaseState.PUBLISHED_AND_VERIFIED:
+        disposition = PlanDisposition.NOOP_ALREADY_SATISFIED
+        operations = ()
+        blocking_reasons = ()
+    else:
+        disposition = PlanDisposition.APPLY_REQUIRED
+        operations = _build_plan_operations(identity, observations, state_result)
+        blocking_reasons = _plan_blocking_reasons(
+            identity,
+            observations,
+            operations,
+        )
+
+    executable = (
+        disposition is PlanDisposition.APPLY_REQUIRED
+        and not blocking_reasons
+    )
+
+    plan_payload = {
+        "schema_version": 1,
+        "release_identity": identity,
+        "disposition": disposition,
+        "observed_state": state_result.state,
+        "next_action": state_result.next_action,
+        "executable": executable,
+        "observation_fingerprint": observation_fingerprint,
+        "operations": operations,
+        "conflicts": state_result.reasons,
+        "warnings": state_result.warnings,
+        "blocking_reasons": blocking_reasons,
+    }
+    plan_hash = _canonical_sha256(plan_payload)
+
+    return ReleasePlan(
+        schema_version=1,
+        release_identity=identity,
+        disposition=disposition,
+        observed_state=state_result.state,
+        next_action=state_result.next_action,
+        executable=executable,
+        observation_fingerprint=observation_fingerprint,
+        plan_hash=plan_hash,
+        operations=operations,
+        conflicts=state_result.reasons,
+        warnings=state_result.warnings,
+        blocking_reasons=blocking_reasons,
+    )
+
+
 __all__ = [
     "GitHubReleaseObservations",
+    "PlanDisposition",
+    "PlanFact",
+    "PlanOperation",
+    "PlanOperationType",
     "LocalObservations",
     "NextAction",
     "RefRelation",
     "ReleaseIdentity",
     "ReleaseObservations",
+    "ReleasePlan",
     "ReleaseState",
     "ReleaseStateResult",
     "RemoteGitObservations",
@@ -453,4 +938,5 @@ __all__ = [
     "VerificationObservations",
     "VerifierStatus",
     "classify_release_state",
+    "generate_release_plan",
 ]
