@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Release state, deterministic planning, and read-only local Git observation.
+"""Release state, deterministic planning, and read-only Git observation.
 
-This Issue #43 checkpoint adds local Git inspection only. It contains no
-GitHub, network, GPG, build, upload, publication, or mutation logic.
+This Issue #43 checkpoint adds local and remote Git inspection. It contains
+no GitHub API, GPG, build, upload, publication, or mutation logic.
 """
 
 from __future__ import annotations
@@ -1283,12 +1283,307 @@ def observe_local_git(
     )
 
 
+@dataclass(frozen=True, slots=True)
+class RemoteGitObservationResult:
+    repo_root: str | None
+    remote_name: str
+    remote: RemoteGitObservations
+    tag_is_annotated: bool | None
+    observations_complete: bool
+    errors: tuple[str, ...] = ()
+    warnings: tuple[str, ...] = ()
+
+    def as_dict(self) -> dict[str, Any]:
+        return _jsonable(self)
+
+
+def _parse_ls_remote_output(
+    stdout: str,
+    expected_refs: set[str],
+    *,
+    errors: list[str],
+    warnings: list[str],
+) -> dict[str, str]:
+    refs: dict[str, str] = {}
+
+    for line_number, raw_line in enumerate(stdout.splitlines(), start=1):
+        line = raw_line.rstrip("\r")
+        if not line:
+            continue
+
+        parts = line.split("\t")
+        if len(parts) != 2:
+            errors.append(
+                f"remote ref listing line {line_number} is malformed: {raw_line!r}"
+            )
+            continue
+
+        object_id, ref = parts
+        if not _SHA1_RE.fullmatch(object_id):
+            errors.append(
+                f"remote ref listing line {line_number} has invalid object ID: "
+                f"{object_id!r}"
+            )
+            continue
+
+        if ref not in expected_refs:
+            warnings.append(f"remote ref listing returned unexpected ref: {ref}")
+            continue
+
+        if ref in refs:
+            errors.append(f"remote ref listing returned duplicate ref: {ref}")
+            continue
+
+        refs[ref] = object_id
+
+    return refs
+
+
+def _object_available_locally(
+    runner: GitRunner,
+    repo_path: Path,
+    object_id: str,
+) -> bool:
+    result = runner.run(
+        repo_path,
+        ("cat-file", "-e", f"{object_id}^{{commit}}"),
+    )
+    return result.returncode == 0
+
+
+def _observe_remote_ref_relation(
+    runner: GitRunner,
+    repo_path: Path,
+    observed_commit: str | None,
+    target_commit: str,
+    *,
+    label: str,
+    errors: list[str],
+    warnings: list[str],
+) -> RefRelation:
+    if observed_commit is None:
+        return RefRelation.ABSENT
+    if observed_commit == target_commit:
+        return RefRelation.EQUAL
+
+    if not _object_available_locally(runner, repo_path, target_commit):
+        warnings.append(
+            f"cannot classify {label}: release commit is unavailable in the "
+            "local object database"
+        )
+        return RefRelation.UNKNOWN
+
+    if not _object_available_locally(runner, repo_path, observed_commit):
+        warnings.append(
+            f"cannot classify {label}: remote commit {observed_commit} is "
+            "unavailable in the local object database"
+        )
+        return RefRelation.UNKNOWN
+
+    observed_is_ancestor = runner.run(
+        repo_path,
+        ("merge-base", "--is-ancestor", observed_commit, target_commit),
+    )
+    if observed_is_ancestor.returncode not in {0, 1}:
+        errors.append(_git_error(f"{label} ancestor check", observed_is_ancestor))
+        return RefRelation.UNKNOWN
+    if observed_is_ancestor.returncode == 0:
+        return RefRelation.ANCESTOR
+
+    target_is_ancestor = runner.run(
+        repo_path,
+        ("merge-base", "--is-ancestor", target_commit, observed_commit),
+    )
+    if target_is_ancestor.returncode not in {0, 1}:
+        errors.append(_git_error(f"{label} ahead check", target_is_ancestor))
+        return RefRelation.UNKNOWN
+    if target_is_ancestor.returncode == 0:
+        return RefRelation.AHEAD
+
+    return RefRelation.DIVERGENT
+
+
+def observe_remote_git(
+    repo_path: str | Path,
+    identity: ReleaseIdentity,
+    *,
+    remote_name: str = "origin",
+    runner: GitRunner | None = None,
+) -> RemoteGitObservationResult:
+    """Observe remote Git refs using ``git ls-remote`` without fetching.
+
+    The observer never updates local refs or the object database. Ancestry can
+    only be classified when both the target and observed remote commits already
+    exist in the local object database; otherwise the relation is UNKNOWN and
+    the observation is marked incomplete.
+    """
+
+    normalized_remote = remote_name.strip()
+    if not normalized_remote or normalized_remote.startswith("-"):
+        return RemoteGitObservationResult(
+            repo_root=None,
+            remote_name=remote_name,
+            remote=RemoteGitObservations(
+                main_relation_to_target=RefRelation.UNKNOWN,
+                dev_relation_to_target=RefRelation.UNKNOWN,
+            ),
+            tag_is_annotated=None,
+            observations_complete=False,
+            errors=("remote name must be non-empty and must not start with '-'",),
+        )
+
+    requested_path = Path(repo_path)
+    active_runner = runner or SubprocessGitRunner()
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    repo_root_result = active_runner.run(
+        requested_path,
+        ("rev-parse", "--show-toplevel"),
+    )
+    if repo_root_result.returncode != 0:
+        errors.append(_git_error("repository discovery", repo_root_result))
+        return RemoteGitObservationResult(
+            repo_root=None,
+            remote_name=normalized_remote,
+            remote=RemoteGitObservations(
+                main_relation_to_target=RefRelation.UNKNOWN,
+                dev_relation_to_target=RefRelation.UNKNOWN,
+            ),
+            tag_is_annotated=None,
+            observations_complete=False,
+            errors=tuple(errors),
+            warnings=tuple(warnings),
+        )
+
+    repo_root = repo_root_result.stdout.strip()
+    if not repo_root:
+        errors.append("repository discovery returned an empty repository root")
+        return RemoteGitObservationResult(
+            repo_root=None,
+            remote_name=normalized_remote,
+            remote=RemoteGitObservations(
+                main_relation_to_target=RefRelation.UNKNOWN,
+                dev_relation_to_target=RefRelation.UNKNOWN,
+            ),
+            tag_is_annotated=None,
+            observations_complete=False,
+            errors=tuple(errors),
+            warnings=tuple(warnings),
+        )
+
+    canonical_repo = Path(repo_root)
+    main_ref = "refs/heads/main"
+    dev_ref = "refs/heads/dev"
+    tag_ref = f"refs/tags/{identity.tag}"
+    peeled_tag_ref = f"{tag_ref}^{{}}"
+    expected_refs = {main_ref, dev_ref, tag_ref, peeled_tag_ref}
+
+    listing = active_runner.run(
+        canonical_repo,
+        (
+            "ls-remote",
+            "--exit-code",
+            normalized_remote,
+            main_ref,
+            dev_ref,
+            tag_ref,
+            peeled_tag_ref,
+        ),
+    )
+
+    if listing.returncode not in {0, 2}:
+        errors.append(_git_error("remote ref listing", listing))
+        return RemoteGitObservationResult(
+            repo_root=str(canonical_repo),
+            remote_name=normalized_remote,
+            remote=RemoteGitObservations(
+                main_relation_to_target=RefRelation.UNKNOWN,
+                dev_relation_to_target=RefRelation.UNKNOWN,
+            ),
+            tag_is_annotated=None,
+            observations_complete=False,
+            errors=tuple(errors),
+            warnings=tuple(warnings),
+        )
+
+    refs = _parse_ls_remote_output(
+        listing.stdout,
+        expected_refs,
+        errors=errors,
+        warnings=warnings,
+    )
+
+    main_commit = refs.get(main_ref)
+    dev_commit = refs.get(dev_ref)
+    raw_tag_object = refs.get(tag_ref)
+    peeled_tag_commit = refs.get(peeled_tag_ref)
+
+    if peeled_tag_commit is not None and raw_tag_object is None:
+        errors.append("remote tag peel was returned without the tag ref")
+
+    if peeled_tag_commit is not None:
+        tag_commit = peeled_tag_commit
+        tag_is_annotated: bool | None = True
+    elif raw_tag_object is not None:
+        tag_commit = raw_tag_object
+        tag_is_annotated = False
+    else:
+        tag_commit = None
+        tag_is_annotated = None
+
+    main_relation = _observe_remote_ref_relation(
+        active_runner,
+        canonical_repo,
+        main_commit,
+        identity.release_commit,
+        label="remote main relation",
+        errors=errors,
+        warnings=warnings,
+    )
+    dev_relation = _observe_remote_ref_relation(
+        active_runner,
+        canonical_repo,
+        dev_commit,
+        identity.release_commit,
+        label="remote dev relation",
+        errors=errors,
+        warnings=warnings,
+    )
+
+    observations_complete = (
+        not errors
+        and main_relation is not RefRelation.UNKNOWN
+        and dev_relation is not RefRelation.UNKNOWN
+    )
+
+    remote = RemoteGitObservations(
+        main_commit=main_commit,
+        main_relation_to_target=main_relation,
+        dev_commit=dev_commit,
+        dev_relation_to_target=dev_relation,
+        tag_commit=tag_commit,
+    )
+
+    return RemoteGitObservationResult(
+        repo_root=str(canonical_repo),
+        remote_name=normalized_remote,
+        remote=remote,
+        tag_is_annotated=tag_is_annotated,
+        observations_complete=observations_complete,
+        errors=tuple(errors),
+        warnings=tuple(warnings),
+    )
+
+
 __all__ = [
     "GitCommandResult",
     "GitRunner",
     "LocalGitObservationResult",
+    "RemoteGitObservationResult",
     "SubprocessGitRunner",
     "observe_local_git",
+    "observe_remote_git",
     "GitHubReleaseObservations",
     "PlanDisposition",
     "PlanFact",
