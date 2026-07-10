@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Release state, deterministic planning, and read-only release observation.
 
-This Issue #43 checkpoint includes local Git, remote Git, and GitHub Release
-metadata inspection. It contains no GPG, build, asset download, upload,
-publication, ref update, or other mutation logic.
+This Issue #43 checkpoint includes local Git, remote Git, GitHub Release
+metadata, and canonical local release artifact inspection. It contains no build,
+asset download, upload, publication, ref update, or other mutation logic.
 """
 
 from __future__ import annotations
@@ -16,6 +16,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import zipfile
 from typing import Any, Protocol, Sequence
 
 
@@ -2074,7 +2075,369 @@ def observe_github_release(
     )
 
 
+REQUIRED_MPP_ENTRIES: tuple[str, ...] = (
+    "classes.dex",
+    "extensions/boostforreddit.mpe",
+)
+
+
+@dataclass(frozen=True, slots=True)
+class GpgCommandResult:
+    args: tuple[str, ...]
+    returncode: int
+    stdout: str
+    stderr: str
+
+
+class GpgRunner(Protocol):
+    def run(
+        self,
+        mpp_path: Path,
+        signature_path: Path,
+    ) -> GpgCommandResult:
+        ...
+
+
+@dataclass(frozen=True, slots=True)
+class SubprocessGpgRunner:
+    """Verify a detached signature without invoking a shell."""
+
+    gpg_executable: str = "gpg"
+
+    def run(
+        self,
+        mpp_path: Path,
+        signature_path: Path,
+    ) -> GpgCommandResult:
+        command = (
+            self.gpg_executable,
+            "--batch",
+            "--no-tty",
+            "--no-auto-key-retrieve",
+            "--no-auto-check-trustdb",
+            "--status-fd",
+            "1",
+            "--verify",
+            str(signature_path),
+            str(mpp_path),
+        )
+        env = os.environ.copy()
+        env.update(
+            {
+                "LC_ALL": "C",
+                "GPG_TTY": "",
+            }
+        )
+
+        try:
+            completed = subprocess.run(
+                command,
+                check=False,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                env=env,
+            )
+        except FileNotFoundError as exc:
+            return GpgCommandResult(
+                args=tuple(command),
+                returncode=127,
+                stdout="",
+                stderr=str(exc),
+            )
+        except OSError as exc:
+            return GpgCommandResult(
+                args=tuple(command),
+                returncode=126,
+                stdout="",
+                stderr=str(exc),
+            )
+
+        return GpgCommandResult(
+            args=tuple(command),
+            returncode=completed.returncode,
+            stdout=completed.stdout,
+            stderr=completed.stderr,
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class LocalArtifactObservationResult:
+    repo_root: str
+    mpp_path: str
+    signature_path: str
+    local: LocalObservations
+    required_entries: tuple[str, ...]
+    missing_entries: tuple[str, ...]
+    duplicate_entries: tuple[str, ...]
+    observations_complete: bool
+    errors: tuple[str, ...] = ()
+    warnings: tuple[str, ...] = ()
+
+    def as_dict(self) -> dict[str, Any]:
+        return _jsonable(self)
+
+
+def _canonical_artifact_path(
+    repo_root: Path,
+    filename: str,
+    *,
+    label: str,
+) -> Path:
+    if not filename or Path(filename).name != filename:
+        raise ValueError(f"{label} must be a plain filename")
+    return repo_root / "patches" / "build" / "libs" / filename
+
+
+def _regular_file_state(
+    path: Path,
+    *,
+    label: str,
+    errors: list[str],
+) -> bool:
+    try:
+        if not path.exists():
+            return False
+        if path.is_symlink():
+            errors.append(f"{label} must not be a symbolic link: {path}")
+            return False
+        if not path.is_file():
+            errors.append(f"{label} is not a regular file: {path}")
+            return False
+        return True
+    except OSError as exc:
+        errors.append(f"{label} could not be inspected: {exc}")
+        return False
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        while True:
+            block = stream.read(1024 * 1024)
+            if not block:
+                break
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _inspect_mpp_structure(
+    path: Path,
+    *,
+    required_entries: tuple[str, ...],
+    errors: list[str],
+    warnings: list[str],
+) -> tuple[bool | None, tuple[str, ...], tuple[str, ...]]:
+    try:
+        with zipfile.ZipFile(path, mode="r") as archive:
+            infos = archive.infolist()
+            names = [item.filename for item in infos]
+
+            corrupt_member = archive.testzip()
+            if corrupt_member is not None:
+                warnings.append(f"MPP ZIP member failed CRC verification: {corrupt_member}")
+                structure_valid = False
+            else:
+                structure_valid = True
+
+            missing_entries = tuple(
+                entry for entry in required_entries if names.count(entry) == 0
+            )
+            duplicate_entries = tuple(
+                entry for entry in required_entries if names.count(entry) > 1
+            )
+
+            if missing_entries:
+                structure_valid = False
+                warnings.append(
+                    "MPP is missing required entries: " + ", ".join(missing_entries)
+                )
+            if duplicate_entries:
+                structure_valid = False
+                warnings.append(
+                    "MPP contains duplicate required entries: "
+                    + ", ".join(duplicate_entries)
+                )
+
+            return structure_valid, missing_entries, duplicate_entries
+    except (OSError, zipfile.BadZipFile, RuntimeError) as exc:
+        warnings.append(f"MPP ZIP structure is invalid: {exc}")
+        return False, required_entries, ()
+
+
+def _parse_gpg_status(
+    result: GpgCommandResult,
+    *,
+    expected_signing_identity: str,
+    errors: list[str],
+    warnings: list[str],
+) -> tuple[bool | None, bool]:
+    statuses: list[tuple[str, tuple[str, ...]]] = []
+    prefix = "[GNUPG:] "
+
+    for raw_line in result.stdout.splitlines():
+        if not raw_line.startswith(prefix):
+            continue
+        fields = raw_line[len(prefix):].split()
+        if fields:
+            statuses.append((fields[0], tuple(fields[1:])))
+
+    valid_fingerprints = tuple(
+        fields[0].upper()
+        for keyword, fields in statuses
+        if keyword == "VALIDSIG" and fields
+    )
+    expected = expected_signing_identity.replace(" ", "").upper()
+
+    if len(valid_fingerprints) == 1 and result.returncode == 0:
+        actual = valid_fingerprints[0]
+        if actual == expected:
+            return True, True
+        warnings.append(
+            "detached signature was made by an unexpected signing identity: "
+            f"{actual}"
+        )
+        return False, True
+
+    if len(valid_fingerprints) > 1:
+        warnings.append("detached signature produced multiple VALIDSIG identities")
+        return False, True
+
+    status_keywords = {keyword for keyword, _ in statuses}
+    if status_keywords.intersection({"BADSIG", "ERRSIG"}):
+        warnings.append("detached signature is invalid")
+        return False, True
+
+    if "NO_PUBKEY" in status_keywords:
+        errors.append("detached signature could not be verified because the public key is unavailable")
+        return None, False
+
+    detail = result.stderr.strip() or result.stdout.strip() or "no diagnostic output"
+    if result.returncode in {126, 127}:
+        errors.append(f"GPG verification tool is unavailable: {detail}")
+    else:
+        errors.append(
+            "GPG verification did not produce one valid signature "
+            f"(exit {result.returncode}): {detail}"
+        )
+    return None, False
+
+
+def observe_local_artifacts(
+    repo_path: str | Path,
+    identity: ReleaseIdentity,
+    *,
+    gpg_runner: GpgRunner | None = None,
+    required_entries: Sequence[str] = REQUIRED_MPP_ENTRIES,
+) -> LocalArtifactObservationResult:
+    """Inspect canonical local MPP and signature files without modifying them."""
+
+    errors: list[str] = []
+    warnings: list[str] = []
+    observations_complete = True
+
+    root = Path(repo_path).resolve()
+    normalized_required = tuple(required_entries)
+
+    if not normalized_required:
+        raise ValueError("required_entries must not be empty")
+    if len(set(normalized_required)) != len(normalized_required):
+        raise ValueError("required_entries must not contain duplicates")
+    if any(not entry or entry.startswith("/") for entry in normalized_required):
+        raise ValueError("required_entries must contain non-empty relative ZIP names")
+
+    mpp_path = _canonical_artifact_path(
+        root,
+        identity.mpp_asset_name,
+        label="MPP asset name",
+    )
+    signature_path = _canonical_artifact_path(
+        root,
+        identity.signature_asset_name,
+        label="signature asset name",
+    )
+
+    mpp_present = _regular_file_state(
+        mpp_path,
+        label="canonical MPP",
+        errors=errors,
+    )
+    signature_present = _regular_file_state(
+        signature_path,
+        label="canonical detached signature",
+        errors=errors,
+    )
+
+    if errors:
+        observations_complete = False
+
+    mpp_sha256: str | None = None
+    mpp_structure_valid: bool | None = None
+    missing_entries: tuple[str, ...] = ()
+    duplicate_entries: tuple[str, ...] = ()
+
+    if mpp_present:
+        try:
+            mpp_sha256 = _sha256_file(mpp_path)
+        except OSError as exc:
+            errors.append(f"canonical MPP could not be hashed: {exc}")
+            observations_complete = False
+
+        (
+            mpp_structure_valid,
+            missing_entries,
+            duplicate_entries,
+        ) = _inspect_mpp_structure(
+            mpp_path,
+            required_entries=normalized_required,
+            errors=errors,
+            warnings=warnings,
+        )
+    elif signature_present:
+        warnings.append("detached signature exists without the canonical MPP")
+
+    signature_valid: bool | None = None
+    if mpp_present and signature_present:
+        active_runner = gpg_runner or SubprocessGpgRunner()
+        gpg_result = active_runner.run(mpp_path, signature_path)
+        signature_valid, gpg_complete = _parse_gpg_status(
+            gpg_result,
+            expected_signing_identity=identity.signing_identity,
+            errors=errors,
+            warnings=warnings,
+        )
+        observations_complete = observations_complete and gpg_complete
+
+    local = LocalObservations(
+        mpp_present=mpp_present,
+        signature_present=signature_present,
+        mpp_sha256=mpp_sha256,
+        signature_valid=signature_valid,
+        mpp_structure_valid=mpp_structure_valid,
+    )
+
+    return LocalArtifactObservationResult(
+        repo_root=str(root),
+        mpp_path=str(mpp_path),
+        signature_path=str(signature_path),
+        local=local,
+        required_entries=normalized_required,
+        missing_entries=missing_entries,
+        duplicate_entries=duplicate_entries,
+        observations_complete=observations_complete,
+        errors=tuple(errors),
+        warnings=tuple(warnings),
+    )
+
+
 __all__ = [
+    "REQUIRED_MPP_ENTRIES",
+    "GpgCommandResult",
+    "GpgRunner",
+    "LocalArtifactObservationResult",
+    "SubprocessGpgRunner",
+    "observe_local_artifacts",
     "GITHUB_API_VERSION",
     "GhCommandResult",
     "GhRunner",
