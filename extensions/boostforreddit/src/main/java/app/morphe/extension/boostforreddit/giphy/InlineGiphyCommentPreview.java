@@ -33,6 +33,8 @@ public final class InlineGiphyCommentPreview {
             "morphe_boost_inline_media_comment_text_inset_v1";
     private static final int FALLBACK_COMMENT_TEXT_HORIZONTAL_INSET_DP = 8;
     private static final String LOG_TAG = "InlineGiphy";
+    private static final String PRERENDER_SOURCE_POLICY_MARKER =
+            "morphe_boost_inline_media_prerender_source_policy_v10";
     private static final String PREF_INLINE_MEDIA_PREVIEWS_ENABLED =
             "morphe_boost_inline_media_previews_enabled";
     private static final String PREF_INLINE_MEDIA_PREVIEW_SHOW_SOURCE_TEXT =
@@ -63,6 +65,7 @@ public final class InlineGiphyCommentPreview {
     private static final String DEFAULT_GIPHY_PREVIEW_TAP_ACTION = TAP_ACTION_VIDEO_VIEWER;
     private static final String DEFAULT_STATIC_PREVIEW_TAP_ACTION = TAP_ACTION_IMAGE_VIEWER;
     private static final Map<Object, PreviewSource> PREVIEW_SOURCES = new WeakHashMap<>();
+    private static final Map<Object, String> ORIGINAL_COMMENT_HTML = new WeakHashMap<>();
     private static final Pattern DIRECT_PREVIEW_URL_PATTERN =
             Pattern.compile("https?://(?:external-preview|preview)\\.redd\\.it/[^\\s\"'<>]+", Pattern.CASE_INSENSITIVE);
 
@@ -92,34 +95,260 @@ public final class InlineGiphyCommentPreview {
         }
     }
 
-    public static void cleanCommentHtml(Object holder, Object commentModel) {
+public static void cleanCommentHtml(Object holder, Object commentModel) {
         try {
             if (commentModel == null) return;
 
-            Context context = null;
-            View itemView = getItemView(holder);
-            if (itemView != null) {
-                context = itemView.getContext();
-            }
+            restoreOriginalCommentHtml(commentModel);
 
-            if (!isInlineMediaPreviewsEnabled(context)) {
-                PREVIEW_SOURCES.remove(commentModel);
-                return;
-            }
+            String originalHtml = callStringMethod(commentModel, "T0");
+            if (originalHtml == null || originalHtml.length() == 0) return;
 
             PreviewSource previewSource = findPreviewSource(commentModel);
-            if (previewSource == null) return;
-            PREVIEW_SOURCES.put(commentModel, previewSource);
-            Log.d(LOG_TAG, "morphe_boost_preserve_links_inline_preview_v4 source");
+            if (previewSource == null) {
+                previewSource = extractPreviewSource(originalHtml);
+            }
+            if (previewSource == null || previewSource.sourceUrl == null) return;
 
-            // Issue #29: preserve Boost's original comment text/HTML before native link spans are built.
-            // Rewriting CommentModel string fields here can corrupt normal link targets in mixed link+media comments.
-            // Keep preview extraction/rendering active, but leave source text intact until cleanup is span-safe.
+            PREVIEW_SOURCES.put(commentModel, previewSource);
+            if (!ORIGINAL_COMMENT_HTML.containsKey(commentModel)) {
+                ORIGINAL_COMMENT_HTML.put(commentModel, originalHtml);
+            }
+
+            String renderedHtml = renderCommentHtml(holder, commentModel, originalHtml);
+            if (!stringEquals(originalHtml, renderedHtml)) {
+                boolean updated = setCommentHtml(commentModel, originalHtml, renderedHtml);
+                Log.d(LOG_TAG, PRERENDER_SOURCE_POLICY_MARKER
+                        + ": set rendered comment html updated=" + updated
+                        + " source=" + previewSource.sourceUrl
+                        + " originalLength=" + originalHtml.length()
+                        + " renderedLength=" + (renderedHtml == null ? -1 : renderedHtml.length()));
+            } else {
+                Log.d(LOG_TAG, PRERENDER_SOURCE_POLICY_MARKER
+                        + ": keep original comment html source=" + previewSource.sourceUrl
+                        + " showSource=" + isSourceTextWithPreviewEnabled(findContext(holder)));
+            }
         } catch (Throwable throwable) {
+            Log.w(LOG_TAG, PRERENDER_SOURCE_POLICY_MARKER + ": clean/render failed", throwable);
         }
     }
 
-    public static void bind(Object holder, Object commentModel, Object glideRequestManager) {
+    
+
+public static String renderCommentHtml(Object holder, Object commentModel, String originalHtml) {
+        try {
+            if (originalHtml == null || originalHtml.length() == 0) return originalHtml;
+
+            PreviewSource previewSource = findPreviewSource(commentModel);
+            if (previewSource == null) {
+                previewSource = extractPreviewSource(originalHtml);
+            }
+
+            if (previewSource == null || previewSource.sourceUrl == null
+                    || previewSource.sourceUrl.length() == 0) {
+                return originalHtml;
+            }
+
+            if (isSourceTextWithPreviewEnabled(findContext(holder))) {
+                Log.d(LOG_TAG, PRERENDER_SOURCE_POLICY_MARKER
+                        + ": show source enabled source=" + previewSource.sourceUrl);
+                return originalHtml;
+            }
+
+            String renderedHtml = removePreviewSourceUrlFromHtml(originalHtml, previewSource.sourceUrl);
+            if (renderedHtml == null) return originalHtml;
+
+            if (stringEquals(originalHtml, renderedHtml)) {
+                Log.d(LOG_TAG, PRERENDER_SOURCE_POLICY_MARKER
+                        + ": source not found in html source=" + previewSource.sourceUrl);
+                return originalHtml;
+            }
+
+            Log.d(LOG_TAG, PRERENDER_SOURCE_POLICY_MARKER
+                    + ": removed preview source before render source=" + previewSource.sourceUrl);
+            return renderedHtml;
+        } catch (Throwable throwable) {
+            Log.w(LOG_TAG, PRERENDER_SOURCE_POLICY_MARKER + ": render failed", throwable);
+            return originalHtml;
+        }
+    }
+
+    private static Context findContext(Object holder) {
+        try {
+            View itemView = getItemView(holder);
+            if (itemView != null) return itemView.getContext();
+
+            View commentView = findCommentTextView(holder);
+            if (commentView != null) return commentView.getContext();
+        } catch (Throwable ignored) {
+        }
+
+        return null;
+    }
+
+    private static void restoreOriginalCommentHtml(Object commentModel) {
+        try {
+            if (commentModel == null) return;
+
+            String originalHtml = ORIGINAL_COMMENT_HTML.get(commentModel);
+            if (originalHtml == null) return;
+
+            String currentHtml = callStringMethod(commentModel, "T0");
+            if (stringEquals(currentHtml, originalHtml)) return;
+
+            boolean updated = setCommentHtml(commentModel, currentHtml, originalHtml);
+            Log.d(LOG_TAG, PRERENDER_SOURCE_POLICY_MARKER
+                    + ": restored original comment html updated=" + updated);
+        } catch (Throwable throwable) {
+            Log.w(LOG_TAG, PRERENDER_SOURCE_POLICY_MARKER + ": restore original failed", throwable);
+        }
+    }
+
+    private static boolean setCommentHtml(Object commentModel, String expectedCurrent, String newValue) {
+        if (commentModel == null || newValue == null) return false;
+
+        // Boost 1.12.12: CommentModel.T0() returns field K. Try the precise field first.
+        if (setStringField(commentModel, "K", newValue)) {
+            return true;
+        }
+
+        // Fallback: update the String field that currently equals T0().
+        Class<?> cursor = commentModel.getClass();
+        while (cursor != null) {
+            try {
+                Field[] fields = cursor.getDeclaredFields();
+                for (Field field : fields) {
+                    if (field == null || field.getType() != String.class) continue;
+                    field.setAccessible(true);
+                    Object value = field.get(commentModel);
+                    if (value instanceof String && stringEquals((String) value, expectedCurrent)) {
+                        field.set(commentModel, newValue);
+                        return true;
+                    }
+                }
+            } catch (Throwable ignored) {
+            }
+            cursor = cursor.getSuperclass();
+        }
+
+        return false;
+    }
+
+    private static boolean setStringField(Object target, String fieldName, String newValue) {
+        try {
+            if (target == null || fieldName == null || newValue == null) return false;
+
+            Field field = findField(target.getClass(), fieldName);
+            if (field == null || field.getType() != String.class) return false;
+
+            field.setAccessible(true);
+            field.set(target, newValue);
+            return true;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    private static String removePreviewSourceUrlFromHtml(String html, String sourceUrl) {
+        if (html == null || sourceUrl == null || sourceUrl.length() == 0) return html;
+
+        String result = html;
+        String[] variants = sourceUrlVariants(sourceUrl);
+
+        for (String href : variants) {
+            if (href == null || href.length() == 0) continue;
+            for (String label : variants) {
+                if (label == null || label.length() == 0) continue;
+                result = removeExactAnchor(result, href, label);
+            }
+        }
+
+        for (String candidate : variants) {
+            if (candidate == null || candidate.length() == 0) continue;
+            result = result.replace(candidate, "");
+        }
+
+        result = cleanupHtmlAfterSourceRemoval(result);
+        if (isBlankHtml(result)) {
+            // TableTextView.setTextHtml("") returns without clearing old content. Use zero-width space.
+            return "&#8203;";
+        }
+
+        return result;
+    }
+
+    private static String removeExactAnchor(String html, String href, String label) {
+        if (html == null || href == null || label == null) return html;
+
+        try {
+            String pattern = "(?is)\\s*<a\\b[^>]*href\\s*=\\s*(['\\\"])\\s*"
+                    + Pattern.quote(href)
+                    + "\\s*\\1[^>]*>\\s*"
+                    + Pattern.quote(label)
+                    + "\\s*</a>\\s*";
+            return html.replaceAll(pattern, " ");
+        } catch (Throwable ignored) {
+            return html;
+        }
+    }
+
+    private static String[] sourceUrlVariants(String sourceUrl) {
+        String escaped = escapeHtmlUrl(sourceUrl);
+        String ampOnly = sourceUrl.replace("&", "&amp;");
+
+        if (stringEquals(sourceUrl, escaped) && stringEquals(sourceUrl, ampOnly)) {
+            return new String[]{sourceUrl};
+        }
+
+        if (stringEquals(escaped, ampOnly)) {
+            return new String[]{sourceUrl, escaped};
+        }
+
+        return new String[]{sourceUrl, escaped, ampOnly};
+    }
+
+    private static String escapeHtmlUrl(String value) {
+        if (value == null) return null;
+
+        return value
+                .replace("&", "&amp;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;");
+    }
+
+    private static String cleanupHtmlAfterSourceRemoval(String value) {
+        if (value == null) return null;
+
+        String result = value;
+        result = result.replaceAll("(?is)<p>\\s*(?:<br\\s*/?>\\s*)*</p>", "");
+        result = result.replaceAll("(?is)(?:\\s*<br\\s*/?>\\s*){3,}", "<br><br>");
+        result = result.replaceAll("(?m)[ \\t]+(\\r?\\n)", "$1");
+        result = result.replaceAll("(?m)^(?:[ \\t]*\\r?\\n){3,}", "\n\n");
+        result = result.trim();
+        return result;
+    }
+
+    private static boolean isBlankHtml(String value) {
+        if (value == null) return true;
+
+        String stripped = value
+                .replaceAll("(?is)<br\\s*/?>", "")
+                .replaceAll("(?is)</?p[^>]*>", "")
+                .replaceAll("(?is)<[^>]+>", "")
+                .replace("&nbsp;", "")
+                .replace("&#8203;", "")
+                .trim();
+
+        return stripped.length() == 0;
+    }
+
+    private static boolean stringEquals(String a, String b) {
+        return a == null ? b == null : a.equals(b);
+    }
+
+        public static void bind(Object holder, Object commentModel, Object glideRequestManager) {
         try {
             if (holder == null || commentModel == null) return;
 
