@@ -259,7 +259,14 @@ def _collect_conflicts(
     if local.tag_commit is not None and local.tag_commit != identity.release_commit:
         conflicts.append("local tag points to a different commit")
 
-    if local.metadata_matches_identity is False:
+    metadata_conflict_evidence = any(
+        (
+            local.main_commit == identity.release_commit,
+            local.tag_commit == identity.release_commit,
+            _remote_component_matches_target(identity, remote, github),
+        )
+    )
+    if local.metadata_matches_identity is False and metadata_conflict_evidence:
         conflicts.append("local release metadata conflicts with the requested identity")
 
     if local.mpp_sha256 is not None and local.mpp_sha256 != identity.mpp_sha256:
@@ -384,6 +391,24 @@ def classify_release_state(
 
     if not observations.safety.observations_complete:
         warnings.append("one or more observations are incomplete")
+
+    if (
+        observations.local.metadata_matches_identity is False
+        and not any(
+            (
+                observations.local.main_commit == identity.release_commit,
+                observations.local.tag_commit == identity.release_commit,
+                _remote_component_matches_target(
+                    identity,
+                    observations.remote,
+                    observations.github,
+                ),
+            )
+        )
+    ):
+        warnings.append(
+            "local release metadata does not yet match the requested identity"
+        )
 
     if conflicts:
         state = ReleaseState.INCONSISTENT_ABORT
@@ -2431,7 +2456,386 @@ def observe_local_artifacts(
     )
 
 
+MAX_MANAGER_DESCRIPTION_LENGTH = 700
+_REQUIRED_README_RELEASE_FIELDS: tuple[str, ...] = (
+    "Version",
+    "Release tag",
+    "Asset",
+    "SHA256",
+    "Manager JSON",
+    "Download URL",
+)
+
+
+@dataclass(frozen=True, slots=True)
+class LocalMetadataObservationResult:
+    repo_root: str
+    readme_path: str
+    bundle_path: str
+    repository: str
+    local: LocalObservations
+    expected_download_url: str
+    expected_signature_download_url: str
+    expected_manager_json_url: str
+    bundle_version: str | None
+    bundle_created_at: str | None
+    bundle_description: str | None
+    bundle_download_url: str | None
+    bundle_signature_download_url: str | None
+    readme_version: str | None
+    readme_tag: str | None
+    readme_asset: str | None
+    readme_sha256: str | None
+    readme_standalone_sha256: str | None
+    readme_manager_json_url: str | None
+    readme_download_url: str | None
+    observations_complete: bool
+    mismatches: tuple[str, ...] = ()
+    errors: tuple[str, ...] = ()
+    warnings: tuple[str, ...] = ()
+
+    def as_dict(self) -> dict[str, Any]:
+        return _jsonable(self)
+
+
+class _DuplicateJsonKeyError(ValueError):
+    pass
+
+
+def _read_canonical_utf8_file(
+    path: Path,
+    *,
+    label: str,
+    errors: list[str],
+) -> str | None:
+    if not _regular_file_state(path, label=label, errors=errors):
+        if not errors or not errors[-1].startswith(label):
+            errors.append(f"{label} is missing: {path}")
+        return None
+
+    try:
+        return path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        errors.append(f"{label} is not valid UTF-8: {exc}")
+    except OSError as exc:
+        errors.append(f"{label} could not be read: {exc}")
+    return None
+
+
+def _json_object_without_duplicate_keys(
+    text: str,
+    *,
+    label: str,
+    errors: list[str],
+) -> dict[str, Any] | None:
+    def object_pairs_hook(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+        output: dict[str, Any] = {}
+        for key, value in pairs:
+            if key in output:
+                raise _DuplicateJsonKeyError(f"duplicate JSON key {key!r}")
+            output[key] = value
+        return output
+
+    try:
+        payload = json.loads(text, object_pairs_hook=object_pairs_hook)
+    except (json.JSONDecodeError, _DuplicateJsonKeyError) as exc:
+        errors.append(f"{label} is invalid JSON: {exc}")
+        return None
+
+    if not isinstance(payload, dict):
+        errors.append(f"{label} root must be a JSON object")
+        return None
+    return payload
+
+
+def _required_nonempty_string(
+    payload: dict[str, Any],
+    key: str,
+    *,
+    label: str,
+    errors: list[str],
+) -> str | None:
+    value = payload.get(key)
+    if not isinstance(value, str) or not value.strip():
+        errors.append(f"{label} field {key!r} must be a non-empty string")
+        return None
+    return value
+
+
+def _strip_markdown_code(value: str) -> str:
+    normalized = value.strip()
+    if len(normalized) >= 2 and normalized.startswith("`") and normalized.endswith("`"):
+        return normalized[1:-1]
+    return normalized
+
+
+def _parse_current_release_readme(
+    text: str,
+    *,
+    errors: list[str],
+) -> tuple[dict[str, str], str | None]:
+    sections = list(
+        re.finditer(
+            r"(?ms)^## Current release\s*$\n(.*?)(?=^##\s|\Z)",
+            text,
+        )
+    )
+    if len(sections) != 1:
+        errors.append(
+            "README.md must contain exactly one '## Current release' section"
+        )
+        return {}, None
+
+    section = sections[0].group(1)
+    rows: dict[str, str] = {}
+    for raw_line in section.splitlines():
+        line = raw_line.strip()
+        if not line.startswith("|") or not line.endswith("|"):
+            continue
+        cells = [cell.strip() for cell in line[1:-1].split("|")]
+        if len(cells) != 2:
+            continue
+        key, value = cells
+        if key in {"Field", "---"} or set(key) <= {"-", ":"}:
+            continue
+        if key in rows:
+            errors.append(f"README.md Current release contains duplicate field {key!r}")
+            continue
+        rows[key] = _strip_markdown_code(value)
+
+    for field in _REQUIRED_README_RELEASE_FIELDS:
+        if field not in rows or not rows[field]:
+            errors.append(
+                f"README.md Current release is missing non-empty field {field!r}"
+            )
+
+    standalone_matches = re.findall(
+        r"(?m)^SHA256:\s*`([0-9a-f]{64})`\s*$",
+        section,
+    )
+    standalone_sha: str | None
+    if len(standalone_matches) != 1:
+        errors.append(
+            "README.md Current release must contain exactly one standalone SHA256 line"
+        )
+        standalone_sha = None
+    else:
+        standalone_sha = standalone_matches[0]
+
+    return rows, standalone_sha
+
+
+def _release_metadata_urls(
+    repository: str,
+    identity: ReleaseIdentity,
+) -> tuple[str, str, str]:
+    download_url = (
+        f"https://github.com/{repository}/releases/download/"
+        f"{identity.tag}/{identity.mpp_asset_name}"
+    )
+    signature_url = (
+        f"https://github.com/{repository}/releases/download/"
+        f"{identity.tag}/{identity.signature_asset_name}"
+    )
+    manager_json_url = (
+        f"https://raw.githubusercontent.com/{repository}/main/patches-bundle.json"
+    )
+    return download_url, signature_url, manager_json_url
+
+
+def observe_local_metadata(
+    repo_path: str | Path,
+    repository: str,
+    identity: ReleaseIdentity,
+) -> LocalMetadataObservationResult:
+    """Inspect canonical README and Manager bundle metadata without mutation."""
+
+    normalized_repository = repository.strip()
+    if not _REPOSITORY_SLUG_RE.fullmatch(normalized_repository):
+        raise ValueError(
+            "repository must use the OWNER/REPO form with safe path characters"
+        )
+
+    root = Path(repo_path).resolve()
+    readme_path = root / "README.md"
+    bundle_path = root / "patches-bundle.json"
+    expected_download_url, expected_signature_url, expected_manager_url = (
+        _release_metadata_urls(normalized_repository, identity)
+    )
+
+    errors: list[str] = []
+    mismatches: list[str] = []
+    warnings: list[str] = []
+
+    readme_text = _read_canonical_utf8_file(
+        readme_path,
+        label="canonical README.md",
+        errors=errors,
+    )
+    bundle_text = _read_canonical_utf8_file(
+        bundle_path,
+        label="canonical patches-bundle.json",
+        errors=errors,
+    )
+
+    bundle_version: str | None = None
+    bundle_created_at: str | None = None
+    bundle_description: str | None = None
+    bundle_download_url: str | None = None
+    bundle_signature_download_url: str | None = None
+
+    if bundle_text is not None:
+        bundle = _json_object_without_duplicate_keys(
+            bundle_text,
+            label="canonical patches-bundle.json",
+            errors=errors,
+        )
+        if bundle is not None:
+            bundle_version = _required_nonempty_string(
+                bundle,
+                "version",
+                label="canonical patches-bundle.json",
+                errors=errors,
+            )
+            bundle_created_at = _required_nonempty_string(
+                bundle,
+                "created_at",
+                label="canonical patches-bundle.json",
+                errors=errors,
+            )
+            bundle_description = _required_nonempty_string(
+                bundle,
+                "description",
+                label="canonical patches-bundle.json",
+                errors=errors,
+            )
+            bundle_download_url = _required_nonempty_string(
+                bundle,
+                "download_url",
+                label="canonical patches-bundle.json",
+                errors=errors,
+            )
+            bundle_signature_download_url = _required_nonempty_string(
+                bundle,
+                "signature_download_url",
+                label="canonical patches-bundle.json",
+                errors=errors,
+            )
+
+            if (
+                bundle_description is not None
+                and len(bundle_description) > MAX_MANAGER_DESCRIPTION_LENGTH
+            ):
+                mismatches.append(
+                    "patches-bundle.json description exceeds the Manager-facing length limit"
+                )
+
+            if bundle_version is not None:
+                acceptable_versions = {
+                    identity.version,
+                    f"v{identity.version}",
+                }
+                if bundle_version not in acceptable_versions:
+                    mismatches.append(
+                        "patches-bundle.json version does not match the release identity"
+                    )
+            if (
+                bundle_download_url is not None
+                and bundle_download_url != expected_download_url
+            ):
+                mismatches.append(
+                    "patches-bundle.json download_url does not match the release identity"
+                )
+            if (
+                bundle_signature_download_url is not None
+                and bundle_signature_download_url != expected_signature_url
+            ):
+                mismatches.append(
+                    "patches-bundle.json signature_download_url does not match the release identity"
+                )
+
+    readme_rows: dict[str, str] = {}
+    standalone_sha: str | None = None
+    if readme_text is not None:
+        readme_rows, standalone_sha = _parse_current_release_readme(
+            readme_text,
+            errors=errors,
+        )
+
+    readme_version = readme_rows.get("Version")
+    readme_tag = readme_rows.get("Release tag")
+    readme_asset = readme_rows.get("Asset")
+    readme_sha256 = readme_rows.get("SHA256")
+    readme_manager_json_url = readme_rows.get("Manager JSON")
+    readme_download_url = readme_rows.get("Download URL")
+
+    expected_readme = {
+        "Version": identity.version,
+        "Release tag": identity.tag,
+        "Asset": identity.mpp_asset_name,
+        "SHA256": identity.mpp_sha256,
+        "Manager JSON": expected_manager_url,
+        "Download URL": expected_download_url,
+    }
+    for field, expected in expected_readme.items():
+        actual = readme_rows.get(field)
+        if actual is not None and actual != expected:
+            mismatches.append(
+                f"README.md Current release field {field!r} does not match the release identity"
+            )
+
+    if standalone_sha is not None and standalone_sha != identity.mpp_sha256:
+        mismatches.append(
+            "README.md standalone SHA256 does not match the release identity"
+        )
+    if (
+        standalone_sha is not None
+        and readme_sha256 is not None
+        and standalone_sha != readme_sha256
+    ):
+        mismatches.append(
+            "README.md table and standalone SHA256 values disagree"
+        )
+
+    if readme_sha256 is not None and not _SHA256_RE.fullmatch(readme_sha256):
+        mismatches.append("README.md Current release SHA256 is malformed")
+
+    observations_complete = not errors
+    metadata_matches = None if errors else not mismatches
+    local = LocalObservations(metadata_matches_identity=metadata_matches)
+
+    return LocalMetadataObservationResult(
+        repo_root=str(root),
+        readme_path=str(readme_path),
+        bundle_path=str(bundle_path),
+        repository=normalized_repository,
+        local=local,
+        expected_download_url=expected_download_url,
+        expected_signature_download_url=expected_signature_url,
+        expected_manager_json_url=expected_manager_url,
+        bundle_version=bundle_version,
+        bundle_created_at=bundle_created_at,
+        bundle_description=bundle_description,
+        bundle_download_url=bundle_download_url,
+        bundle_signature_download_url=bundle_signature_download_url,
+        readme_version=readme_version,
+        readme_tag=readme_tag,
+        readme_asset=readme_asset,
+        readme_sha256=readme_sha256,
+        readme_standalone_sha256=standalone_sha,
+        readme_manager_json_url=readme_manager_json_url,
+        readme_download_url=readme_download_url,
+        observations_complete=observations_complete,
+        mismatches=tuple(dict.fromkeys(mismatches)),
+        errors=tuple(dict.fromkeys(errors)),
+        warnings=tuple(warnings),
+    )
+
+
 __all__ = [
+    "MAX_MANAGER_DESCRIPTION_LENGTH",
+    "LocalMetadataObservationResult",
+    "observe_local_metadata",
     "REQUIRED_MPP_ENTRIES",
     "GpgCommandResult",
     "GpgRunner",
