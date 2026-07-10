@@ -1,6 +1,8 @@
 package app.morphe.extension.boostforreddit.giphy;
 
 
+import android.text.SpannableStringBuilder;
+import android.widget.TextView;
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -221,6 +223,225 @@ public final class InlineGiphyCommentPreview {
         } catch (Throwable throwable) {
             Log.w(LOG_TAG, PRERENDER_SOURCE_POLICY_MARKER + ": restore original failed", throwable);
         }
+    }
+
+
+    /**
+     * Issue #36 v16: Boost resolves and binds the displayed comment CharSequence
+     * after the existing extension entry hooks. Apply the source-text policy to
+     * the bound TableTextView immediately before CommentViewHolder.o returns.
+     * For ordinary non-table comments, the persistent first child is Boost's
+     * LinkTextView text carrier. Resolve it through the public ViewGroup
+     * getChildAt(0) contract instead of accessing package-private fields.
+     *
+     * Deleting from SpannableStringBuilder preserves spans belonging to all
+     * unrelated text and links.
+     */
+    public static void applySourceTextPolicyAfterBind(
+            Object holder,
+            Object commentModel,
+            Object boundCommentTable
+    ) {
+        try {
+            if (holder == null || commentModel == null) return;
+
+            Context context = findContext(holder);
+            if (context == null || !isInlineMediaPreviewsEnabled(context)) return;
+
+            PreviewSource previewSource = PREVIEW_SOURCES.get(commentModel);
+            if (previewSource == null) {
+                previewSource = findPreviewSource(commentModel);
+            }
+
+            if (
+                    previewSource == null
+                            || previewSource.sourceUrl == null
+                            || previewSource.sourceUrl.length() == 0
+            ) {
+                return;
+            }
+
+            if (isSourceTextWithPreviewEnabled(context)) {
+                Log.d(
+                        LOG_TAG,
+                        "morphe_boost_inline_media_post_bind_source_policy_v16: keep bound source text source="
+                                + previewSource.sourceUrl
+                );
+                return;
+            }
+
+            if (!(boundCommentTable instanceof ViewGroup)) {
+                Log.w(
+                        LOG_TAG,
+                        "morphe_boost_inline_media_post_bind_source_policy_v16: bound TableTextView not available"
+                );
+                return;
+            }
+
+            ViewGroup tableTextView = (ViewGroup) boundCommentTable;
+            if (tableTextView.getChildCount() == 0) {
+                Log.w(
+                        LOG_TAG,
+                        "morphe_boost_inline_media_post_bind_source_policy_v16: bound TableTextView has no children"
+                );
+                return;
+            }
+
+            View boundCommentTextView = tableTextView.getChildAt(0);
+            if (!(boundCommentTextView instanceof TextView)) {
+                Log.w(
+                        LOG_TAG,
+                        "morphe_boost_inline_media_post_bind_source_policy_v16: first TableTextView child is not TextView"
+                );
+                return;
+            }
+
+            TextView textView = (TextView) boundCommentTextView;
+            CharSequence before = textView.getText();
+            CharSequence after = removePreviewSourceFromDisplayedText(
+                    before,
+                    previewSource.sourceUrl
+            );
+
+            if (
+                    before != null
+                            && after != null
+                            && !before.toString().equals(after.toString())
+            ) {
+                textView.setText(after);
+                Log.d(
+                        LOG_TAG,
+                        "morphe_boost_inline_media_post_bind_source_policy_v16: removed source from bound TextView source="
+                                + previewSource.sourceUrl
+                );
+            } else {
+                Log.d(
+                        LOG_TAG,
+                        "morphe_boost_inline_media_post_bind_source_policy_v16: bound TextView source not present source="
+                                + previewSource.sourceUrl
+                );
+            }
+        } catch (Throwable throwable) {
+            Log.w(LOG_TAG, "morphe_boost_inline_media_post_bind_source_policy_v16: post-bind policy failed", throwable);
+        }
+    }
+
+    private static CharSequence removePreviewSourceFromDisplayedText(
+            CharSequence value,
+            String sourceUrl
+    ) {
+        if (
+                value == null
+                        || value.length() == 0
+                        || sourceUrl == null
+                        || sourceUrl.length() == 0
+        ) {
+            return value;
+        }
+
+        SpannableStringBuilder output = new SpannableStringBuilder(value);
+        boolean changed = false;
+
+        String[] variants = sourceUrlVariants(sourceUrl);
+        for (String variant : variants) {
+            if (variant == null || variant.length() == 0) continue;
+
+            int searchFrom = 0;
+            while (searchFrom <= output.length()) {
+                String rendered = output.toString();
+                int start = rendered.indexOf(variant, searchFrom);
+                if (start < 0) break;
+
+                int end = start + variant.length();
+
+                int lineStart = start;
+                while (
+                        lineStart > 0
+                                && (
+                                output.charAt(lineStart - 1) == ' '
+                                        || output.charAt(lineStart - 1) == '\t'
+                        )
+                ) {
+                    lineStart--;
+                }
+
+                int lineEnd = end;
+                while (
+                        lineEnd < output.length()
+                                && (
+                                output.charAt(lineEnd) == ' '
+                                        || output.charAt(lineEnd) == '\t'
+                        )
+                ) {
+                    lineEnd++;
+                }
+
+                boolean startsOwnLine =
+                        lineStart == 0 || output.charAt(lineStart - 1) == '\n';
+                boolean endsOwnLine =
+                        lineEnd == output.length() || output.charAt(lineEnd) == '\n';
+
+                int deleteStart = start;
+                int deleteEnd = end;
+
+                if (startsOwnLine && endsOwnLine) {
+                    deleteStart = lineStart;
+                    deleteEnd = lineEnd;
+
+                    if (
+                            deleteEnd < output.length()
+                                    && output.charAt(deleteEnd) == '\n'
+                    ) {
+                        deleteEnd++;
+                    } else if (
+                            deleteStart > 0
+                                    && output.charAt(deleteStart - 1) == '\n'
+                    ) {
+                        deleteStart--;
+
+                        // A source URL commonly follows an empty separator line.
+                        if (
+                                deleteEnd == output.length()
+                                        && deleteStart > 0
+                                        && output.charAt(deleteStart - 1) == '\n'
+                        ) {
+                            deleteStart--;
+                        }
+                    }
+                }
+
+                output.delete(deleteStart, deleteEnd);
+                changed = true;
+
+                // Exact inline deletion can leave two adjacent spaces.
+                if (
+                        deleteStart > 0
+                                && deleteStart < output.length()
+                                && output.charAt(deleteStart - 1) == ' '
+                                && output.charAt(deleteStart) == ' '
+                ) {
+                    output.delete(deleteStart, deleteStart + 1);
+                }
+
+                searchFrom = Math.max(0, deleteStart);
+            }
+        }
+
+        if (!changed) return value;
+
+        while (
+                output.length() > 0
+                        && (
+                        output.charAt(output.length() - 1) == '\n'
+                                || output.charAt(output.length() - 1) == '\r'
+                                || output.charAt(output.length() - 1) == ' '
+                                || output.charAt(output.length() - 1) == '\t'
+                )
+        ) {
+            output.delete(output.length() - 1, output.length());
+        }
+
+        return output;
     }
 
     private static boolean setCommentHtml(Object commentModel, String expectedCurrent, String newValue) {
