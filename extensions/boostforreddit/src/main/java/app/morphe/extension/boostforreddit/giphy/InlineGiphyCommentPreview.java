@@ -95,26 +95,45 @@ public final class InlineGiphyCommentPreview {
         }
     }
 
-public static void cleanCommentHtml(Object holder, Object commentModel) {
+    public static void cleanCommentHtml(Object holder, Object commentModel) {
         try {
             if (commentModel == null) return;
+
+            Context context = findContext(holder);
+            if (!isInlineMediaPreviewsEnabled(context)) {
+                restoreOriginalCommentHtml(commentModel);
+                PREVIEW_SOURCES.remove(commentModel);
+                ORIGINAL_COMMENT_HTML.remove(commentModel);
+                return;
+            }
 
             restoreOriginalCommentHtml(commentModel);
 
             String originalHtml = callStringMethod(commentModel, "T0");
-            if (originalHtml == null || originalHtml.length() == 0) return;
+            if (originalHtml == null || originalHtml.length() == 0) {
+                PREVIEW_SOURCES.remove(commentModel);
+                ORIGINAL_COMMENT_HTML.remove(commentModel);
+                return;
+            }
 
             PreviewSource previewSource = findPreviewSource(commentModel);
             if (previewSource == null) {
                 previewSource = extractPreviewSource(originalHtml);
             }
-            if (previewSource == null || previewSource.sourceUrl == null) return;
+            if (previewSource == null || previewSource.sourceUrl == null) {
+                PREVIEW_SOURCES.remove(commentModel);
+                ORIGINAL_COMMENT_HTML.remove(commentModel);
+                return;
+            }
 
             PREVIEW_SOURCES.put(commentModel, previewSource);
             if (!ORIGINAL_COMMENT_HTML.containsKey(commentModel)) {
                 ORIGINAL_COMMENT_HTML.put(commentModel, originalHtml);
             }
 
+            // Issue #36: source visibility is resolved before CommentViewHolder.M(String)
+            // calls TableTextView.setTextHtml(String). Do not reintroduce post-render
+            // TextView/LinkTextView/root-view mutation here.
             String renderedHtml = renderCommentHtml(holder, commentModel, originalHtml);
             if (!stringEquals(originalHtml, renderedHtml)) {
                 boolean updated = setCommentHtml(commentModel, originalHtml, renderedHtml);
@@ -135,7 +154,7 @@ public static void cleanCommentHtml(Object holder, Object commentModel) {
 
     
 
-public static String renderCommentHtml(Object holder, Object commentModel, String originalHtml) {
+    public static String renderCommentHtml(Object holder, Object commentModel, String originalHtml) {
         try {
             if (originalHtml == null || originalHtml.length() == 0) return originalHtml;
 
@@ -348,7 +367,7 @@ public static String renderCommentHtml(Object holder, Object commentModel, Strin
         return a == null ? b == null : a.equals(b);
     }
 
-        public static void bind(Object holder, Object commentModel, Object glideRequestManager) {
+    public static void bind(Object holder, Object commentModel, Object glideRequestManager) {
         try {
             if (holder == null || commentModel == null) return;
 
