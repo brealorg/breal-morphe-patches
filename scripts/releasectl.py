@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Release state, deterministic planning, and read-only Git observation.
+"""Release state, deterministic planning, and read-only release observation.
 
-This Issue #43 checkpoint adds local and remote Git inspection. It contains
-no GitHub API, GPG, build, upload, publication, or mutation logic.
+This Issue #43 checkpoint includes local Git, remote Git, and GitHub Release
+metadata inspection. It contains no GPG, build, asset download, upload,
+publication, ref update, or other mutation logic.
 """
 
 from __future__ import annotations
@@ -1576,7 +1577,510 @@ def observe_remote_git(
     )
 
 
+GITHUB_API_VERSION = "2026-03-10"
+_REPOSITORY_SLUG_RE = re.compile(
+    r"^[A-Za-z0-9](?:[A-Za-z0-9_.-]{0,99})/"
+    r"[A-Za-z0-9](?:[A-Za-z0-9_.-]{0,99})$"
+)
+
+
+@dataclass(frozen=True, slots=True)
+class GhCommandResult:
+    args: tuple[str, ...]
+    returncode: int
+    stdout: str
+    stderr: str
+
+
+class GhRunner(Protocol):
+    def run(self, args: Sequence[str]) -> GhCommandResult:
+        ...
+
+
+@dataclass(frozen=True, slots=True)
+class SubprocessGhRunner:
+    """Execute read-only GitHub CLI commands without a shell."""
+
+    gh_executable: str = "gh"
+
+    def run(self, args: Sequence[str]) -> GhCommandResult:
+        command = (self.gh_executable, *tuple(args))
+        env = os.environ.copy()
+        env.update(
+            {
+                "GH_PROMPT_DISABLED": "1",
+                "GH_PAGER": "cat",
+                "NO_COLOR": "1",
+                "LC_ALL": "C",
+            }
+        )
+
+        try:
+            completed = subprocess.run(
+                command,
+                check=False,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                env=env,
+            )
+        except FileNotFoundError as exc:
+            return GhCommandResult(
+                args=tuple(command),
+                returncode=127,
+                stdout="",
+                stderr=str(exc),
+            )
+        except OSError as exc:
+            return GhCommandResult(
+                args=tuple(command),
+                returncode=126,
+                stdout="",
+                stderr=str(exc),
+            )
+
+        return GhCommandResult(
+            args=tuple(command),
+            returncode=completed.returncode,
+            stdout=completed.stdout,
+            stderr=completed.stderr,
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class GitHubReleaseObservationResult:
+    repository: str
+    viewer_can_push: bool | None
+    github: GitHubReleaseObservations
+    release_id: int | None
+    is_immutable: bool | None
+    target_commitish: str | None
+    html_url: str | None
+    mpp_asset_ids: tuple[int, ...]
+    signature_asset_ids: tuple[int, ...]
+    observations_complete: bool
+    errors: tuple[str, ...] = ()
+    warnings: tuple[str, ...] = ()
+
+    def as_dict(self) -> dict[str, Any]:
+        return _jsonable(self)
+
+
+def _gh_error(label: str, result: GhCommandResult) -> str:
+    detail = result.stderr.strip() or result.stdout.strip() or "no diagnostic output"
+    return f"{label} failed with exit {result.returncode}: {detail}"
+
+
+def _normalize_github_digest(
+    digest: Any,
+    *,
+    label: str,
+    errors: list[str],
+    warnings: list[str],
+) -> str | None:
+    if digest is None:
+        warnings.append(f"{label} does not expose an API digest")
+        return None
+    if not isinstance(digest, str):
+        errors.append(f"{label} digest must be a string or null")
+        return None
+
+    prefix = "sha256:"
+    if not digest.startswith(prefix):
+        errors.append(f"{label} digest must use the sha256:<hex> format")
+        return None
+
+    value = digest[len(prefix):]
+    if not _SHA256_RE.fullmatch(value):
+        errors.append(f"{label} digest contains an invalid SHA256 value")
+        return None
+    return value
+
+
+def _parse_release_pages(
+    stdout: str,
+    *,
+    errors: list[str],
+) -> list[dict[str, Any]]:
+    try:
+        payload = json.loads(stdout)
+    except json.JSONDecodeError as exc:
+        errors.append(f"GitHub release listing returned invalid JSON: {exc}")
+        return []
+
+    if not isinstance(payload, list):
+        errors.append("GitHub release listing must be a JSON array of pages")
+        return []
+
+    releases: list[dict[str, Any]] = []
+    for page_number, page in enumerate(payload, start=1):
+        if not isinstance(page, list):
+            errors.append(
+                f"GitHub release listing page {page_number} must be a JSON array"
+            )
+            continue
+        for item_number, item in enumerate(page, start=1):
+            if not isinstance(item, dict):
+                errors.append(
+                    "GitHub release listing item "
+                    f"{page_number}:{item_number} must be a JSON object"
+                )
+                continue
+            releases.append(item)
+    return releases
+
+
+def _positive_int(value: Any) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and value > 0
+
+
+def _validate_matching_release(
+    release: dict[str, Any],
+    identity: ReleaseIdentity,
+    *,
+    errors: list[str],
+    warnings: list[str],
+) -> GitHubReleaseObservationResult:
+    release_id = release.get("id")
+    draft = release.get("draft")
+    prerelease = release.get("prerelease")
+    immutable = release.get("immutable")
+    target_commitish = release.get("target_commitish")
+    html_url = release.get("html_url")
+    assets = release.get("assets")
+
+    if not _positive_int(release_id):
+        errors.append("matching GitHub release has an invalid release id")
+        release_id = None
+    if not isinstance(draft, bool):
+        errors.append("matching GitHub release has a non-boolean draft field")
+        draft = None
+    if not isinstance(prerelease, bool):
+        errors.append("matching GitHub release has a non-boolean prerelease field")
+        prerelease = None
+    if not isinstance(immutable, bool):
+        errors.append("matching GitHub release has a non-boolean immutable field")
+        immutable = None
+    if not isinstance(target_commitish, str) or not target_commitish:
+        errors.append("matching GitHub release has an invalid target_commitish")
+        target_commitish = None
+    if not isinstance(html_url, str) or not html_url:
+        errors.append("matching GitHub release has an invalid html_url")
+        html_url = None
+    if not isinstance(assets, list):
+        errors.append("matching GitHub release assets must be a JSON array")
+        assets = []
+
+    mpp_asset_ids: list[int] = []
+    signature_asset_ids: list[int] = []
+    mpp_digest: str | None = None
+    expected_asset_not_uploaded = False
+
+    for index, asset in enumerate(assets, start=1):
+        if not isinstance(asset, dict):
+            errors.append(f"GitHub release asset {index} must be a JSON object")
+            continue
+
+        asset_id = asset.get("id")
+        name = asset.get("name")
+        state = asset.get("state")
+
+        if not _positive_int(asset_id):
+            errors.append(f"GitHub release asset {index} has an invalid asset id")
+            continue
+        if not isinstance(name, str) or not name:
+            errors.append(f"GitHub release asset {index} has an invalid name")
+            continue
+        if not isinstance(state, str) or not state:
+            errors.append(f"GitHub release asset {index} has an invalid state")
+            continue
+
+        is_mpp = name == identity.mpp_asset_name
+        is_signature = name == identity.signature_asset_name
+        if not is_mpp and not is_signature:
+            continue
+
+        if state != "uploaded":
+            expected_asset_not_uploaded = True
+            warnings.append(
+                f"expected GitHub release asset {name!r} is in state {state!r}"
+            )
+
+        if is_mpp:
+            mpp_asset_ids.append(asset_id)
+            if len(mpp_asset_ids) == 1:
+                mpp_digest = _normalize_github_digest(
+                    asset.get("digest"),
+                    label=f"GitHub release asset {name!r}",
+                    errors=errors,
+                    warnings=warnings,
+                )
+        else:
+            signature_asset_ids.append(asset_id)
+
+    if len(mpp_asset_ids) != 1:
+        mpp_digest = None
+
+    github = GitHubReleaseObservations(
+        present=True,
+        tag=identity.tag,
+        is_draft=draft,
+        is_prerelease=prerelease,
+        mpp_asset_count=len(mpp_asset_ids),
+        signature_asset_count=len(signature_asset_ids),
+        mpp_asset_digest=mpp_digest,
+        remote_mpp_sha256=None,
+        remote_signature_valid=None,
+        remote_mpp_structure_valid=None,
+    )
+
+    observations_complete = not errors and not expected_asset_not_uploaded
+    return GitHubReleaseObservationResult(
+        repository="",
+        viewer_can_push=True,
+        github=github,
+        release_id=release_id,
+        is_immutable=immutable,
+        target_commitish=target_commitish,
+        html_url=html_url,
+        mpp_asset_ids=tuple(mpp_asset_ids),
+        signature_asset_ids=tuple(signature_asset_ids),
+        observations_complete=observations_complete,
+        errors=tuple(errors),
+        warnings=tuple(warnings),
+    )
+
+
+def _github_api_get_args(endpoint: str, *, paginate: bool = False) -> tuple[str, ...]:
+    args: list[str] = [
+        "api",
+        "--method",
+        "GET",
+    ]
+    if paginate:
+        args.extend(("--paginate", "--slurp"))
+    args.extend(
+        (
+            "--header",
+            "Accept: application/vnd.github+json",
+            "--header",
+            f"X-GitHub-Api-Version: {GITHUB_API_VERSION}",
+            endpoint,
+        )
+    )
+    return tuple(args)
+
+
+def _parse_repository_access(
+    stdout: str,
+    repository: str,
+    *,
+    errors: list[str],
+) -> bool | None:
+    try:
+        payload = json.loads(stdout)
+    except json.JSONDecodeError as exc:
+        errors.append(f"GitHub repository metadata returned invalid JSON: {exc}")
+        return None
+
+    if not isinstance(payload, dict):
+        errors.append("GitHub repository metadata must be a JSON object")
+        return None
+
+    full_name = payload.get("full_name")
+    if not isinstance(full_name, str) or full_name.casefold() != repository.casefold():
+        errors.append("GitHub repository metadata full_name does not match the requested repository")
+
+    permissions = payload.get("permissions")
+    if not isinstance(permissions, dict):
+        errors.append("GitHub repository metadata is missing the authenticated permissions object")
+        return None
+
+    can_push = permissions.get("push")
+    if not isinstance(can_push, bool):
+        errors.append("GitHub repository metadata permissions.push must be boolean")
+        return None
+
+    if not can_push:
+        errors.append(
+            "authenticated GitHub viewer lacks push permission; draft release "
+            "visibility cannot be guaranteed"
+        )
+    return can_push
+
+
+def observe_github_release(
+    repository: str,
+    identity: ReleaseIdentity,
+    *,
+    runner: GhRunner | None = None,
+) -> GitHubReleaseObservationResult:
+    """Observe GitHub Release metadata using a read-only REST API listing.
+
+    The list endpoint is used instead of the by-tag endpoint because authenticated
+    callers with push access can also observe draft releases. The command uses
+    explicit GET semantics, pagination, JSON slurping, and the current GitHub
+    REST API version. It never downloads, uploads, edits, publishes, or deletes
+    release assets.
+    """
+
+    normalized_repository = repository.strip()
+    if not _REPOSITORY_SLUG_RE.fullmatch(normalized_repository):
+        return GitHubReleaseObservationResult(
+            repository=repository,
+            viewer_can_push=None,
+            github=GitHubReleaseObservations(),
+            release_id=None,
+            is_immutable=None,
+            target_commitish=None,
+            html_url=None,
+            mpp_asset_ids=(),
+            signature_asset_ids=(),
+            observations_complete=False,
+            errors=(
+                "repository must use the OWNER/REPO form with safe path characters",
+            ),
+        )
+
+    active_runner = runner or SubprocessGhRunner()
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    repository_result = active_runner.run(
+        _github_api_get_args(f"repos/{normalized_repository}")
+    )
+    if repository_result.returncode != 0:
+        return GitHubReleaseObservationResult(
+            repository=normalized_repository,
+            viewer_can_push=None,
+            github=GitHubReleaseObservations(),
+            release_id=None,
+            is_immutable=None,
+            target_commitish=None,
+            html_url=None,
+            mpp_asset_ids=(),
+            signature_asset_ids=(),
+            observations_complete=False,
+            errors=(_gh_error("GitHub repository metadata", repository_result),),
+        )
+
+    viewer_can_push = _parse_repository_access(
+        repository_result.stdout,
+        normalized_repository,
+        errors=errors,
+    )
+    if errors or viewer_can_push is not True:
+        return GitHubReleaseObservationResult(
+            repository=normalized_repository,
+            viewer_can_push=viewer_can_push,
+            github=GitHubReleaseObservations(),
+            release_id=None,
+            is_immutable=None,
+            target_commitish=None,
+            html_url=None,
+            mpp_asset_ids=(),
+            signature_asset_ids=(),
+            observations_complete=False,
+            errors=tuple(errors),
+            warnings=tuple(warnings),
+        )
+
+    endpoint = f"repos/{normalized_repository}/releases?per_page=100"
+    result = active_runner.run(_github_api_get_args(endpoint, paginate=True))
+
+    if result.returncode != 0:
+        return GitHubReleaseObservationResult(
+            repository=normalized_repository,
+            viewer_can_push=True,
+            github=GitHubReleaseObservations(),
+            release_id=None,
+            is_immutable=None,
+            target_commitish=None,
+            html_url=None,
+            mpp_asset_ids=(),
+            signature_asset_ids=(),
+            observations_complete=False,
+            errors=(_gh_error("GitHub release listing", result),),
+        )
+
+    releases = _parse_release_pages(result.stdout, errors=errors)
+
+    matches: list[dict[str, Any]] = []
+    for index, release in enumerate(releases, start=1):
+        tag_name = release.get("tag_name")
+        if not isinstance(tag_name, str) or not tag_name:
+            errors.append(f"GitHub release listing item {index} has an invalid tag_name")
+            continue
+        if tag_name == identity.tag:
+            matches.append(release)
+
+    if len(matches) > 1:
+        errors.append(
+            f"GitHub release listing returned multiple releases for tag {identity.tag!r}"
+        )
+
+    if errors or len(matches) > 1:
+        return GitHubReleaseObservationResult(
+            repository=normalized_repository,
+            viewer_can_push=True,
+            github=GitHubReleaseObservations(),
+            release_id=None,
+            is_immutable=None,
+            target_commitish=None,
+            html_url=None,
+            mpp_asset_ids=(),
+            signature_asset_ids=(),
+            observations_complete=False,
+            errors=tuple(errors),
+            warnings=tuple(warnings),
+        )
+
+    if not matches:
+        return GitHubReleaseObservationResult(
+            repository=normalized_repository,
+            viewer_can_push=True,
+            github=GitHubReleaseObservations(),
+            release_id=None,
+            is_immutable=None,
+            target_commitish=None,
+            html_url=None,
+            mpp_asset_ids=(),
+            signature_asset_ids=(),
+            observations_complete=True,
+            errors=(),
+            warnings=(),
+        )
+
+    parsed = _validate_matching_release(
+        matches[0],
+        identity,
+        errors=errors,
+        warnings=warnings,
+    )
+    return GitHubReleaseObservationResult(
+        repository=normalized_repository,
+        viewer_can_push=True,
+        github=parsed.github,
+        release_id=parsed.release_id,
+        is_immutable=parsed.is_immutable,
+        target_commitish=parsed.target_commitish,
+        html_url=parsed.html_url,
+        mpp_asset_ids=parsed.mpp_asset_ids,
+        signature_asset_ids=parsed.signature_asset_ids,
+        observations_complete=parsed.observations_complete,
+        errors=parsed.errors,
+        warnings=parsed.warnings,
+    )
+
+
 __all__ = [
+    "GITHUB_API_VERSION",
+    "GhCommandResult",
+    "GhRunner",
+    "GitHubReleaseObservationResult",
+    "SubprocessGhRunner",
+    "observe_github_release",
     "GitCommandResult",
     "GitRunner",
     "LocalGitObservationResult",
