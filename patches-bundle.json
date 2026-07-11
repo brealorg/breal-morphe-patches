@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-11T22:03:42",
-  "description": "Boost: restore the sidebar Trending today panel with live post rows and a cached popular/hot fallback.\nBoost: remove the invalid global community filter and suppress duplicate fallback titles.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-67/patches-1.4.67.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-67/patches-1.4.67.mpp.asc",
-  "version": "1.4.67"
+  "created_at": "2026-07-12T01:44:59",
+  "description": "Boost: fix comments status bar color regression on Android 15+/targetSdk35.\nScope: CommentsActivity-only system bar surface sync; SlidrTheme duplicate-title guard preserved.\nValidation: DEV clone com.rubenmayayo.reddit.dev targetSdk=35; foreground DEV CommentsActivity; statusbar matched toolbar; duplicate Comments title absent.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-68/patches-1.4.68.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-68/patches-1.4.68.mpp.asc",
+  "version": "1.4.68"
 }

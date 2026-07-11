@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.68](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-67...morphe-patches-68) (2026-07-12)
+
+* **Boost for Reddit:** Boost: fix comments status bar color regression on Android 15+/targetSdk35. Scope: CommentsActivity-only system bar surface sync; SlidrTheme duplicate-title guard preserved. Validation: DEV clone com.rubenmayayo.reddit.dev targetSdk=35; foreground DEV CommentsActivity; statusbar matched toolbar; duplicate Comments title absent.
+
 ## [1.4.67](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-66...morphe-patches-67) (2026-07-11)
 
 * **Boost for Reddit:** Boost: restore the sidebar Trending today panel with live post rows and a cached popular/hot fallback. Boost: remove the invalid global community filter and suppress duplicate fallback titles.
