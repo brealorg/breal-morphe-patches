@@ -105,6 +105,10 @@ Exit codes:
 
 A completed release is a successful no-op with `NEXT_ACTION=NONE`. Matching
 existing refs, release metadata, assets and digests are not treated as errors.
+The annotated tag is the exact immutable commit anchor. `main` and `dev` may
+advance after publication; descendant branch heads still contain the release
+target and must not invalidate an otherwise verified historical release. A
+divergent branch remains a concrete conflict.
 
 ## Read-only guarantees
 

@@ -413,5 +413,23 @@ class ReleaseInspectionIntegrationTests(unittest.TestCase):
         self.assertTrue(result.state_result.observations_complete)
 
 
+    def test_i13_completed_release_survives_later_branch_commits(self) -> None:
+        (self.fixture.repo / "tooling-note.txt").write_text(
+            "post-release tooling commit\n",
+            encoding="utf-8",
+        )
+        run("git", "add", "tooling-note.txt", cwd=self.fixture.repo)
+        run("git", "commit", "-m", "Post-release tooling", cwd=self.fixture.repo)
+        run("git", "branch", "-f", "dev", "HEAD", cwd=self.fixture.repo)
+        run("git", "push", "origin", "main", "dev", cwd=self.fixture.repo)
+
+        result = self.fixture.inspect()
+
+        self.assertEqual(result.state_result.state, ReleaseState.PUBLISHED_AND_VERIFIED)
+        self.assertEqual(result.state_result.next_action.value, "NONE")
+        self.assertEqual(result.plan.disposition, PlanDisposition.NOOP_ALREADY_SATISFIED)
+        self.assertEqual(result.plan.operations, ())
+
+
 if __name__ == "__main__":
     unittest.main()

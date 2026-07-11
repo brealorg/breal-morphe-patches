@@ -286,17 +286,24 @@ class ReleaseStateClassifierTests(unittest.TestCase):
         )
         self.assertEqual(result.state, ReleaseState.INCONSISTENT_ABORT)
 
-    def test_s17_remote_branch_ahead_is_conflict(self) -> None:
+    def test_s17_completed_release_allows_advanced_remote_branches(self) -> None:
         result = self.classify(
             ReleaseObservations(
                 remote=replace(
                     complete_remote(),
                     main_commit=WRONG,
                     main_relation_to_target=RefRelation.AHEAD,
-                )
+                    dev_commit=WRONG,
+                    dev_relation_to_target=RefRelation.AHEAD,
+                ),
+                github=complete_release(),
+                verification=VerificationObservations(
+                    full_verifier_status=VerifierStatus.PASS
+                ),
             )
         )
-        self.assertEqual(result.state, ReleaseState.INCONSISTENT_ABORT)
+        self.assertEqual(result.state, ReleaseState.PUBLISHED_AND_VERIFIED)
+        self.assertEqual(result.next_action, NextAction.NONE)
 
     def test_s18_prerelease_is_conflict(self) -> None:
         result = self.classify(
@@ -326,6 +333,23 @@ class ReleaseStateClassifierTests(unittest.TestCase):
         self.assertEqual(result.state, ReleaseState.READY_TO_PUBLISH)
         self.assertFalse(result.safe_to_mutate)
         self.assertIn("one or more observations are incomplete", result.warnings)
+
+
+    def test_s21_remote_branch_divergence_is_conflict(self) -> None:
+        result = self.classify(
+            ReleaseObservations(
+                remote=replace(
+                    complete_remote(),
+                    main_commit=WRONG,
+                    main_relation_to_target=RefRelation.DIVERGENT,
+                )
+            )
+        )
+        self.assertEqual(result.state, ReleaseState.INCONSISTENT_ABORT)
+        self.assertIn(
+            "remote main is divergent from the release target",
+            result.reasons,
+        )
 
     def test_result_serialization_uses_stable_enum_values(self) -> None:
         result = self.classify(ReleaseObservations())

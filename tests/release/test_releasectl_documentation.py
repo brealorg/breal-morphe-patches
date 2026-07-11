@@ -58,5 +58,16 @@ class ReleaseStateDocumentationTests(unittest.TestCase):
             self.assertIn(code, text)
 
 
+    def test_d05_historical_release_branch_advance_is_documented(self) -> None:
+        text = DOC.read_text(encoding="utf-8")
+        for phrase in (
+            "annotated tag is the exact immutable commit anchor",
+            "advance after publication",
+            "must not invalidate an otherwise verified historical release",
+            "divergent branch remains a concrete conflict",
+        ):
+            self.assertIn(phrase, text)
+
+
 if __name__ == "__main__":
     unittest.main()

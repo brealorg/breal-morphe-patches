@@ -411,6 +411,31 @@ class ReleasePlanTests(unittest.TestCase):
             "finalize_local",
         )
 
+
+    def test_p21_advanced_historical_release_refs_skip_atomic_push(self) -> None:
+        advanced = replace(
+            complete_remote(),
+            main_commit=WRONG,
+            main_relation_to_target=RefRelation.AHEAD,
+            dev_commit=WRONG,
+            dev_relation_to_target=RefRelation.AHEAD,
+        )
+        plan = self.plan(
+            ReleaseObservations(
+                local=valid_local(),
+                remote=advanced,
+            )
+        )
+        self.assertEqual(plan.observed_state, ReleaseState.PARTIALLY_PUBLISHED)
+        self.assertNotIn(
+            PlanOperationType.PUSH_RELEASE_REFS_ATOMIC,
+            operation_types(plan),
+        )
+        self.assertEqual(
+            operation_types(plan)[0],
+            PlanOperationType.CREATE_DRAFT_RELEASE,
+        )
+
     def test_p20_plan_models_are_immutable(self) -> None:
         plan = self.plan(ReleaseObservations())
         with self.assertRaises(FrozenInstanceError):

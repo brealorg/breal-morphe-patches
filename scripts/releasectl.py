@@ -174,12 +174,23 @@ def _commit_matches(commit: str | None, target: str) -> bool:
     return commit == target
 
 
-def _relation_matches_target(
+def _relation_contains_target(
     commit: str | None,
     relation: RefRelation,
     target: str,
 ) -> bool:
-    return commit == target or relation is RefRelation.EQUAL
+    """Return whether the observed ref points at or contains the release target.
+
+    A branch that has advanced after a release still contains the immutable
+    release commit. The annotated release tag remains the exact identity
+    anchor, so an AHEAD branch is valid historical-release evidence rather
+    than a conflict.
+    """
+
+    return commit == target or relation in {
+        RefRelation.EQUAL,
+        RefRelation.AHEAD,
+    }
 
 
 def _local_release_valid(identity: ReleaseIdentity, local: LocalObservations) -> bool:
@@ -205,12 +216,12 @@ def _remote_surface_complete(
 ) -> bool:
     return all(
         (
-            _relation_matches_target(
+            _relation_contains_target(
                 remote.main_commit,
                 remote.main_relation_to_target,
                 identity.release_commit,
             ),
-            _relation_matches_target(
+            _relation_contains_target(
                 remote.dev_commit,
                 remote.dev_relation_to_target,
                 identity.release_commit,
@@ -233,12 +244,12 @@ def _remote_component_matches_target(
 ) -> bool:
     return any(
         (
-            _relation_matches_target(
+            _relation_contains_target(
                 remote.main_commit,
                 remote.main_relation_to_target,
                 identity.release_commit,
             ),
-            _relation_matches_target(
+            _relation_contains_target(
                 remote.dev_commit,
                 remote.dev_relation_to_target,
                 identity.release_commit,
@@ -289,20 +300,20 @@ def _collect_conflicts(
             local.mpp_present,
         )
     )
-    if local_finalized_evidence and local.dev_relation_to_target in {
-        RefRelation.AHEAD,
-        RefRelation.DIVERGENT,
-    }:
-        conflicts.append("local dev is ahead of or divergent from the release target")
+    if (
+        local_finalized_evidence
+        and local.dev_relation_to_target is RefRelation.DIVERGENT
+    ):
+        conflicts.append("local dev is divergent from the release target")
 
     if remote.tag_commit is not None and remote.tag_commit != identity.release_commit:
         conflicts.append("remote tag points to a different commit")
 
-    if remote.main_relation_to_target in {RefRelation.AHEAD, RefRelation.DIVERGENT}:
-        conflicts.append("remote main is ahead of or divergent from the release target")
+    if remote.main_relation_to_target is RefRelation.DIVERGENT:
+        conflicts.append("remote main is divergent from the release target")
 
-    if remote.dev_relation_to_target in {RefRelation.AHEAD, RefRelation.DIVERGENT}:
-        conflicts.append("remote dev is ahead of or divergent from the release target")
+    if remote.dev_relation_to_target is RefRelation.DIVERGENT:
+        conflicts.append("remote dev is divergent from the release target")
 
     if github.present:
         if github.tag is not None and github.tag != identity.tag:
@@ -594,12 +605,12 @@ def _remote_refs_complete(
 ) -> bool:
     return all(
         (
-            _relation_matches_target(
+            _relation_contains_target(
                 remote.main_commit,
                 remote.main_relation_to_target,
                 identity.release_commit,
             ),
-            _relation_matches_target(
+            _relation_contains_target(
                 remote.dev_commit,
                 remote.dev_relation_to_target,
                 identity.release_commit,
