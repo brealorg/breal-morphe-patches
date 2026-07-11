@@ -154,6 +154,7 @@ echo
 [ -f "$MPP" ] || fail "MPP missing: $MPP"
 [ -f "$JAR" ] || fail "Morphe CLI jar missing: $JAR"
 [ -x tools/boost-check-candidate.sh ] || fail "tools/boost-check-candidate.sh missing or not executable"
+[ -x tools/boost-bytecode-safety-gate.sh ] || fail "tools/boost-bytecode-safety-gate.sh missing or not executable"
 
 ENV_FILE="$HOME/.config/morphe/reddit.env"
 if [ -f "$ENV_FILE" ]; then
@@ -375,9 +376,50 @@ if [ "$CHECK_RC" -ne 0 ]; then
 fi
 
 echo
+echo "===== bytecode safety gate ====="
+BYTECODE_REPORT="$ROOT/bytecode-safety-report.json"
+BYTECODE_LOG="$ROOT/bytecode-safety.log"
+BYTECODE_CMD=(
+  tools/boost-bytecode-safety-gate.sh
+  --base-apk "$BASE_APK"
+  --candidate-apk "$OUT_APK"
+  --patch-result "$RESULT_JSON"
+  --report "$BYTECODE_REPORT"
+)
+{
+  printf '%q ' "${BYTECODE_CMD[@]}"
+  printf '\n'
+} > "$ROOT/bytecode-safety-command.txt"
+
+"${BYTECODE_CMD[@]}" 2>&1 | tee "$BYTECODE_LOG"
+BYTECODE_RC=${PIPESTATUS[0]}
+
+echo
+echo "BYTECODE_GATE_EXIT_CODE=$BYTECODE_RC"
+if [ "$BYTECODE_RC" -ne 0 ]; then
+  echo "RESULT: FAIL bytecode safety gate"
+  echo "DIR: $ROOT"
+  echo "APK: $OUT_APK"
+  echo "PATCH_LOG: $PATCH_LOG"
+  echo "STATIC_GATE_LOG: $ROOT/static-gate.log"
+  echo "BYTECODE_GATE_LOG: $BYTECODE_LOG"
+  echo "BYTECODE_GATE_REPORT: $BYTECODE_REPORT"
+  exit "$BYTECODE_RC"
+fi
+
+if ! grep -qx 'BYTECODE_GATE=PASS' "$BYTECODE_LOG"; then
+  echo "RESULT: FAIL bytecode safety gate did not emit PASS"
+  echo "DIR: $ROOT"
+  echo "BYTECODE_GATE_LOG: $BYTECODE_LOG"
+  exit 1
+fi
+
+echo
 echo "RESULT: PASS"
 echo "DIR: $ROOT"
 echo "APK: $OUT_APK"
 echo "PATCH_LOG: $PATCH_LOG"
 echo "STATIC_GATE_LOG: $ROOT/static-gate.log"
+echo "BYTECODE_GATE_LOG: $BYTECODE_LOG"
+echo "BYTECODE_GATE_REPORT: $BYTECODE_REPORT"
 echo "Terminal is still alive."

@@ -8,6 +8,10 @@ Usage:
 
 Options:
   --source-apk PATH       Source patched normal Boost APK. Required.
+  --base-apk PATH         Clean Boost APK used for the source candidate.
+                          Defaults to the known Boost 1.12.12 APKMirror APK.
+  --patch-result PATH     Morphe patch-result.json for the source candidate.
+                          Defaults to patch-result.json beside --source-apk.
   --name NAME             Candidate directory suffix. Default: boost-devclone.
   --dev-package PACKAGE   Dev clone package. Default: com.rubenmayayo.reddit.dev.
   --normal-package PKG    Original package. Default: com.rubenmayayo.reddit.
@@ -30,7 +34,10 @@ pass() {
   echo "[PASS] $*"
 }
 
+DEFAULT_BASE_APK="/home/b-real/com.rubenmayayo.reddit_1.12.12-210011212_minAPI21(arm64-v8a,armeabi,armeabi-v7a,mips,mips64,x86,x86_64)(nodpi)_apkmirror.com.apk"
 SOURCE_APK=""
+BASE_APK="$DEFAULT_BASE_APK"
+PATCH_RESULT=""
 NAME="boost-devclone"
 DEV_PACKAGE="com.rubenmayayo.reddit.dev"
 NORMAL_PACKAGE="com.rubenmayayo.reddit"
@@ -41,6 +48,14 @@ while [ "$#" -gt 0 ]; do
   case "$1" in
     --source-apk)
       SOURCE_APK="${2:-}"
+      shift 2
+      ;;
+    --base-apk|--base)
+      BASE_APK="${2:-}"
+      shift 2
+      ;;
+    --patch-result)
+      PATCH_RESULT="${2:-}"
       shift 2
       ;;
     --name)
@@ -75,6 +90,12 @@ done
 
 [ -n "$SOURCE_APK" ] || { usage; fail "--source-apk is required"; }
 [ -f "$SOURCE_APK" ] || fail "Source APK missing: $SOURCE_APK"
+[ -f "$BASE_APK" ] || fail "Base APK missing: $BASE_APK"
+if [ -z "$PATCH_RESULT" ]; then
+  PATCH_RESULT="$(dirname "$SOURCE_APK")/patch-result.json"
+fi
+[ -f "$PATCH_RESULT" ] || fail "Patch result missing: $PATCH_RESULT"
+[ -x tools/boost-bytecode-safety-gate.sh ] || fail "bytecode safety gate missing or not executable"
 
 AAPT="$(command -v aapt || true)"
 [ -n "$AAPT" ] || fail "aapt missing"
@@ -122,6 +143,8 @@ mkdir -p "$DEV_DIR"
   echo "Started: $(date -Is)"
   echo "SOURCE_APK=$SOURCE_APK"
   echo "SOURCE_SHA256=$(sha256sum "$SOURCE_APK" | awk '{print $1}')"
+  echo "BASE_APK=$BASE_APK"
+  echo "PATCH_RESULT=$PATCH_RESULT"
   echo "DEV_PACKAGE=$DEV_PACKAGE"
   echo "NORMAL_PACKAGE=$NORMAL_PACKAGE"
   echo "LABEL=$LABEL"
@@ -134,6 +157,23 @@ mkdir -p "$DEV_DIR"
   echo "APKSIGNER=$APKSIGNER"
   echo
 
+  echo "===== source bytecode safety gate ====="
+  BYTECODE_REPORT="$OUT_DIR/source-bytecode-safety-report.json"
+  BYTECODE_LOG="$OUT_DIR/source-bytecode-safety.log"
+  tools/boost-bytecode-safety-gate.sh \
+    --base-apk "$BASE_APK" \
+    --candidate-apk "$SOURCE_APK" \
+    --patch-result "$PATCH_RESULT" \
+    --report "$BYTECODE_REPORT" \
+    2>&1 | tee "$BYTECODE_LOG"
+  BYTECODE_RC=${PIPESTATUS[0]}
+  [ "$BYTECODE_RC" -eq 0 ] \
+    || fail "source candidate failed bytecode safety gate rc=$BYTECODE_RC"
+  grep -qx 'BYTECODE_GATE=PASS' "$BYTECODE_LOG" \
+    || fail "source bytecode gate did not emit PASS"
+  pass "source candidate bytecode safety gate passed"
+
+  echo
   echo "===== decode ====="
   rm -rf "$DECODED"
   if [ "$APKTOOL_MODE" = "bin" ]; then

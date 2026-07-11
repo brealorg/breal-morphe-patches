@@ -4159,6 +4159,10 @@ def finalize_release_workflow(
             label="README SHA update",
         )
         candidate_name = name or f"release-{version}-local-finalize"
+        append_transaction_entry(
+            log_path, command="finalize", phase="BYTECODE_SAFETY_GATE",
+            status="STARTED", version=version, tag=tag, mpp_sha256=mpp_sha,
+        )
         candidate = _run_mutation(
             active_runner,
             repo_root,
@@ -4180,14 +4184,33 @@ def finalize_release_workflow(
             candidate_apk = repo_root / candidate_apk
         static_log = candidate_dir / "static-gate.log"
         patch_log = candidate_dir / "morphe-patch.log"
+        bytecode_log = candidate_dir / "bytecode-safety.log"
+        bytecode_report = candidate_dir / "bytecode-safety-report.json"
         if not candidate_apk.is_file():
             raise RuntimeError("Boost candidate APK is missing")
         if "RESULT: PASS" not in static_log.read_text(encoding="utf-8"):
             raise RuntimeError("Boost candidate static gate did not pass")
+        if "BYTECODE_GATE=PASS" not in bytecode_log.read_text(encoding="utf-8"):
+            raise RuntimeError("Boost candidate bytecode safety gate did not pass")
+        try:
+            bytecode_payload = json.loads(bytecode_report.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise RuntimeError("Boost candidate bytecode safety report is unavailable") from exc
+        if bytecode_payload.get("bytecode_gate") != "PASS":
+            raise RuntimeError("Boost candidate bytecode safety report is not PASS")
         patch_text = patch_log.read_text(encoding="utf-8")
         for required in ("Applied: Modify login WebView", "Applied: Spoof client"):
             if required not in patch_text:
                 raise RuntimeError(f"Boost candidate baseline patch missing: {required}")
+        append_transaction_entry(
+            log_path, command="finalize", phase="BYTECODE_SAFETY_GATE",
+            status="COMPLETED", version=version, tag=tag, mpp_sha256=mpp_sha,
+            details={
+                "modified_methods": bytecode_payload.get("modified_methods"),
+                "member_access_checks": bytecode_payload.get("member_access_checks"),
+                "register_flow_checks": bytecode_payload.get("register_flow_checks"),
+            },
+        )
 
         if _probe_remote_tag(repo_root, remote_name, tag, active_runner):
             raise RuntimeError("remote tag appeared before local release commit")

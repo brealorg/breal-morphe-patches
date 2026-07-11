@@ -72,6 +72,7 @@ class FinalizeRunner:
         self.calls: list[tuple[str, ...]] = []
         self.mpp = build_mpp()
         self.sha = hashlib.sha256(self.mpp).hexdigest()
+        self.bytecode_pass = True
 
     def run(self, repo_path: Path, args):
         call = tuple(args)
@@ -113,6 +114,13 @@ class FinalizeRunner:
             apk = candidate / "boost.apk"
             apk.write_bytes(b"apk")
             (candidate / "static-gate.log").write_text("RESULT: PASS\n", encoding="utf-8")
+            bytecode_state = "PASS" if self.bytecode_pass else "FAIL"
+            (candidate / "bytecode-safety.log").write_text(
+                f"BYTECODE_GATE={bytecode_state}\n", encoding="utf-8"
+            )
+            (candidate / "bytecode-safety-report.json").write_text(
+                f'{{"bytecode_gate":"{bytecode_state}"}}\n', encoding="utf-8"
+            )
             (candidate / "morphe-patch.log").write_text(
                 "Applied: Modify login WebView\nApplied: Spoof client\n",
                 encoding="utf-8",
@@ -190,6 +198,7 @@ class FinalizeWorkflowTests(unittest.TestCase):
             "PREPARE_METADATA",
             "BUILD_FINAL_MPP",
             "SIGN_ARTIFACT",
+            "BYTECODE_SAFETY_GATE",
             "ALIGN_LOCAL_DEV",
             "COMPLETE",
         ):
@@ -225,7 +234,23 @@ class FinalizeWorkflowTests(unittest.TestCase):
         prohibited = {"./gradlew", "gpg", "tools/build-boost-candidate.sh"}
         self.assertFalse(any(call and call[0] in prohibited for call in self.runner.calls))
 
-    def test_f03_invalid_changelog_aborts_before_release_mutations(self) -> None:
+    def test_f03_bytecode_gate_failure_blocks_release_commit_and_tag(self) -> None:
+        self.runner.bytecode_pass = False
+        result = MODULE.finalize_release_workflow(
+            self.fixture.repo,
+            "owner/repo",
+            version=VERSION,
+            tag=TAG,
+            changelog=("Current release only.",),
+            runner=self.runner,
+            inspect_fn=IdentityInspector(),
+        )
+        self.assertEqual(result.postcheck_result, "FAIL")
+        self.assertIn("bytecode safety gate did not pass", result.error or "")
+        self.assertEqual(run("git", "rev-parse", "HEAD", cwd=self.fixture.repo), self.fixture.base)
+        self.assertIsNone(MODULE._read_exact_ref(self.fixture.repo, f"refs/tags/{TAG}", self.runner))
+
+    def test_f04_invalid_changelog_aborts_before_release_mutations(self) -> None:
         result = MODULE.finalize_release_workflow(
             self.fixture.repo,
             "owner/repo",

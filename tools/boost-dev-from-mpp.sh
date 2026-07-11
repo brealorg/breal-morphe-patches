@@ -253,6 +253,8 @@ if [ "$FAIL" -eq 0 ]; then
   DEV_NAME="${NAME}-devclone"
   tools/build-boost-devclone-candidate.sh \
     --source-apk "$NORMAL_APK" \
+    --base-apk "$BASE_APK" \
+    --patch-result "$NORMAL_DIR/patch-result.json" \
     --name "$DEV_NAME" \
     --dev-package "$DEV_PACKAGE" \
     --normal-package "$NORMAL_PACKAGE" \
