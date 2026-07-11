@@ -1,21 +1,25 @@
 #!/usr/bin/env python3
-"""Release state, deterministic planning, and read-only release observation.
+"""Authoritative read-only release inspection, planning, and verification.
 
-This Issue #43 checkpoint includes local Git, remote Git, GitHub Release
-metadata, and canonical local release artifact inspection. It contains no build,
-asset download, upload, publication, ref update, or other mutation logic.
+Issue #43 provides local and remote Git observation, canonical metadata and
+artifact inspection, GitHub Release observation, ephemeral remote asset
+verification, deterministic state classification, and text/JSON CLI output.
+It performs no build, checkout, ref update, upload, publication, or mutation.
 """
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, fields, is_dataclass
+from dataclasses import asdict, dataclass, fields, is_dataclass, replace
 from enum import Enum
+import argparse
 import hashlib
 import json
 import os
 from pathlib import Path
 import re
 import subprocess
+import sys
+import tempfile
 import zipfile
 from typing import Any, Protocol, Sequence
 
@@ -2832,7 +2836,662 @@ def observe_local_metadata(
     )
 
 
+@dataclass(frozen=True, slots=True)
+class GhBinaryCommandResult:
+    args: tuple[str, ...]
+    returncode: int
+    stdout: bytes
+    stderr: str
+
+
+class GhBinaryRunner(Protocol):
+    def run(self, args: Sequence[str]) -> GhBinaryCommandResult:
+        ...
+
+
+@dataclass(frozen=True, slots=True)
+class SubprocessGhBinaryRunner:
+    """Execute a read-only GitHub API request and retain binary stdout."""
+
+    gh_executable: str = "gh"
+
+    def run(self, args: Sequence[str]) -> GhBinaryCommandResult:
+        command = (self.gh_executable, *tuple(args))
+        env = os.environ.copy()
+        env.update(
+            {
+                "GH_PROMPT_DISABLED": "1",
+                "GH_PAGER": "cat",
+                "NO_COLOR": "1",
+                "LC_ALL": "C",
+            }
+        )
+
+        try:
+            completed = subprocess.run(
+                command,
+                check=False,
+                capture_output=True,
+                env=env,
+            )
+        except FileNotFoundError as exc:
+            return GhBinaryCommandResult(
+                args=tuple(command),
+                returncode=127,
+                stdout=b"",
+                stderr=str(exc),
+            )
+        except OSError as exc:
+            return GhBinaryCommandResult(
+                args=tuple(command),
+                returncode=126,
+                stdout=b"",
+                stderr=str(exc),
+            )
+
+        return GhBinaryCommandResult(
+            args=tuple(command),
+            returncode=completed.returncode,
+            stdout=completed.stdout,
+            stderr=completed.stderr.decode("utf-8", errors="replace"),
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class RemoteAssetObservationResult:
+    repository: str
+    attempted: bool
+    mpp_asset_id: int | None
+    signature_asset_id: int | None
+    mpp_size: int | None
+    signature_size: int | None
+    github: GitHubReleaseObservations
+    verification: VerificationObservations
+    required_entries: tuple[str, ...]
+    missing_entries: tuple[str, ...]
+    duplicate_entries: tuple[str, ...]
+    observations_complete: bool
+    errors: tuple[str, ...] = ()
+    warnings: tuple[str, ...] = ()
+
+    def as_dict(self) -> dict[str, Any]:
+        return _jsonable(self)
+
+
+def _github_asset_download_args(
+    repository: str,
+    asset_id: int,
+) -> tuple[str, ...]:
+    return (
+        "api",
+        "--method",
+        "GET",
+        "--header",
+        "Accept: application/octet-stream",
+        "--header",
+        f"X-GitHub-Api-Version: {GITHUB_API_VERSION}",
+        f"repos/{repository}/releases/assets/{asset_id}",
+    )
+
+
+def _binary_gh_error(label: str, result: GhBinaryCommandResult) -> str:
+    detail = result.stderr.strip() or "no diagnostic output"
+    return f"{label} failed with exit {result.returncode}: {detail}"
+
+
+def observe_remote_assets(
+    repository: str,
+    identity: ReleaseIdentity,
+    release: GitHubReleaseObservationResult,
+    *,
+    binary_runner: GhBinaryRunner | None = None,
+    gpg_runner: GpgRunner | None = None,
+    required_entries: Sequence[str] = REQUIRED_MPP_ENTRIES,
+) -> RemoteAssetObservationResult:
+    """Download expected release assets to a temporary directory and verify them.
+
+    The files are never written to the repository and are deleted when the
+    observation returns. Known absence or a partial draft is a complete
+    observation with verifier status NOT_RUN. Tool or transport failures are
+    incomplete observations with verifier status UNAVAILABLE. Concrete digest,
+    ZIP, or signature failures produce verifier status FAIL.
+    """
+
+    normalized_repository = repository.strip()
+    normalized_required = tuple(required_entries)
+    if not _REPOSITORY_SLUG_RE.fullmatch(normalized_repository):
+        raise ValueError("repository must use the OWNER/REPO form")
+    if not normalized_required:
+        raise ValueError("required_entries must not be empty")
+    if len(set(normalized_required)) != len(normalized_required):
+        raise ValueError("required_entries must not contain duplicates")
+
+    github = release.github
+    if not github.present:
+        return RemoteAssetObservationResult(
+            repository=normalized_repository,
+            attempted=False,
+            mpp_asset_id=None,
+            signature_asset_id=None,
+            mpp_size=None,
+            signature_size=None,
+            github=GitHubReleaseObservations(),
+            verification=VerificationObservations(VerifierStatus.NOT_RUN),
+            required_entries=normalized_required,
+            missing_entries=(),
+            duplicate_entries=(),
+            observations_complete=release.observations_complete,
+            errors=release.errors,
+            warnings=release.warnings,
+        )
+
+    if len(release.mpp_asset_ids) != 1 or len(release.signature_asset_ids) != 1:
+        return RemoteAssetObservationResult(
+            repository=normalized_repository,
+            attempted=False,
+            mpp_asset_id=(release.mpp_asset_ids[0] if len(release.mpp_asset_ids) == 1 else None),
+            signature_asset_id=(
+                release.signature_asset_ids[0]
+                if len(release.signature_asset_ids) == 1
+                else None
+            ),
+            mpp_size=None,
+            signature_size=None,
+            github=GitHubReleaseObservations(),
+            verification=VerificationObservations(VerifierStatus.NOT_RUN),
+            required_entries=normalized_required,
+            missing_entries=(),
+            duplicate_entries=(),
+            observations_complete=release.observations_complete,
+            errors=release.errors,
+            warnings=release.warnings,
+        )
+
+    errors: list[str] = list(release.errors)
+    warnings: list[str] = list(release.warnings)
+    active_binary_runner = binary_runner or SubprocessGhBinaryRunner()
+    mpp_asset_id = release.mpp_asset_ids[0]
+    signature_asset_id = release.signature_asset_ids[0]
+
+    mpp_download = active_binary_runner.run(
+        _github_asset_download_args(normalized_repository, mpp_asset_id)
+    )
+    signature_download = active_binary_runner.run(
+        _github_asset_download_args(normalized_repository, signature_asset_id)
+    )
+
+    if mpp_download.returncode != 0:
+        errors.append(_binary_gh_error("remote MPP download", mpp_download))
+    if signature_download.returncode != 0:
+        errors.append(
+            _binary_gh_error("remote detached signature download", signature_download)
+        )
+    if mpp_download.returncode == 0 and not mpp_download.stdout:
+        errors.append("remote MPP download returned an empty body")
+    if signature_download.returncode == 0 and not signature_download.stdout:
+        errors.append("remote detached signature download returned an empty body")
+
+    if errors:
+        return RemoteAssetObservationResult(
+            repository=normalized_repository,
+            attempted=True,
+            mpp_asset_id=mpp_asset_id,
+            signature_asset_id=signature_asset_id,
+            mpp_size=(len(mpp_download.stdout) if mpp_download.returncode == 0 else None),
+            signature_size=(
+                len(signature_download.stdout)
+                if signature_download.returncode == 0
+                else None
+            ),
+            github=GitHubReleaseObservations(),
+            verification=VerificationObservations(VerifierStatus.UNAVAILABLE),
+            required_entries=normalized_required,
+            missing_entries=(),
+            duplicate_entries=(),
+            observations_complete=False,
+            errors=tuple(dict.fromkeys(errors)),
+            warnings=tuple(dict.fromkeys(warnings)),
+        )
+
+    remote_sha256: str | None = None
+    structure_valid: bool | None = None
+    signature_valid: bool | None = None
+    missing_entries: tuple[str, ...] = ()
+    duplicate_entries: tuple[str, ...] = ()
+    gpg_complete = True
+
+    with tempfile.TemporaryDirectory(prefix="morphe-releasectl-remote-") as temp_name:
+        temp_root = Path(temp_name)
+        mpp_path = temp_root / identity.mpp_asset_name
+        signature_path = temp_root / identity.signature_asset_name
+        mpp_path.write_bytes(mpp_download.stdout)
+        signature_path.write_bytes(signature_download.stdout)
+
+        try:
+            remote_sha256 = _sha256_file(mpp_path)
+        except OSError as exc:
+            errors.append(f"downloaded remote MPP could not be hashed: {exc}")
+
+        (
+            structure_valid,
+            missing_entries,
+            duplicate_entries,
+        ) = _inspect_mpp_structure(
+            mpp_path,
+            required_entries=normalized_required,
+            errors=errors,
+            warnings=warnings,
+        )
+
+        active_gpg_runner = gpg_runner or SubprocessGpgRunner()
+        gpg_result = active_gpg_runner.run(mpp_path, signature_path)
+        signature_valid, gpg_complete = _parse_gpg_status(
+            gpg_result,
+            expected_signing_identity=identity.signing_identity,
+            errors=errors,
+            warnings=warnings,
+        )
+
+    concrete_failure = any(
+        (
+            remote_sha256 is not None and remote_sha256 != identity.mpp_sha256,
+            structure_valid is False,
+            signature_valid is False,
+        )
+    )
+    observations_complete = (
+        release.observations_complete and not errors and gpg_complete
+    )
+
+    if concrete_failure:
+        verifier_status = VerifierStatus.FAIL
+    elif observations_complete and all(
+        (
+            remote_sha256 == identity.mpp_sha256,
+            structure_valid is True,
+            signature_valid is True,
+        )
+    ):
+        verifier_status = VerifierStatus.PASS
+    else:
+        verifier_status = VerifierStatus.UNAVAILABLE
+
+    remote_github = GitHubReleaseObservations(
+        remote_mpp_sha256=remote_sha256,
+        remote_signature_valid=signature_valid,
+        remote_mpp_structure_valid=structure_valid,
+    )
+    return RemoteAssetObservationResult(
+        repository=normalized_repository,
+        attempted=True,
+        mpp_asset_id=mpp_asset_id,
+        signature_asset_id=signature_asset_id,
+        mpp_size=len(mpp_download.stdout),
+        signature_size=len(signature_download.stdout),
+        github=remote_github,
+        verification=VerificationObservations(verifier_status),
+        required_entries=normalized_required,
+        missing_entries=missing_entries,
+        duplicate_entries=duplicate_entries,
+        observations_complete=observations_complete,
+        errors=tuple(dict.fromkeys(errors)),
+        warnings=tuple(dict.fromkeys(warnings)),
+    )
+
+
+def _merge_local_observations(
+    git: LocalObservations,
+    artifacts: LocalObservations,
+    metadata: LocalObservations,
+) -> LocalObservations:
+    return LocalObservations(
+        main_commit=git.main_commit,
+        dev_commit=git.dev_commit,
+        dev_relation_to_target=git.dev_relation_to_target,
+        tag_commit=git.tag_commit,
+        tag_is_annotated=git.tag_is_annotated,
+        metadata_matches_identity=metadata.metadata_matches_identity,
+        mpp_present=artifacts.mpp_present,
+        signature_present=artifacts.signature_present,
+        mpp_sha256=artifacts.mpp_sha256,
+        signature_valid=artifacts.signature_valid,
+        mpp_structure_valid=artifacts.mpp_structure_valid,
+    )
+
+
+def _merge_github_observations(
+    release: GitHubReleaseObservations,
+    assets: GitHubReleaseObservations,
+) -> GitHubReleaseObservations:
+    return replace(
+        release,
+        remote_mpp_sha256=assets.remote_mpp_sha256,
+        remote_signature_valid=assets.remote_signature_valid,
+        remote_mpp_structure_valid=assets.remote_mpp_structure_valid,
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class ReleaseInspectionResult:
+    schema_version: int
+    repository: str
+    remote_name: str
+    identity: ReleaseIdentity
+    observations: ReleaseObservations
+    state_result: ReleaseStateResult
+    plan: ReleasePlan
+    local_git: LocalGitObservationResult
+    remote_git: RemoteGitObservationResult
+    github_release: GitHubReleaseObservationResult
+    local_artifacts: LocalArtifactObservationResult
+    local_metadata: LocalMetadataObservationResult
+    remote_assets: RemoteAssetObservationResult
+    errors: tuple[str, ...] = ()
+    warnings: tuple[str, ...] = ()
+
+    def as_dict(self) -> dict[str, Any]:
+        return _jsonable(self)
+
+
+def inspect_release(
+    repo_path: str | Path,
+    repository: str,
+    identity: ReleaseIdentity,
+    *,
+    remote_name: str = "origin",
+    git_runner: GitRunner | None = None,
+    gh_runner: GhRunner | None = None,
+    gh_binary_runner: GhBinaryRunner | None = None,
+    gpg_runner: GpgRunner | None = None,
+) -> ReleaseInspectionResult:
+    """Run every Issue #43 observer and classify the normalized state."""
+
+    local_git = observe_local_git(repo_path, identity, runner=git_runner)
+    canonical_repo = Path(local_git.repo_root or Path(repo_path).resolve())
+    remote_git = observe_remote_git(
+        canonical_repo,
+        identity,
+        remote_name=remote_name,
+        runner=git_runner,
+    )
+    github_release = observe_github_release(
+        repository,
+        identity,
+        runner=gh_runner,
+    )
+    local_artifacts = observe_local_artifacts(
+        canonical_repo,
+        identity,
+        gpg_runner=gpg_runner,
+    )
+    local_metadata = observe_local_metadata(
+        canonical_repo,
+        repository,
+        identity,
+    )
+    remote_assets = observe_remote_assets(
+        repository,
+        identity,
+        github_release,
+        binary_runner=gh_binary_runner,
+        gpg_runner=gpg_runner,
+    )
+
+    source_results = (
+        local_git,
+        remote_git,
+        github_release,
+        local_artifacts,
+        local_metadata,
+        remote_assets,
+    )
+    observations_complete = all(
+        (
+            result.safety.observations_complete
+            if isinstance(result, LocalGitObservationResult)
+            else getattr(result, "observations_complete", False)
+        )
+        for result in source_results
+    )
+
+    local = _merge_local_observations(
+        local_git.local,
+        local_artifacts.local,
+        local_metadata.local,
+    )
+    github = _merge_github_observations(
+        github_release.github,
+        remote_assets.github,
+    )
+    safety = replace(
+        local_git.safety,
+        observations_complete=observations_complete,
+    )
+    observations = ReleaseObservations(
+        safety=safety,
+        local=local,
+        remote=remote_git.remote,
+        github=github,
+        verification=remote_assets.verification,
+    )
+    state_result = classify_release_state(identity, observations)
+    plan = generate_release_plan(identity, observations)
+
+    errors: list[str] = []
+    warnings: list[str] = []
+    for result in source_results:
+        errors.extend(getattr(result, "errors", ()))
+        warnings.extend(getattr(result, "warnings", ()))
+    warnings.extend(local_metadata.mismatches)
+
+    return ReleaseInspectionResult(
+        schema_version=1,
+        repository=repository,
+        remote_name=remote_name,
+        identity=identity,
+        observations=observations,
+        state_result=state_result,
+        plan=plan,
+        local_git=local_git,
+        remote_git=remote_git,
+        github_release=github_release,
+        local_artifacts=local_artifacts,
+        local_metadata=local_metadata,
+        remote_assets=remote_assets,
+        errors=tuple(dict.fromkeys(errors)),
+        warnings=tuple(dict.fromkeys(warnings)),
+    )
+
+
+def _yes_no(value: bool) -> str:
+    return "YES" if value else "NO"
+
+
+def _result_token(
+    command: str,
+    inspection: ReleaseInspectionResult,
+) -> str:
+    prefix = f"MORPHE_RELEASE_STATE_{command.upper()}"
+    if inspection.state_result.state is ReleaseState.INCONSISTENT_ABORT:
+        return f"{prefix}_CONFLICT"
+    if not inspection.state_result.observations_complete:
+        return f"{prefix}_OBSERVATION_FAILED"
+    if (
+        command == "verify"
+        and inspection.state_result.state is not ReleaseState.PUBLISHED_AND_VERIFIED
+    ):
+        return f"{prefix}_NOT_VERIFIED"
+    return f"{prefix}_OK"
+
+
+def inspection_payload(
+    command: str,
+    inspection: ReleaseInspectionResult,
+) -> dict[str, Any]:
+    payload = inspection.as_dict()
+    payload["command"] = command
+    payload["state"] = inspection.state_result.state.value
+    payload["next_action"] = inspection.state_result.next_action.value
+    payload["safe_to_mutate"] = inspection.state_result.safe_to_mutate
+    payload["observations_complete"] = (
+        inspection.state_result.observations_complete
+    )
+    payload["result"] = _result_token(command, inspection)
+    return payload
+
+
+def render_inspection_text(
+    command: str,
+    inspection: ReleaseInspectionResult,
+) -> str:
+    state = inspection.state_result
+    observations = inspection.observations
+    lines = [
+        f"SCHEMA_VERSION={inspection.schema_version}",
+        f"COMMAND={command}",
+        f"VERSION={inspection.identity.version}",
+        f"TAG={inspection.identity.tag}",
+        f"RELEASE_COMMIT={inspection.identity.release_commit}",
+        f"MPP_ASSET={inspection.identity.mpp_asset_name}",
+        f"EXPECTED_MPP_SHA256={inspection.identity.mpp_sha256}",
+        f"STATE={state.state.value}",
+        f"NEXT_ACTION={state.next_action.value}",
+        f"SAFE_TO_MUTATE={_yes_no(state.safe_to_mutate)}",
+        f"OBSERVATIONS_COMPLETE={_yes_no(state.observations_complete)}",
+        f"CURRENT_BRANCH={inspection.local_git.current_branch or 'DETACHED'}",
+        f"LOCAL_MAIN={observations.local.main_commit or 'ABSENT'}",
+        f"LOCAL_DEV={observations.local.dev_commit or 'ABSENT'}",
+        f"LOCAL_TAG={observations.local.tag_commit or 'ABSENT'}",
+        f"REMOTE_MAIN={observations.remote.main_commit or 'ABSENT'}",
+        f"REMOTE_DEV={observations.remote.dev_commit or 'ABSENT'}",
+        f"REMOTE_TAG={observations.remote.tag_commit or 'ABSENT'}",
+        f"GITHUB_RELEASE_PRESENT={_yes_no(observations.github.present)}",
+        f"GITHUB_RELEASE_DRAFT={observations.github.is_draft}",
+        f"GITHUB_MPP_ASSET_COUNT={observations.github.mpp_asset_count}",
+        f"GITHUB_SIGNATURE_ASSET_COUNT={observations.github.signature_asset_count}",
+        f"REMOTE_MPP_SHA256={observations.github.remote_mpp_sha256 or 'NOT_VERIFIED'}",
+        f"REMOTE_SIGNATURE_VALID={observations.github.remote_signature_valid}",
+        f"REMOTE_MPP_STRUCTURE_VALID={observations.github.remote_mpp_structure_valid}",
+        f"FULL_VERIFIER_STATUS={observations.verification.full_verifier_status.value}",
+        f"PLAN_DISPOSITION={inspection.plan.disposition.value}",
+        f"PLAN_EXECUTABLE={_yes_no(inspection.plan.executable)}",
+        f"PLAN_HASH={inspection.plan.plan_hash}",
+        f"ERROR_COUNT={len(inspection.errors)}",
+        f"WARNING_COUNT={len(inspection.warnings)}",
+    ]
+    lines.extend(f"REASON={item}" for item in state.reasons)
+    lines.extend(f"ERROR={item}" for item in inspection.errors)
+    lines.extend(f"WARNING={item}" for item in inspection.warnings)
+    if command == "plan":
+        for operation in inspection.plan.operations:
+            lines.append(
+                "PLAN_OPERATION="
+                f"{operation.sequence}:{operation.operation_type.value}:"
+                f"MUTATES={_yes_no(operation.mutates_state)}"
+            )
+    lines.append(f"RESULT={_result_token(command, inspection)}")
+    return "\n".join(lines) + "\n"
+
+
+def _identity_from_args(args: argparse.Namespace) -> ReleaseIdentity:
+    version = args.version.strip()
+    return ReleaseIdentity(
+        version=version,
+        tag=args.tag.strip(),
+        release_commit=args.release_commit.strip().lower(),
+        mpp_asset_name=f"patches-{version}.mpp",
+        signature_asset_name=f"patches-{version}.mpp.asc",
+        mpp_sha256=args.mpp_sha256.strip().lower(),
+        signing_identity=args.signing_identity.strip().replace(" ", "").upper(),
+    )
+
+
+def _build_cli_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="releasectl.py",
+        description="Authoritative read-only Morphe release state inspector",
+    )
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--repo", default=".", help="repository path")
+    common.add_argument(
+        "--repository",
+        default="brealorg/breal-morphe-patches",
+        help="GitHub OWNER/REPO",
+    )
+    common.add_argument("--remote", default="origin", help="Git remote name")
+    common.add_argument("--version", required=True)
+    common.add_argument("--tag", required=True)
+    common.add_argument("--release-commit", required=True)
+    common.add_argument("--mpp-sha256", required=True)
+    common.add_argument("--signing-identity", required=True)
+    common.add_argument(
+        "--json",
+        action="store_true",
+        help="emit normalized JSON instead of text",
+    )
+
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    subparsers.add_parser("inspect", parents=[common], help="inspect and classify")
+    subparsers.add_parser("plan", parents=[common], help="inspect and print plan")
+    subparsers.add_parser(
+        "verify",
+        parents=[common],
+        help="require PUBLISHED_AND_VERIFIED",
+    )
+    return parser
+
+
+def _exit_code(command: str, inspection: ReleaseInspectionResult) -> int:
+    state = inspection.state_result.state
+    if state is ReleaseState.INCONSISTENT_ABORT:
+        return 3
+    if not inspection.state_result.observations_complete:
+        return 4
+    if command == "verify" and state is not ReleaseState.PUBLISHED_AND_VERIFIED:
+        return 5
+    return 0
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = _build_cli_parser()
+    args = parser.parse_args(argv)
+    try:
+        identity = _identity_from_args(args)
+        inspection = inspect_release(
+            args.repo,
+            args.repository,
+            identity,
+            remote_name=args.remote,
+        )
+    except ValueError as exc:
+        parser.error(str(exc))
+        return 2
+
+    if args.json:
+        print(
+            json.dumps(
+                inspection_payload(args.command, inspection),
+                indent=2,
+                sort_keys=True,
+            )
+        )
+    else:
+        sys.stdout.write(render_inspection_text(args.command, inspection))
+
+    return _exit_code(args.command, inspection)
+
+
 __all__ = [
+    "GhBinaryCommandResult",
+    "GhBinaryRunner",
+    "SubprocessGhBinaryRunner",
+    "RemoteAssetObservationResult",
+    "ReleaseInspectionResult",
+    "observe_remote_assets",
+    "inspect_release",
+    "inspection_payload",
+    "render_inspection_text",
+    "main",
     "MAX_MANAGER_DESCRIPTION_LENGTH",
     "LocalMetadataObservationResult",
     "observe_local_metadata",
@@ -2875,3 +3534,7 @@ __all__ = [
     "classify_release_state",
     "generate_release_plan",
 ]
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
