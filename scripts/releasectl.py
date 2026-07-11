@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Authoritative read-only release inspection, planning, and verification.
+"""Authoritative Morphe release inspection and transaction controller.
 
-Issue #43 provides local and remote Git observation, canonical metadata and
-artifact inspection, GitHub Release observation, ephemeral remote asset
-verification, deterministic state classification, and text/JSON CLI output.
-It performs no build, checkout, ref update, upload, publication, or mutation.
+Issue #43 provides read-only observation, planning, and verification. Issue #44
+adds explicit idempotent finalize, publish, and resume transactions. Every
+release mutation is preceded by a fresh authoritative observation and recorded
+in a machine-readable transaction log.
 """
 
 from __future__ import annotations
@@ -12,6 +12,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, fields, is_dataclass, replace
 from enum import Enum
 import argparse
+from datetime import datetime, timezone
 import hashlib
 import json
 import os
@@ -3404,6 +3405,1042 @@ def render_inspection_text(
     return "\n".join(lines) + "\n"
 
 
+
+
+DEFAULT_SIGNING_IDENTITY = "475CF5EB633BF19031A40E64A56106614B7AD500"
+TRANSACTION_SCHEMA_VERSION = 1
+
+
+@dataclass(frozen=True, slots=True)
+class MutationCommandResult:
+    args: tuple[str, ...]
+    returncode: int
+    stdout: str
+    stderr: str
+
+
+class MutationRunner(Protocol):
+    def run(
+        self,
+        repo_path: Path,
+        args: Sequence[str],
+    ) -> MutationCommandResult:
+        ...
+
+
+@dataclass(frozen=True, slots=True)
+class SubprocessMutationRunner:
+    """Execute an explicit mutating command without a shell."""
+
+    def run(
+        self,
+        repo_path: Path,
+        args: Sequence[str],
+    ) -> MutationCommandResult:
+        command = tuple(args)
+        env = os.environ.copy()
+        env.update(
+            {
+                "GIT_TERMINAL_PROMPT": "0",
+                "GH_PROMPT_DISABLED": "1",
+                "GH_PAGER": "cat",
+                "NO_COLOR": "1",
+                "LC_ALL": "C",
+            }
+        )
+        try:
+            completed = subprocess.run(
+                command,
+                cwd=repo_path,
+                check=False,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                env=env,
+            )
+        except FileNotFoundError as exc:
+            return MutationCommandResult(command, 127, "", str(exc))
+        except OSError as exc:
+            return MutationCommandResult(command, 126, "", str(exc))
+        return MutationCommandResult(
+            command,
+            completed.returncode,
+            completed.stdout,
+            completed.stderr,
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class TransactionEntry:
+    schema_version: int
+    timestamp: str
+    command: str
+    phase: str
+    status: str
+    version: str
+    tag: str
+    release_commit: str | None
+    mpp_sha256: str | None
+    details: dict[str, Any]
+
+
+@dataclass(frozen=True, slots=True)
+class WorkflowExecutionResult:
+    command: str
+    result: str
+    state: ReleaseState
+    next_action: NextAction
+    release_commit: str | None
+    mpp_sha256: str | None
+    transaction_log: str
+    postcheck_result: str
+    already_satisfied: bool = False
+    error: str | None = None
+    next_command: str | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return _jsonable(self)
+
+
+def _utc_timestamp() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _safe_tag_component(tag: str) -> str:
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,199}", tag):
+        raise ValueError("tag contains unsupported characters")
+    return tag
+
+
+def transaction_log_path(repo_root: Path, tag: str) -> Path:
+    safe_tag = _safe_tag_component(tag)
+    return repo_root / "local-artifacts" / "release-transactions" / f"{safe_tag}.jsonl"
+
+
+def append_transaction_entry(
+    path: Path,
+    *,
+    command: str,
+    phase: str,
+    status: str,
+    version: str,
+    tag: str,
+    release_commit: str | None = None,
+    mpp_sha256: str | None = None,
+    details: dict[str, Any] | None = None,
+) -> TransactionEntry:
+    entry = TransactionEntry(
+        schema_version=TRANSACTION_SCHEMA_VERSION,
+        timestamp=_utc_timestamp(),
+        command=command,
+        phase=phase,
+        status=status,
+        version=version,
+        tag=tag,
+        release_commit=release_commit,
+        mpp_sha256=mpp_sha256,
+        details=details or {},
+    )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    encoded = json.dumps(_jsonable(entry), sort_keys=True, separators=(",", ":"))
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(encoded + "\n")
+        handle.flush()
+        os.fsync(handle.fileno())
+    return entry
+
+
+def read_transaction_log(path: Path) -> tuple[TransactionEntry, ...]:
+    if not path.exists():
+        return ()
+    entries: list[TransactionEntry] = []
+    for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        try:
+            payload = json.loads(line)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"transaction log line {line_number} is invalid JSON: {exc}") from exc
+        if not isinstance(payload, dict):
+            raise ValueError(f"transaction log line {line_number} must be a JSON object")
+        entries.append(
+            TransactionEntry(
+                schema_version=int(payload["schema_version"]),
+                timestamp=str(payload["timestamp"]),
+                command=str(payload["command"]),
+                phase=str(payload["phase"]),
+                status=str(payload["status"]),
+                version=str(payload["version"]),
+                tag=str(payload["tag"]),
+                release_commit=payload.get("release_commit"),
+                mpp_sha256=payload.get("mpp_sha256"),
+                details=dict(payload.get("details") or {}),
+            )
+        )
+    return tuple(entries)
+
+
+def _mutation_error(label: str, result: MutationCommandResult) -> RuntimeError:
+    detail = result.stderr.strip() or result.stdout.strip() or "no diagnostic output"
+    return RuntimeError(f"{label} failed with exit {result.returncode}: {detail}")
+
+
+def _run_mutation(
+    runner: MutationRunner,
+    repo_root: Path,
+    args: Sequence[str],
+    *,
+    label: str,
+) -> MutationCommandResult:
+    result = runner.run(repo_root, args)
+    if result.returncode != 0:
+        raise _mutation_error(label, result)
+    return result
+
+
+def _resolve_mutation_repo_root(
+    repo_path: str | Path,
+    runner: MutationRunner,
+) -> Path:
+    requested = Path(repo_path).expanduser().resolve()
+    result = _run_mutation(
+        runner,
+        requested,
+        ("git", "rev-parse", "--show-toplevel"),
+        label="repository root lookup",
+    )
+    root = Path(result.stdout.strip()).resolve()
+    if not root.is_dir():
+        raise RuntimeError("resolved repository root is not a directory")
+    return root
+
+
+def _read_exact_ref(
+    repo_root: Path,
+    ref: str,
+    runner: MutationRunner,
+) -> str | None:
+    result = runner.run(repo_root, ("git", "rev-parse", "--verify", "--quiet", ref))
+    if result.returncode == 1:
+        return None
+    if result.returncode != 0:
+        raise _mutation_error(f"read ref {ref}", result)
+    value = result.stdout.strip()
+    if not _SHA1_RE.fullmatch(value):
+        raise RuntimeError(f"read ref {ref} returned an invalid commit id")
+    return value
+
+
+def _read_current_branch(repo_root: Path, runner: MutationRunner) -> str | None:
+    result = _run_mutation(
+        runner,
+        repo_root,
+        ("git", "branch", "--show-current"),
+        label="current branch lookup",
+    )
+    return result.stdout.strip() or None
+
+
+def _require_clean_main(repo_root: Path, runner: MutationRunner) -> None:
+    branch = _read_current_branch(repo_root, runner)
+    if branch != "main":
+        raise RuntimeError(f"expected current branch main, got {branch or 'DETACHED'}")
+    status = _run_mutation(
+        runner,
+        repo_root,
+        ("git", "status", "--porcelain=v1", "--untracked-files=all"),
+        label="worktree status",
+    )
+    if status.stdout.strip():
+        raise RuntimeError("worktree or index is not clean")
+
+
+def _canonical_mpp_path(repo_root: Path, version: str) -> Path:
+    if not version or "/" in version or "\\" in version or version in {".", ".."}:
+        raise ValueError("version contains unsupported path characters")
+    return repo_root / "patches" / "build" / "libs" / f"patches-{version}.mpp"
+
+
+def _read_sha_from_current_readme(repo_root: Path, version: str, tag: str) -> str | None:
+    path = repo_root / "README.md"
+    if not path.is_file() or path.is_symlink():
+        return None
+    text = path.read_text(encoding="utf-8")
+    start = text.find("## Current release")
+    if start < 0:
+        return None
+    section = text[start:]
+    next_heading = section.find("\n## ", 3)
+    if next_heading >= 0:
+        section = section[:next_heading]
+    if version not in section or tag not in section:
+        return None
+    matches = re.findall(r"(?<![0-9a-f])[0-9a-f]{64}(?![0-9a-f])", section)
+    unique = tuple(dict.fromkeys(matches))
+    return unique[0] if len(unique) == 1 else None
+
+
+def derive_existing_release_identity(
+    repo_path: str | Path,
+    *,
+    version: str,
+    tag: str,
+    signing_identity: str,
+    mpp_sha256: str | None = None,
+    runner: MutationRunner | None = None,
+) -> ReleaseIdentity:
+    active_runner = runner or SubprocessMutationRunner()
+    repo_root = _resolve_mutation_repo_root(repo_path, active_runner)
+    release_commit = _read_exact_ref(repo_root, f"refs/tags/{tag}^{{commit}}", active_runner)
+    if release_commit is None:
+        raise RuntimeError(f"local release tag is missing: {tag}")
+    mpp_path = _canonical_mpp_path(repo_root, version)
+    digest = mpp_sha256.strip().lower() if mpp_sha256 else None
+    if digest is None and mpp_path.is_file() and not mpp_path.is_symlink():
+        digest = _sha256_file(mpp_path)
+    if digest is None:
+        digest = _read_sha_from_current_readme(repo_root, version, tag)
+    if digest is None or not _SHA256_RE.fullmatch(digest):
+        raise RuntimeError(
+            "could not derive the release MPP SHA256 from the canonical artifact or current README"
+        )
+    return ReleaseIdentity(
+        version=version,
+        tag=tag,
+        release_commit=release_commit,
+        mpp_asset_name=f"patches-{version}.mpp",
+        signature_asset_name=f"patches-{version}.mpp.asc",
+        mpp_sha256=digest,
+        signing_identity=signing_identity.replace(" ", "").upper(),
+    )
+
+
+def _render_workflow_text(result: WorkflowExecutionResult) -> str:
+    lines = [
+        f"COMMAND={result.command}",
+        f"STATE={result.state.value}",
+        f"NEXT_ACTION={result.next_action.value}",
+        f"RELEASE_COMMIT={result.release_commit or 'UNKNOWN'}",
+        f"MPP_SHA256={result.mpp_sha256 or 'UNKNOWN'}",
+        f"TRANSACTION_LOG={result.transaction_log}",
+        f"INNER_RESULT={result.result}",
+        f"POSTCHECK_RESULT={result.postcheck_result}",
+        f"FINAL_STATE={result.state.value}",
+        f"ALREADY_SATISFIED={_yes_no(result.already_satisfied)}",
+    ]
+    if result.next_command:
+        lines.append(f"NEXT_COMMAND={result.next_command}")
+    if result.error:
+        lines.append(f"ERROR={result.error}")
+    lines.append(f"RESULT={result.result}")
+    return "\n".join(lines) + "\n"
+
+
+def _workflow_failure(
+    *,
+    command: str,
+    result_token: str,
+    transaction_log: Path,
+    error: str,
+    state: ReleaseState = ReleaseState.INCONSISTENT_ABORT,
+    release_commit: str | None = None,
+    mpp_sha256: str | None = None,
+) -> WorkflowExecutionResult:
+    return WorkflowExecutionResult(
+        command=command,
+        result=result_token,
+        state=state,
+        next_action=NextAction.MANUAL_DIAGNOSIS,
+        release_commit=release_commit,
+        mpp_sha256=mpp_sha256,
+        transaction_log=str(transaction_log),
+        postcheck_result="FAIL",
+        error=error,
+    )
+
+
+def _probe_remote_tag(
+    repo_root: Path,
+    remote_name: str,
+    tag: str,
+    runner: MutationRunner,
+) -> bool:
+    result = runner.run(
+        repo_root,
+        ("git", "ls-remote", "--exit-code", "--tags", remote_name, f"refs/tags/{tag}"),
+    )
+    if result.returncode == 0:
+        return True
+    if result.returncode == 2:
+        return False
+    raise _mutation_error("remote tag probe", result)
+
+
+def _probe_github_release(
+    repo_root: Path,
+    repository: str,
+    tag: str,
+    runner: MutationRunner,
+) -> bool:
+    result = runner.run(
+        repo_root,
+        (
+            "gh", "api", "--method", "GET",
+            "--header", "Accept: application/vnd.github+json",
+            "--header", f"X-GitHub-Api-Version: {GITHUB_API_VERSION}",
+            f"repos/{repository}/releases/tags/{tag}",
+        ),
+    )
+    if result.returncode == 0:
+        return True
+    diagnostic = (result.stderr + "\n" + result.stdout).casefold()
+    if result.returncode == 1 and ("404" in diagnostic or "not found" in diagnostic):
+        return False
+    raise _mutation_error("GitHub release probe", result)
+
+
+def _verify_signing_identity(
+    repo_root: Path,
+    mpp_path: Path,
+    signature_path: Path,
+    signing_identity: str,
+    runner: MutationRunner,
+) -> None:
+    result = _run_mutation(
+        runner,
+        repo_root,
+        (
+            "gpg", "--batch", "--status-fd", "1", "--verify",
+            str(signature_path), str(mpp_path),
+        ),
+        label="detached signature verification",
+    )
+    fingerprints = []
+    for line in result.stdout.splitlines():
+        if line.startswith("[GNUPG:] VALIDSIG "):
+            parts = line.split()
+            if len(parts) >= 3:
+                fingerprints.append(parts[2].upper())
+    expected = signing_identity.replace(" ", "").upper()
+    if fingerprints != [expected]:
+        raise RuntimeError(
+            "detached signature does not have exactly one expected signing fingerprint"
+        )
+
+
+def _align_local_dev(
+    repo_root: Path,
+    identity: ReleaseIdentity,
+    runner: MutationRunner,
+) -> None:
+    main_commit = _read_exact_ref(repo_root, "refs/heads/main", runner)
+    dev_commit = _read_exact_ref(repo_root, "refs/heads/dev", runner)
+    if main_commit != identity.release_commit:
+        raise RuntimeError("local main does not point exactly at the release commit")
+    if dev_commit == identity.release_commit:
+        return
+    zero = "0" * 40
+    old = dev_commit or zero
+    payload = (
+        "start\n"
+        f"update refs/heads/dev {identity.release_commit} {old}\n"
+        "prepare\ncommit\n"
+    )
+    command = ("git", "update-ref", "--stdin")
+    env = os.environ.copy()
+    env.update({"GIT_TERMINAL_PROMPT": "0", "LC_ALL": "C"})
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=repo_root,
+            input=payload,
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            env=env,
+        )
+    except OSError as exc:
+        raise RuntimeError(f"local dev ref transaction failed: {exc}") from exc
+    if completed.returncode != 0:
+        raise RuntimeError(
+            "local dev ref transaction failed: "
+            + (completed.stderr.strip() or completed.stdout.strip())
+        )
+
+
+def _atomic_push_release_refs(
+    repo_root: Path,
+    identity: ReleaseIdentity,
+    remote_name: str,
+    runner: MutationRunner,
+) -> None:
+    main_commit = _read_exact_ref(repo_root, "refs/heads/main", runner)
+    dev_commit = _read_exact_ref(repo_root, "refs/heads/dev", runner)
+    tag_commit = _read_exact_ref(repo_root, f"refs/tags/{identity.tag}^{{commit}}", runner)
+    if (main_commit, dev_commit, tag_commit) != (
+        identity.release_commit,
+        identity.release_commit,
+        identity.release_commit,
+    ):
+        raise RuntimeError("local main, dev and annotated tag must all identify the release commit")
+    _run_mutation(
+        runner,
+        repo_root,
+        (
+            "git", "push", "--atomic", remote_name,
+            "refs/heads/main:refs/heads/main",
+            "refs/heads/dev:refs/heads/dev",
+            f"refs/tags/{identity.tag}:refs/tags/{identity.tag}",
+        ),
+        label="atomic release ref push",
+    )
+
+
+def _create_draft_release(
+    repo_root: Path,
+    repository: str,
+    identity: ReleaseIdentity,
+    notes_file: Path,
+    runner: MutationRunner,
+) -> None:
+    _run_mutation(
+        runner,
+        repo_root,
+        (
+            "gh", "api", "--method", "POST",
+            "--header", "Accept: application/vnd.github+json",
+            "--header", f"X-GitHub-Api-Version: {GITHUB_API_VERSION}",
+            f"repos/{repository}/releases",
+            "-f", f"tag_name={identity.tag}",
+            "-f", f"target_commitish={identity.release_commit}",
+            "-f", f"name=Morphe patch bundle {identity.version}",
+            "-F", "draft=true",
+            "-F", "prerelease=false",
+            "-F", f"body=@{notes_file}",
+        ),
+        label="draft GitHub release creation",
+    )
+
+
+def _upload_release_asset(
+    repo_root: Path,
+    identity: ReleaseIdentity,
+    asset_path: Path,
+    runner: MutationRunner,
+) -> None:
+    _run_mutation(
+        runner,
+        repo_root,
+        ("gh", "release", "upload", identity.tag, str(asset_path)),
+        label=f"upload release asset {asset_path.name}",
+    )
+
+
+def _publish_draft_release(
+    repo_root: Path,
+    repository: str,
+    release_id: int,
+    runner: MutationRunner,
+) -> None:
+    _run_mutation(
+        runner,
+        repo_root,
+        (
+            "gh", "api", "--method", "PATCH",
+            "--header", "Accept: application/vnd.github+json",
+            "--header", f"X-GitHub-Api-Version: {GITHUB_API_VERSION}",
+            f"repos/{repository}/releases/{release_id}",
+            "-F", "draft=false",
+        ),
+        label="draft GitHub release publication",
+    )
+
+
+def _compose_and_validate_release_notes(
+    repo_root: Path,
+    identity: ReleaseIdentity,
+    release_notes_file: Path,
+    transaction_root: Path,
+    runner: MutationRunner,
+) -> Path:
+    if not release_notes_file.is_file() or release_notes_file.is_symlink():
+        raise RuntimeError(f"release notes file is unavailable: {release_notes_file}")
+    transaction_root.parent.mkdir(parents=True, exist_ok=True)
+    notes_path = transaction_root.with_suffix(".release-notes.md")
+    source = release_notes_file.read_text(encoding="utf-8")
+    notes_path.write_text(
+        source.rstrip()
+        + "\n\n### Validation\n\n"
+        + "- Final local release gate passed before publish.\n"
+        + "- README SHA is aligned to the published MPP.\n"
+        + f"- Release tag: `{identity.tag}`.\n"
+        + f"- Release asset: `{identity.mpp_asset_name}`.\n"
+        + f"- Signature asset: `{identity.signature_asset_name}`.\n"
+        + f"- MPP SHA256: `{identity.mpp_sha256}`.\n",
+        encoding="utf-8",
+    )
+    _run_mutation(
+        runner,
+        repo_root,
+        (
+            "python3", "scripts/validate-release-notes.py",
+            "--notes-file", str(notes_path),
+            "--version", identity.version,
+            "--tag", identity.tag,
+            "--asset", identity.mpp_asset_name,
+            "--sha256", identity.mpp_sha256,
+            "--require-sha",
+        ),
+        label="release notes validation",
+    )
+    return notes_path
+
+
+def finalize_release_workflow(
+    repo_path: str | Path,
+    repository: str,
+    *,
+    version: str,
+    tag: str,
+    changelog: Sequence[str],
+    name: str | None = None,
+    remote_name: str = "origin",
+    signing_identity: str = DEFAULT_SIGNING_IDENTITY,
+    runner: MutationRunner | None = None,
+    inspect_fn=inspect_release,
+) -> WorkflowExecutionResult:
+    active_runner = runner or SubprocessMutationRunner()
+    repo_root = _resolve_mutation_repo_root(repo_path, active_runner)
+    log_path = transaction_log_path(repo_root, tag)
+    try:
+        if not changelog:
+            raise RuntimeError("at least one --changelog value is required")
+        _canonical_mpp_path(repo_root, version)
+        existing_tag = _read_exact_ref(
+            repo_root, f"refs/tags/{tag}^{{commit}}", active_runner
+        )
+        if existing_tag is None:
+            _require_clean_main(repo_root, active_runner)
+    except (OSError, RuntimeError, ValueError) as exc:
+        return _workflow_failure(
+            command="finalize",
+            result_token="MORPHE_RELEASE_FINALIZE_LOCAL_FAIL",
+            transaction_log=log_path,
+            error=str(exc),
+        )
+
+    append_transaction_entry(
+        log_path, command="finalize", phase="START", status="OBSERVED",
+        version=version, tag=tag,
+    )
+    try:
+        existing_tag = _read_exact_ref(repo_root, f"refs/tags/{tag}^{{commit}}", active_runner)
+        if existing_tag is not None:
+            identity = derive_existing_release_identity(
+                repo_root,
+                version=version,
+                tag=tag,
+                signing_identity=signing_identity,
+                runner=active_runner,
+            )
+            inspection = inspect_fn(repo_root, repository, identity, remote_name=remote_name)
+            if not inspection.state_result.observations_complete:
+                raise RuntimeError("existing finalized release could not be observed completely")
+            if inspection.state_result.state is ReleaseState.INCONSISTENT_ABORT:
+                raise RuntimeError("existing finalized release conflicts with the requested identity")
+            if inspection.observations.local.main_commit == identity.release_commit:
+                relation = inspection.observations.local.dev_relation_to_target
+                if relation in {RefRelation.ABSENT, RefRelation.ANCESTOR}:
+                    append_transaction_entry(
+                        log_path, command="finalize", phase="ALIGN_LOCAL_DEV",
+                        status="STARTED", version=version, tag=tag,
+                        release_commit=identity.release_commit,
+                        mpp_sha256=identity.mpp_sha256,
+                    )
+                    _align_local_dev(repo_root, identity, active_runner)
+                    append_transaction_entry(
+                        log_path, command="finalize", phase="ALIGN_LOCAL_DEV",
+                        status="COMPLETED", version=version, tag=tag,
+                        release_commit=identity.release_commit,
+                        mpp_sha256=identity.mpp_sha256,
+                    )
+            post = inspect_fn(repo_root, repository, identity, remote_name=remote_name)
+            if not post.state_result.observations_complete:
+                raise RuntimeError("finalize retry postcheck is incomplete")
+            append_transaction_entry(
+                log_path, command="finalize", phase="COMPLETE", status="ALREADY_SATISFIED",
+                version=version, tag=tag, release_commit=identity.release_commit,
+                mpp_sha256=identity.mpp_sha256,
+                details={"state": post.state_result.state.value},
+            )
+            return WorkflowExecutionResult(
+                command="finalize",
+                result="MORPHE_RELEASE_FINALIZE_LOCAL_ALREADY_FINALIZED_OK",
+                state=post.state_result.state,
+                next_action=post.state_result.next_action,
+                release_commit=identity.release_commit,
+                mpp_sha256=identity.mpp_sha256,
+                transaction_log=str(log_path),
+                postcheck_result="OK",
+                already_satisfied=True,
+                next_command=(
+                    f"scripts/release-publish-existing.sh --version {version} "
+                    f"--tag {tag} --release-notes-file PATH"
+                ),
+            )
+
+        _require_clean_main(repo_root, active_runner)
+        if _probe_remote_tag(repo_root, remote_name, tag, active_runner):
+            raise RuntimeError("remote tag already exists while the local tag is absent")
+        if _probe_github_release(repo_root, repository, tag, active_runner):
+            raise RuntimeError("GitHub release already exists while the local tag is absent")
+
+        phase_commands = [
+            (
+                "PREPARE_METADATA",
+                (
+                    "python3", "scripts/prepare-release.py", "--version", version,
+                    "--tag", tag,
+                    *sum((("--changelog", item) for item in changelog), ()),
+                ),
+            ),
+            ("BUILD_FINAL_MPP", ("./gradlew", ":patches:buildAndroid", "--no-daemon")),
+        ]
+        for phase, command_args in phase_commands:
+            append_transaction_entry(
+                log_path, command="finalize", phase=phase, status="STARTED",
+                version=version, tag=tag,
+            )
+            _run_mutation(active_runner, repo_root, command_args, label=phase.lower())
+            append_transaction_entry(
+                log_path, command="finalize", phase=phase, status="COMPLETED",
+                version=version, tag=tag,
+            )
+
+        mpp_path = _canonical_mpp_path(repo_root, version)
+        signature_path = Path(str(mpp_path) + ".asc")
+        if not mpp_path.is_file() or mpp_path.is_symlink():
+            raise RuntimeError(f"canonical MPP is unavailable: {mpp_path}")
+        mpp_sha = _sha256_file(mpp_path)
+        if signature_path.exists():
+            if signature_path.is_symlink() or not signature_path.is_file():
+                raise RuntimeError("canonical detached signature path is not a regular file")
+            signature_path.unlink()
+        append_transaction_entry(
+            log_path, command="finalize", phase="SIGN_ARTIFACT", status="STARTED",
+            version=version, tag=tag, mpp_sha256=mpp_sha,
+        )
+        _run_mutation(
+            active_runner,
+            repo_root,
+            (
+                "gpg", "--batch", "--yes", "--armor", "--detach-sign",
+                "--output", str(signature_path), str(mpp_path),
+            ),
+            label="MPP signing",
+        )
+        _verify_signing_identity(
+            repo_root, mpp_path, signature_path, signing_identity, active_runner
+        )
+        append_transaction_entry(
+            log_path, command="finalize", phase="SIGN_ARTIFACT", status="COMPLETED",
+            version=version, tag=tag, mpp_sha256=mpp_sha,
+        )
+
+        _run_mutation(
+            active_runner,
+            repo_root,
+            (
+                "python3", "scripts/update-readme-current-release-sha.py",
+                "--version", version, "--tag", tag,
+                "--asset", f"patches-{version}.mpp", "--sha256", mpp_sha,
+            ),
+            label="README SHA update",
+        )
+        candidate_name = name or f"release-{version}-local-finalize"
+        candidate = _run_mutation(
+            active_runner,
+            repo_root,
+            (
+                "tools/build-boost-candidate.sh", "--mpp", str(mpp_path),
+                "--name", candidate_name, "--no-verify-with-sdk",
+            ),
+            label="Boost candidate build",
+        )
+        directory_match = re.findall(r"^DIR:[ \t]*(.+)$", candidate.stdout, re.MULTILINE)
+        apk_match = re.findall(r"^APK:[ \t]*(.+)$", candidate.stdout, re.MULTILINE)
+        if not directory_match or not apk_match:
+            raise RuntimeError("Boost candidate output did not expose DIR and APK")
+        candidate_dir = Path(directory_match[-1].strip())
+        candidate_apk = Path(apk_match[-1].strip())
+        if not candidate_dir.is_absolute():
+            candidate_dir = repo_root / candidate_dir
+        if not candidate_apk.is_absolute():
+            candidate_apk = repo_root / candidate_apk
+        static_log = candidate_dir / "static-gate.log"
+        patch_log = candidate_dir / "morphe-patch.log"
+        if not candidate_apk.is_file():
+            raise RuntimeError("Boost candidate APK is missing")
+        if "RESULT: PASS" not in static_log.read_text(encoding="utf-8"):
+            raise RuntimeError("Boost candidate static gate did not pass")
+        patch_text = patch_log.read_text(encoding="utf-8")
+        for required in ("Applied: Modify login WebView", "Applied: Spoof client"):
+            if required not in patch_text:
+                raise RuntimeError(f"Boost candidate baseline patch missing: {required}")
+
+        if _probe_remote_tag(repo_root, remote_name, tag, active_runner):
+            raise RuntimeError("remote tag appeared before local release commit")
+        if _probe_github_release(repo_root, repository, tag, active_runner):
+            raise RuntimeError("GitHub release appeared before local release commit")
+
+        status = _run_mutation(
+            active_runner, repo_root,
+            ("git", "status", "--porcelain=v1", "--untracked-files=all"),
+            label="release metadata status",
+        )
+        if not status.stdout.strip():
+            raise RuntimeError("release metadata preparation produced no tracked changes")
+        _run_mutation(active_runner, repo_root, ("git", "add", "-A"), label="release metadata staging")
+        _run_mutation(
+            active_runner, repo_root,
+            ("git", "commit", "-m", f"Release Morphe patch bundle {version} [skip ci]"),
+            label="release metadata commit",
+        )
+        release_commit = _read_exact_ref(repo_root, "HEAD", active_runner)
+        assert release_commit is not None
+        _run_mutation(
+            active_runner, repo_root,
+            ("git", "tag", "-a", tag, "-m", f"Morphe patch bundle {version}", release_commit),
+            label="annotated release tag creation",
+        )
+        identity = ReleaseIdentity(
+            version=version,
+            tag=tag,
+            release_commit=release_commit,
+            mpp_asset_name=f"patches-{version}.mpp",
+            signature_asset_name=f"patches-{version}.mpp.asc",
+            mpp_sha256=mpp_sha,
+            signing_identity=signing_identity.replace(" ", "").upper(),
+        )
+        append_transaction_entry(
+            log_path, command="finalize", phase="ALIGN_LOCAL_DEV", status="STARTED",
+            version=version, tag=tag, release_commit=release_commit, mpp_sha256=mpp_sha,
+        )
+        _align_local_dev(repo_root, identity, active_runner)
+        append_transaction_entry(
+            log_path, command="finalize", phase="ALIGN_LOCAL_DEV", status="COMPLETED",
+            version=version, tag=tag, release_commit=release_commit, mpp_sha256=mpp_sha,
+        )
+        post = inspect_fn(repo_root, repository, identity, remote_name=remote_name)
+        if not post.state_result.observations_complete:
+            raise RuntimeError("finalize postcheck is incomplete")
+        if post.state_result.state not in {
+            ReleaseState.READY_TO_PUBLISH,
+            ReleaseState.PARTIALLY_PUBLISHED,
+            ReleaseState.PUBLISHED_NOT_VERIFIED,
+            ReleaseState.PUBLISHED_AND_VERIFIED,
+        }:
+            raise RuntimeError(
+                f"finalize postcheck produced unexpected state {post.state_result.state.value}"
+            )
+        append_transaction_entry(
+            log_path, command="finalize", phase="COMPLETE", status="COMPLETED",
+            version=version, tag=tag, release_commit=release_commit,
+            mpp_sha256=mpp_sha, details={"state": post.state_result.state.value},
+        )
+        return WorkflowExecutionResult(
+            command="finalize",
+            result="MORPHE_RELEASE_FINALIZE_LOCAL_OK",
+            state=post.state_result.state,
+            next_action=post.state_result.next_action,
+            release_commit=release_commit,
+            mpp_sha256=mpp_sha,
+            transaction_log=str(log_path),
+            postcheck_result="OK",
+            next_command=(
+                f"scripts/release-publish-existing.sh --version {version} "
+                f"--tag {tag} --release-notes-file PATH"
+            ),
+        )
+    except (OSError, RuntimeError, ValueError) as exc:
+        append_transaction_entry(
+            log_path, command="finalize", phase="ABORT", status="FAILED",
+            version=version, tag=tag, details={"error": str(exc)},
+        )
+        return _workflow_failure(
+            command="finalize",
+            result_token="MORPHE_RELEASE_FINALIZE_LOCAL_FAIL",
+            transaction_log=log_path,
+            error=str(exc),
+        )
+
+
+def publish_release_workflow(
+    repo_path: str | Path,
+    repository: str,
+    *,
+    version: str,
+    tag: str,
+    release_notes_file: str | Path,
+    remote_name: str = "origin",
+    signing_identity: str = DEFAULT_SIGNING_IDENTITY,
+    mpp_sha256: str | None = None,
+    command_name: str = "publish",
+    runner: MutationRunner | None = None,
+    inspect_fn=inspect_release,
+) -> WorkflowExecutionResult:
+    active_runner = runner or SubprocessMutationRunner()
+    repo_root = _resolve_mutation_repo_root(repo_path, active_runner)
+    log_path = transaction_log_path(repo_root, tag)
+    try:
+        notes_source = Path(release_notes_file).expanduser().resolve()
+        if not notes_source.is_file() or notes_source.is_symlink():
+            raise RuntimeError(f"release notes file is unavailable: {notes_source}")
+        identity = derive_existing_release_identity(
+            repo_root,
+            version=version,
+            tag=tag,
+            signing_identity=signing_identity,
+            mpp_sha256=mpp_sha256,
+            runner=active_runner,
+        )
+        _require_clean_main(repo_root, active_runner)
+        append_transaction_entry(
+            log_path, command=command_name, phase="START", status="OBSERVED",
+            version=version, tag=tag, release_commit=identity.release_commit,
+            mpp_sha256=identity.mpp_sha256,
+        )
+        notes_path = _compose_and_validate_release_notes(
+            repo_root,
+            identity,
+            notes_source,
+            log_path,
+            active_runner,
+        )
+        append_transaction_entry(
+            log_path, command=command_name, phase="VALIDATE_RELEASE_NOTES",
+            status="COMPLETED", version=version, tag=tag,
+            release_commit=identity.release_commit, mpp_sha256=identity.mpp_sha256,
+        )
+        initial = inspect_fn(repo_root, repository, identity, remote_name=remote_name)
+        if initial.state_result.state is ReleaseState.PUBLISHED_AND_VERIFIED:
+            token = "MORPHE_RELEASE_ALREADY_PUBLISHED_VERIFIED_OK"
+            append_transaction_entry(
+                log_path, command=command_name, phase="COMPLETE",
+                status="ALREADY_SATISFIED", version=version, tag=tag,
+                release_commit=identity.release_commit, mpp_sha256=identity.mpp_sha256,
+            )
+            return WorkflowExecutionResult(
+                command=command_name,
+                result=token,
+                state=ReleaseState.PUBLISHED_AND_VERIFIED,
+                next_action=NextAction.NONE,
+                release_commit=identity.release_commit,
+                mpp_sha256=identity.mpp_sha256,
+                transaction_log=str(log_path),
+                postcheck_result="OK",
+                already_satisfied=True,
+            )
+
+        mpp_path = _canonical_mpp_path(repo_root, version)
+        signature_path = Path(str(mpp_path) + ".asc")
+        for _iteration in range(16):
+            inspection = inspect_fn(repo_root, repository, identity, remote_name=remote_name)
+            state = inspection.state_result.state
+            if state is ReleaseState.INCONSISTENT_ABORT:
+                raise RuntimeError("release state is inconsistent: " + "; ".join(inspection.state_result.reasons))
+            if not inspection.state_result.observations_complete:
+                raise RuntimeError("one or more required release observations are incomplete")
+            if state is ReleaseState.PUBLISHED_AND_VERIFIED:
+                append_transaction_entry(
+                    log_path, command=command_name, phase="COMPLETE", status="COMPLETED",
+                    version=version, tag=tag, release_commit=identity.release_commit,
+                    mpp_sha256=identity.mpp_sha256,
+                )
+                return WorkflowExecutionResult(
+                    command=command_name,
+                    result="MORPHE_RELEASE_PUBLISH_EXISTING_OK",
+                    state=state,
+                    next_action=NextAction.NONE,
+                    release_commit=identity.release_commit,
+                    mpp_sha256=identity.mpp_sha256,
+                    transaction_log=str(log_path),
+                    postcheck_result="OK",
+                )
+            if state is ReleaseState.NOT_FINALIZED:
+                raise RuntimeError("release is not locally finalized; run finalize first")
+            plan = inspection.plan
+            if plan.disposition in {PlanDisposition.CONFLICT_ABORT, PlanDisposition.OBSERVATION_FAILED}:
+                raise RuntimeError("release plan is not executable")
+            if not plan.operations:
+                raise RuntimeError("release plan has no operation but the release is not verified")
+            operation = plan.operations[0]
+            phase = operation.operation_type.value
+            append_transaction_entry(
+                log_path, command=command_name, phase=phase, status="STARTED",
+                version=version, tag=tag, release_commit=identity.release_commit,
+                mpp_sha256=identity.mpp_sha256,
+                details={"plan_hash": plan.plan_hash},
+            )
+            if operation.operation_type is PlanOperationType.FINALIZE_LOCAL:
+                raise RuntimeError("publish cannot perform local finalization")
+            if operation.operation_type is PlanOperationType.ALIGN_LOCAL_DEV:
+                _align_local_dev(repo_root, identity, active_runner)
+            elif operation.operation_type is PlanOperationType.PUSH_RELEASE_REFS_ATOMIC:
+                _atomic_push_release_refs(repo_root, identity, remote_name, active_runner)
+            elif operation.operation_type is PlanOperationType.CREATE_DRAFT_RELEASE:
+                _create_draft_release(
+                    repo_root, repository, identity, notes_path, active_runner
+                )
+            elif operation.operation_type is PlanOperationType.UPLOAD_MPP_ASSET:
+                if not mpp_path.is_file() or mpp_path.is_symlink():
+                    raise RuntimeError("canonical MPP is unavailable for upload")
+                if _sha256_file(mpp_path) != identity.mpp_sha256:
+                    raise RuntimeError("canonical MPP digest changed before upload")
+                _upload_release_asset(repo_root, identity, mpp_path, active_runner)
+            elif operation.operation_type is PlanOperationType.UPLOAD_SIGNATURE_ASSET:
+                if not signature_path.is_file() or signature_path.is_symlink():
+                    raise RuntimeError("canonical detached signature is unavailable for upload")
+                _verify_signing_identity(
+                    repo_root, mpp_path, signature_path, signing_identity, active_runner
+                )
+                _upload_release_asset(repo_root, identity, signature_path, active_runner)
+            elif operation.operation_type is PlanOperationType.VERIFY_DRAFT_ASSETS:
+                if inspection.observations.verification.full_verifier_status is not VerifierStatus.PASS:
+                    raise RuntimeError("draft release assets are not fully verified")
+            elif operation.operation_type is PlanOperationType.PUBLISH_DRAFT_RELEASE:
+                release_id = inspection.github_release.release_id
+                if release_id is None:
+                    raise RuntimeError("draft release id is unavailable")
+                if inspection.observations.verification.full_verifier_status is not VerifierStatus.PASS:
+                    raise RuntimeError("draft assets must be verified before publication")
+                _publish_draft_release(
+                    repo_root, repository, release_id, active_runner
+                )
+            elif operation.operation_type is PlanOperationType.VERIFY_PUBLISHED_RELEASE:
+                if state is not ReleaseState.PUBLISHED_AND_VERIFIED:
+                    raise RuntimeError("published release did not pass authoritative verification")
+            else:
+                raise RuntimeError(f"unsupported release operation: {operation.operation_type.value}")
+            append_transaction_entry(
+                log_path, command=command_name, phase=phase, status="COMPLETED",
+                version=version, tag=tag, release_commit=identity.release_commit,
+                mpp_sha256=identity.mpp_sha256,
+            )
+        raise RuntimeError("release workflow exceeded the maximum resume iteration count")
+    except (OSError, RuntimeError, ValueError) as exc:
+        append_transaction_entry(
+            log_path, command=command_name, phase="ABORT", status="FAILED",
+            version=version, tag=tag, details={"error": str(exc)},
+        )
+        return _workflow_failure(
+            command=command_name,
+            result_token="MORPHE_RELEASE_PUBLISH_EXISTING_FAIL",
+            transaction_log=log_path,
+            error=str(exc),
+        )
+
 def _identity_from_args(args: argparse.Namespace) -> ReleaseIdentity:
     version = args.version.strip()
     return ReleaseIdentity(
@@ -3420,35 +4457,88 @@ def _identity_from_args(args: argparse.Namespace) -> ReleaseIdentity:
 def _build_cli_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="releasectl.py",
-        description="Authoritative read-only Morphe release state inspector",
+        description="Authoritative Morphe release state and transaction controller",
     )
-    common = argparse.ArgumentParser(add_help=False)
-    common.add_argument("--repo", default=".", help="repository path")
-    common.add_argument(
+    inspection_common = argparse.ArgumentParser(add_help=False)
+    inspection_common.add_argument("--repo", default=".", help="repository path")
+    inspection_common.add_argument(
         "--repository",
         default="brealorg/breal-morphe-patches",
         help="GitHub OWNER/REPO",
     )
-    common.add_argument("--remote", default="origin", help="Git remote name")
-    common.add_argument("--version", required=True)
-    common.add_argument("--tag", required=True)
-    common.add_argument("--release-commit", required=True)
-    common.add_argument("--mpp-sha256", required=True)
-    common.add_argument("--signing-identity", required=True)
-    common.add_argument(
+    inspection_common.add_argument("--remote", default="origin", help="Git remote name")
+    inspection_common.add_argument("--version", required=True)
+    inspection_common.add_argument("--tag", required=True)
+    inspection_common.add_argument("--release-commit", required=True)
+    inspection_common.add_argument("--mpp-sha256", required=True)
+    inspection_common.add_argument("--signing-identity", required=True)
+    inspection_common.add_argument(
+        "--json",
+        action="store_true",
+        help="emit normalized JSON instead of text",
+    )
+
+    mutation_common = argparse.ArgumentParser(add_help=False)
+    mutation_common.add_argument("--repo", default=".", help="repository path")
+    mutation_common.add_argument(
+        "--repository",
+        default="brealorg/breal-morphe-patches",
+        help="GitHub OWNER/REPO",
+    )
+    mutation_common.add_argument("--remote", default="origin", help="Git remote name")
+    mutation_common.add_argument("--version", required=True)
+    mutation_common.add_argument("--tag", required=True)
+    mutation_common.add_argument(
+        "--signing-identity",
+        default=DEFAULT_SIGNING_IDENTITY,
+        help="expected detached-signature fingerprint",
+    )
+    mutation_common.add_argument(
         "--json",
         action="store_true",
         help="emit normalized JSON instead of text",
     )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
-    subparsers.add_parser("inspect", parents=[common], help="inspect and classify")
-    subparsers.add_parser("plan", parents=[common], help="inspect and print plan")
+    subparsers.add_parser(
+        "inspect", parents=[inspection_common], help="inspect and classify"
+    )
+    subparsers.add_parser(
+        "plan", parents=[inspection_common], help="inspect and print plan"
+    )
     subparsers.add_parser(
         "verify",
-        parents=[common],
+        parents=[inspection_common],
         help="require PUBLISHED_AND_VERIFIED",
     )
+    finalize = subparsers.add_parser(
+        "finalize",
+        parents=[mutation_common],
+        help="idempotently prepare, build, sign, commit, tag, and align locally",
+    )
+    finalize.add_argument(
+        "--changelog",
+        action="append",
+        required=True,
+        help="Manager-facing current-release description; repeatable",
+    )
+    finalize.add_argument("--name", help="Boost candidate/runtime suffix")
+
+    for command in ("publish", "resume"):
+        publication = subparsers.add_parser(
+            command,
+            parents=[mutation_common],
+            help=(
+                "idempotently publish or resume missing release phases"
+                if command == "publish"
+                else "resume only the release phases still missing"
+            ),
+        )
+        publication.add_argument("--release-notes-file", required=True)
+        publication.add_argument(
+            "--mpp-sha256",
+            help="explicit immutable MPP SHA256 when no canonical local artifact exists",
+        )
     return parser
 
 
@@ -3466,6 +4556,41 @@ def _exit_code(command: str, inspection: ReleaseInspectionResult) -> int:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_cli_parser()
     args = parser.parse_args(argv)
+
+    if args.command in {"finalize", "publish", "resume"}:
+        try:
+            if args.command == "finalize":
+                workflow = finalize_release_workflow(
+                    args.repo,
+                    args.repository,
+                    version=args.version.strip(),
+                    tag=args.tag.strip(),
+                    changelog=tuple(args.changelog),
+                    name=args.name,
+                    remote_name=args.remote,
+                    signing_identity=args.signing_identity,
+                )
+            else:
+                workflow = publish_release_workflow(
+                    args.repo,
+                    args.repository,
+                    version=args.version.strip(),
+                    tag=args.tag.strip(),
+                    release_notes_file=args.release_notes_file,
+                    remote_name=args.remote,
+                    signing_identity=args.signing_identity,
+                    mpp_sha256=args.mpp_sha256,
+                    command_name=args.command,
+                )
+        except ValueError as exc:
+            parser.error(str(exc))
+            return 2
+        if args.json:
+            print(json.dumps(workflow.as_dict(), indent=2, sort_keys=True))
+        else:
+            sys.stdout.write(_render_workflow_text(workflow))
+        return 0 if workflow.postcheck_result == "OK" else 3
+
     try:
         identity = _identity_from_args(args)
         inspection = inspect_release(
@@ -3493,6 +4618,19 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 __all__ = [
+    "DEFAULT_SIGNING_IDENTITY",
+    "TRANSACTION_SCHEMA_VERSION",
+    "MutationCommandResult",
+    "MutationRunner",
+    "SubprocessMutationRunner",
+    "TransactionEntry",
+    "WorkflowExecutionResult",
+    "transaction_log_path",
+    "append_transaction_entry",
+    "read_transaction_log",
+    "derive_existing_release_identity",
+    "finalize_release_workflow",
+    "publish_release_workflow",
     "GhBinaryCommandResult",
     "GhBinaryRunner",
     "SubprocessGhBinaryRunner",

@@ -121,14 +121,24 @@ if [ "$FAIL" -eq 0 ]; then
     git commit -m "fix: align release ${VERSION} asset sha [skip ci]" \
       || mark_fail "metadata repair commit failed"
 
-    git checkout dev || mark_fail "checkout dev failed"
-    git merge --ff-only main || mark_fail "ff dev to main failed"
-    git checkout main || mark_fail "checkout main failed"
+    REPAIR_HEAD="$(git rev-parse main)"
+    OLD_DEV="$(git rev-parse dev)"
 
-    git tag -f -a "$TAG" -m "Morphe patch bundle ${VERSION}" main || mark_fail "retag failed"
+    {
+      echo start
+      echo "update refs/heads/dev $REPAIR_HEAD $OLD_DEV"
+      echo prepare
+      echo commit
+    } | git update-ref --stdin || mark_fail "local dev alignment transaction failed"
 
-    git push origin main dev || mark_fail "push main/dev failed"
-    git push --force origin "refs/tags/$TAG:refs/tags/$TAG" || mark_fail "force push tag failed"
+    if [ "$FAIL" -eq 0 ]; then
+      git push --atomic origin \
+        "refs/heads/main:refs/heads/main" \
+        "refs/heads/dev:refs/heads/dev" \
+        || mark_fail "atomic main/dev metadata push failed"
+    fi
+
+    echo "INFO: immutable release tag is intentionally unchanged"
   fi
 fi
 
