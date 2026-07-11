@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.4.66",
+  "version": "1.4.67",
   "patches": [
     {
       "name": "Add archive links to context menu",
@@ -1464,6 +1464,34 @@
       "dependencies": [
         "BytecodePatch",
         "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.rubenmayayo.reddit",
+          "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Restore Boost sidebar Trending today",
+      "description": "Uses native trending data when renderable, otherwise supplies HOT post rows and fixes the global community-limit control.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch"
       ],
       "compatiblePackages": [
         {

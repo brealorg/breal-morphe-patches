@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.67](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-66...morphe-patches-67) (2026-07-11)
+
+* **Boost for Reddit:** Boost: restore the sidebar Trending today panel with live post rows and a cached popular/hot fallback. Boost: remove the invalid global community filter and suppress duplicate fallback titles.
+
 ## [1.4.66](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-65...morphe-patches-66) (2026-07-10)
 
 * **Boost for Reddit:** Boost inline media previews can hide only the source URL while preserving the preview, remaining comment text, unrelated links, and Boost viewer behavior.
