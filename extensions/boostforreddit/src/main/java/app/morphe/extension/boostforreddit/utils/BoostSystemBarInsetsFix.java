@@ -17,12 +17,15 @@ import android.view.ViewTreeObserver;
 import android.view.WindowInsets;
 
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.Window;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.TextView;
 import java.util.WeakHashMap;
 
 /**
@@ -32,6 +35,7 @@ public final class BoostSystemBarInsetsFix {
     private static final int TARGET_SDK_EDGE_TO_EDGE = 35;
     private static final String MARKER = "MORPHE_BOOST_NAV_BAR_INSETS_FIX_V6";
     private static final String COMMENTS_SYSTEM_BAR_MARKER = "MORPHE_BOOST_COMMENTS_SYSTEM_BAR_SURFACE_V1";
+    private static final String COMMENTS_TOOLBAR_FOREGROUND_MARKER = "MORPHE_BOOST_COMMENTS_TOOLBAR_FOREGROUND_V1";
     private static final String COMMENTS_ACTIVITY_NAME = "com.rubenmayayo.reddit.ui.comments.CommentsActivity";
 
     private static final WeakHashMap<Application, Boolean> INSTALLED = new WeakHashMap<>();
@@ -344,6 +348,7 @@ public final class BoostSystemBarInsetsFix {
                 window.setStatusBarColor(color);
             }
             applyLightStatusBarFlag(decor, color);
+            applyCommentsToolbarForeground(activity, decor, statusHeight, color);
         } catch (Throwable ignored) {
         }
     }
@@ -588,6 +593,194 @@ public final class BoostSystemBarInsetsFix {
 
         return 0;
     }
+
+
+    private static void applyCommentsToolbarForeground(Activity activity, View decor, int statusHeight, int surfaceColor) {
+        try {
+            if (!shouldApply(activity) || !isCommentsActivity(activity)) return;
+
+            int foreground = isLightColor(surfaceColor) ? Color.rgb(32, 33, 36) : Color.WHITE;
+            View toolbar = findCommentsToolbarView(activity, decor, statusHeight);
+
+            if (toolbar != null) {
+                toolbar.setTag(COMMENTS_TOOLBAR_FOREGROUND_MARKER);
+                tintToolbarObject(toolbar, foreground);
+                tintToolbarTree(toolbar, foreground);
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static View findCommentsToolbarView(Activity activity, View decor, int statusHeight) {
+        View named = findNamedToolbarView(activity);
+        if (named != null) return named;
+
+        return findTopToolbarCandidate(decor, statusHeight);
+    }
+
+    private static View findNamedToolbarView(Activity activity) {
+        String[] names = new String[] {
+                "toolbar",
+                "action_bar",
+                "actionbar",
+                "appbar",
+                "app_bar",
+                "comments_toolbar",
+                "toolbar_comments"
+        };
+
+        for (String name : names) {
+            View view = findViewByName(activity, name);
+            if (isToolbarSized(view)) return view;
+
+            View parent = view == null ? null : view.getParent() instanceof View ? (View) view.getParent() : null;
+            if (isToolbarSized(parent)) return parent;
+        }
+
+        return null;
+    }
+
+    private static View findTopToolbarCandidate(View root, int statusHeight) {
+        if (root == null) return null;
+
+        View[] best = new View[] {null};
+        int[] bestScore = new int[] {Integer.MAX_VALUE};
+        collectTopToolbarCandidate(root, statusHeight, best, bestScore);
+        return best[0];
+    }
+
+    private static void collectTopToolbarCandidate(View view, int statusHeight, View[] best, int[] bestScore) {
+        if (view == null || view.getVisibility() != View.VISIBLE) return;
+
+        if (isToolbarSized(view)) {
+            int[] location = new int[2];
+            view.getLocationOnScreen(location);
+
+            int top = location[1];
+            int bottom = top + view.getHeight();
+            int score = Math.abs(top - statusHeight) + Math.abs(view.getHeight() - 112);
+
+            boolean nearTop = top <= statusHeight + 120 && bottom >= statusHeight + 24;
+            if (nearTop && score < bestScore[0]) {
+                best[0] = view;
+                bestScore[0] = score;
+            }
+        }
+
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                collectTopToolbarCandidate(group.getChildAt(i), statusHeight, best, bestScore);
+            }
+        }
+    }
+
+    private static boolean isToolbarSized(View view) {
+        if (view == null) return false;
+
+        int width = view.getWidth();
+        int height = view.getHeight();
+        if (width <= 0 || height <= 0) return false;
+
+        View root = view.getRootView();
+        int rootWidth = root == null ? width : root.getWidth();
+        int rootHeight = root == null ? height : root.getHeight();
+
+        if (rootWidth <= 0 || rootHeight <= 0) return false;
+        if (width < rootWidth * 2 / 3) return false;
+
+        return height >= 40 && height <= 260 && height < rootHeight / 3;
+    }
+
+    private static void tintToolbarObject(View view, int color) {
+        if (view == null) return;
+
+        invokeColorMethod(view, "setTitleTextColor", color);
+        invokeColorMethod(view, "setSubtitleTextColor", color);
+
+        try {
+            Drawable navigationIcon = (Drawable) view.getClass().getMethod("getNavigationIcon").invoke(view);
+            tintDrawable(navigationIcon, color);
+            if (navigationIcon != null) {
+                view.getClass().getMethod("setNavigationIcon", Drawable.class).invoke(view, navigationIcon);
+            }
+        } catch (Throwable ignored) {
+        }
+
+        try {
+            Drawable overflowIcon = (Drawable) view.getClass().getMethod("getOverflowIcon").invoke(view);
+            tintDrawable(overflowIcon, color);
+            if (overflowIcon != null) {
+                view.getClass().getMethod("setOverflowIcon", Drawable.class).invoke(view, overflowIcon);
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static void invokeColorMethod(View view, String methodName, int color) {
+        try {
+            view.getClass().getMethod(methodName, int.class).invoke(view, color);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static void tintToolbarTree(View view, int color) {
+        if (view == null || view.getVisibility() != View.VISIBLE) return;
+
+        try {
+            if (view instanceof TextView) {
+                TextView textView = (TextView) view;
+                textView.setTextColor(color);
+                textView.setHintTextColor(color);
+                tintTextViewDrawables(textView, color);
+            } else if (view instanceof ImageView) {
+                ((ImageView) view).setColorFilter(color, PorterDuff.Mode.SRC_IN);
+            }
+
+            tintToolbarObject(view, color);
+        } catch (Throwable ignored) {
+        }
+
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                tintToolbarTree(group.getChildAt(i), color);
+            }
+        }
+    }
+
+    private static void tintTextViewDrawables(TextView textView, int color) {
+        if (textView == null) return;
+
+        try {
+            Drawable[] drawables;
+            if (Build.VERSION.SDK_INT >= 17) {
+                drawables = textView.getCompoundDrawablesRelative();
+            } else {
+                drawables = textView.getCompoundDrawables();
+            }
+
+            for (Drawable drawable : drawables) {
+                tintDrawable(drawable, color);
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static void tintDrawable(Drawable drawable, int color) {
+        if (drawable == null) return;
+
+        try {
+            Drawable mutable = drawable.mutate();
+            if (Build.VERSION.SDK_INT >= 21) {
+                mutable.setTint(color);
+            } else {
+                mutable.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
 
 
     private static boolean isThreeButtonNavigation(View view) {
