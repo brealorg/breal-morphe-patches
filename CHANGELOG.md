@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.70](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-69...morphe-patches-70) (2026-07-12)
+
+* **Boost for Reddit:** Fix Boost system bar color sync on Android edge-to-edge surfaces. Restore readable toolbar/status bar foreground on main feed, comments, and settings. Add scoped main-feed bottom navigation/gesture surface sync without changing media fullscreen behavior.
+
 ## [1.4.69](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-68...morphe-patches-69) (2026-07-12)
 
 * **Boost for Reddit:** Boost comments toolbar foreground now follows the resolved light/dark toolbar surface. Fixes the remaining Issue #37 regression where Comments title, sort subtitle, and action icons could become white/invisible in light theme. Validated in DEV clone com.rubenmayayo.reddit.dev with targetSdk 35, both Issue #37 markers present, runtime blocker count 0, and manual visual PASS.

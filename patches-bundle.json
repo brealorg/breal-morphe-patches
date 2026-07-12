@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-12T02:36:06",
-  "description": "Boost comments toolbar foreground now follows the resolved light/dark toolbar surface.\nFixes the remaining Issue #37 regression where Comments title, sort subtitle, and action icons could become white/invisible in light theme.\nValidated in DEV clone com.rubenmayayo.reddit.dev with targetSdk 35, both Issue #37 markers present, runtime blocker count 0, and manual visual PASS.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-69/patches-1.4.69.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-69/patches-1.4.69.mpp.asc",
-  "version": "1.4.69"
+  "created_at": "2026-07-12T10:54:36",
+  "description": "Fix Boost system bar color sync on Android edge-to-edge surfaces.\nRestore readable toolbar/status bar foreground on main feed, comments, and settings.\nAdd scoped main-feed bottom navigation/gesture surface sync without changing media fullscreen behavior.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-70/patches-1.4.70.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-70/patches-1.4.70.mpp.asc",
+  "version": "1.4.70"
 }
