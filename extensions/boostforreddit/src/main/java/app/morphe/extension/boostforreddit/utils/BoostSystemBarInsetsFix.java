@@ -39,6 +39,7 @@ public final class BoostSystemBarInsetsFix {
     private static final String TOOLBAR_SURFACE_FOREGROUND_MARKER_V2 = "MORPHE_BOOST_TOOLBAR_SURFACE_FOREGROUND_V2";
     private static final String MAIN_NAV_BAR_SURFACE_MARKER_V3 = "MORPHE_BOOST_MAIN_NAV_BAR_SURFACE_V3";
     private static final String MAIN_NAV_BAR_SURFACE_OVERLAY_MARKER_V4 = "MORPHE_BOOST_MAIN_NAV_BAR_SURFACE_OVERLAY_V4";
+    private static final String EXTENDED_ACTIVITY_SURFACE_SCOPE_MARKER_V5 = "MORPHE_BOOST_EXTENDED_ACTIVITY_SURFACE_SCOPE_V5";
     private static final String COMMENTS_ACTIVITY_NAME = "com.rubenmayayo.reddit.ui.comments.CommentsActivity";
 
     private static final WeakHashMap<Application, Boolean> INSTALLED = new WeakHashMap<>();
@@ -342,6 +343,12 @@ public final class BoostSystemBarInsetsFix {
         if (className.endsWith(".ui.settings.SettingsActivity")) return true;
         if (className.contains(".ui.settings.")) return true;
 
+        // Issue #37 post-release validation after 1.4.70 found the same
+        // light-theme systembar/header foreground mismatch on these explicit
+        // non-media Boost surfaces. Keep this allowlist narrow; do not apply
+        // globally and do not change media/fullscreen behavior.
+        if (isExtendedToolbarSurfaceActivity(className)) return true;
+
         // Do not touch media/fullscreen surfaces where white controls over content
         // are expected and where a forced dark foreground would be wrong.
         if (className.contains(".ui.activities.Media")) return false;
@@ -358,6 +365,15 @@ public final class BoostSystemBarInsetsFix {
 
         String className = activity.getClass().getName();
         return className.endsWith(".ui.submissions.subreddit.MainActivity");
+    }
+
+    private static boolean isExtendedToolbarSurfaceActivity(String className) {
+        if (className == null) return false;
+
+        return className.endsWith(".ui.search.SearchGenericActivity")
+                || className.endsWith(".ui.search.GoToGenericActivity")
+                || className.endsWith(".ui.messages.MessagesActivity")
+                || className.endsWith(".ui.profile.UserActivity");
     }
 
     private static void applyCommentsSystemBarsNow(Activity activity) {
@@ -616,7 +632,8 @@ public final class BoostSystemBarInsetsFix {
 
             // Keep markers reachable in the extension artifact without adding extra UI.
             if (MAIN_NAV_BAR_SURFACE_MARKER_V3.length() == 0
-                    || MAIN_NAV_BAR_SURFACE_OVERLAY_MARKER_V4.length() == 0) {
+                    || MAIN_NAV_BAR_SURFACE_OVERLAY_MARKER_V4.length() == 0
+                    || EXTENDED_ACTIVITY_SURFACE_SCOPE_MARKER_V5.length() == 0) {
                 decor.invalidate();
             }
         } catch (Throwable ignored) {
