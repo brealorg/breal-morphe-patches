@@ -36,6 +36,9 @@ public final class BoostSystemBarInsetsFix {
     private static final String MARKER = "MORPHE_BOOST_NAV_BAR_INSETS_FIX_V6";
     private static final String COMMENTS_SYSTEM_BAR_MARKER = "MORPHE_BOOST_COMMENTS_SYSTEM_BAR_SURFACE_V1";
     private static final String COMMENTS_TOOLBAR_FOREGROUND_MARKER = "MORPHE_BOOST_COMMENTS_TOOLBAR_FOREGROUND_V1";
+    private static final String TOOLBAR_SURFACE_FOREGROUND_MARKER_V2 = "MORPHE_BOOST_TOOLBAR_SURFACE_FOREGROUND_V2";
+    private static final String MAIN_NAV_BAR_SURFACE_MARKER_V3 = "MORPHE_BOOST_MAIN_NAV_BAR_SURFACE_V3";
+    private static final String MAIN_NAV_BAR_SURFACE_OVERLAY_MARKER_V4 = "MORPHE_BOOST_MAIN_NAV_BAR_SURFACE_OVERLAY_V4";
     private static final String COMMENTS_ACTIVITY_NAME = "com.rubenmayayo.reddit.ui.comments.CommentsActivity";
 
     private static final WeakHashMap<Application, Boolean> INSTALLED = new WeakHashMap<>();
@@ -293,7 +296,7 @@ public final class BoostSystemBarInsetsFix {
 
     private static void scheduleCommentsSystemBars(final Activity activity) {
         try {
-            if (!shouldApply(activity) || !isCommentsActivity(activity)) return;
+            if (!shouldApply(activity) || !isToolbarSurfaceActivity(activity)) return;
 
             final View decor = activity.getWindow() == null ? null : activity.getWindow().getDecorView();
             if (decor == null) return;
@@ -324,9 +327,42 @@ public final class BoostSystemBarInsetsFix {
                 || className.endsWith(".ui.comments.CommentsActivity");
     }
 
+    private static boolean isToolbarSurfaceActivity(Activity activity) {
+        if (activity == null) return false;
+
+        String className = activity.getClass().getName();
+        if (isCommentsActivity(activity)) return true;
+
+        // Issue #37 also reproduces on the main feed/subreddit listing activity.
+        // Keep scope explicit instead of applying to all Boost activities.
+        if (isMainListingActivity(activity)) return true;
+
+        // Settings was part of the original report. Keep it scoped to Boost settings
+        // activities and let the toolbar detector decide whether there is a top toolbar.
+        if (className.endsWith(".ui.settings.SettingsActivity")) return true;
+        if (className.contains(".ui.settings.")) return true;
+
+        // Do not touch media/fullscreen surfaces where white controls over content
+        // are expected and where a forced dark foreground would be wrong.
+        if (className.contains(".ui.activities.Media")) return false;
+        if (className.contains(".ui.media.")) return false;
+        if (className.contains(".ui.gallery.")) return false;
+        if (className.contains(".ui.video.")) return false;
+        if (className.contains(".ui.images.")) return false;
+
+        return false;
+    }
+
+    private static boolean isMainListingActivity(Activity activity) {
+        if (activity == null) return false;
+
+        String className = activity.getClass().getName();
+        return className.endsWith(".ui.submissions.subreddit.MainActivity");
+    }
+
     private static void applyCommentsSystemBarsNow(Activity activity) {
         try {
-            if (!shouldApply(activity) || !isCommentsActivity(activity)) return;
+            if (!shouldApply(activity) || !isToolbarSurfaceActivity(activity)) return;
 
             Window window = activity.getWindow();
             if (window == null) return;
@@ -348,6 +384,7 @@ public final class BoostSystemBarInsetsFix {
                 window.setStatusBarColor(color);
             }
             applyLightStatusBarFlag(decor, color);
+            applyMainActivityNavigationBarSurface(activity, window, decor, color);
             applyCommentsToolbarForeground(activity, decor, statusHeight, color);
         } catch (Throwable ignored) {
         }
@@ -554,6 +591,171 @@ public final class BoostSystemBarInsetsFix {
         decor.setSystemUiVisibility(flags);
     }
 
+    private static void applyMainActivityNavigationBarSurface(Activity activity, Window window, View decor, int fallbackColor) {
+        try {
+            if (!shouldApply(activity) || !isMainListingActivity(activity)) return;
+            if (window == null || decor == null || Build.VERSION.SDK_INT < 21) return;
+
+            int color = findMainNavigationSurfaceColor(activity, decor);
+            if (!isOpaque(color)) color = fallbackColor;
+            if (!isOpaque(color)) return;
+
+            int bottomInset = getEffectiveNavigationBottomInset(decor, getBestCurrentInsets(decor));
+            installMainNavigationBarSurface(decor, bottomInset, color);
+
+            // Android edge-to-edge/gesture navigation may ignore opaque nav-bar colors.
+            // Keep the system area transparent and provide the visible surface ourselves.
+            window.setNavigationBarColor(Color.TRANSPARENT);
+            if (Build.VERSION.SDK_INT >= 28) {
+                window.setNavigationBarDividerColor(Color.TRANSPARENT);
+            }
+            if (Build.VERSION.SDK_INT >= 29) {
+                window.setNavigationBarContrastEnforced(false);
+            }
+            applyLightNavigationBarFlag(decor, color);
+
+            // Keep markers reachable in the extension artifact without adding extra UI.
+            if (MAIN_NAV_BAR_SURFACE_MARKER_V3.length() == 0
+                    || MAIN_NAV_BAR_SURFACE_OVERLAY_MARKER_V4.length() == 0) {
+                decor.invalidate();
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static void installMainNavigationBarSurface(View decor, int bottomInset, int color) {
+        try {
+            if (!(decor instanceof FrameLayout)) return;
+            if (bottomInset <= 0) return;
+
+            FrameLayout group = (FrameLayout) decor;
+            View surface = decor.findViewWithTag(MAIN_NAV_BAR_SURFACE_OVERLAY_MARKER_V4);
+
+            if (surface == null) {
+                surface = new View(decor.getContext());
+                surface.setTag(MAIN_NAV_BAR_SURFACE_OVERLAY_MARKER_V4);
+                surface.setClickable(false);
+                surface.setFocusable(false);
+                if (Build.VERSION.SDK_INT >= 16) {
+                    surface.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+                }
+
+                FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        bottomInset,
+                        Gravity.BOTTOM
+                );
+                group.addView(surface, params);
+            }
+
+            ViewGroup.LayoutParams params = surface.getLayoutParams();
+            if (params != null && params.height != bottomInset) {
+                params.height = bottomInset;
+                surface.setLayoutParams(params);
+            }
+
+            surface.setBackgroundColor(color);
+            surface.bringToFront();
+            surface.invalidate();
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static int findMainNavigationSurfaceColor(Activity activity, View decor) {
+        int color = findNamedBottomSurfaceColor(activity);
+        if (isOpaque(color)) return color;
+
+        color = findBottomSurfaceColor(decor);
+        if (isOpaque(color)) return color;
+
+        color = resolveThemeColor(activity, "colorSurface", 0);
+        if (isOpaque(color)) return color;
+
+        color = resolveThemeColor(activity, "colorBackground", 0);
+        if (isOpaque(color)) return color;
+
+        color = resolveAndroidThemeColor(activity, android.R.attr.colorBackground, 0);
+        if (isOpaque(color)) return color;
+
+        return isNightMode(activity) ? Color.BLACK : Color.WHITE;
+    }
+
+    private static int findNamedBottomSurfaceColor(Activity activity) {
+        String[] names = new String[] {
+                "bottom_bar",
+                "bottomBar",
+                "bottom_navigation",
+                "bottom_navigation_view",
+                "bottom_nav",
+                "navigation_bar",
+                "navigation",
+                "navigation_view",
+                "tab_layout",
+                "tabs"
+        };
+
+        for (String name : names) {
+            View view = findViewByName(activity, name);
+            int color = findSolidBackgroundColor(view);
+            if (isOpaque(color)) return color;
+
+            View parent = view == null ? null : view.getParent() instanceof View ? (View) view.getParent() : null;
+            color = findSolidBackgroundColor(parent);
+            if (isOpaque(color)) return color;
+        }
+
+        return 0;
+    }
+
+    private static int findBottomSurfaceColor(View root) {
+        if (root == null) return 0;
+
+        int[] best = new int[] {0, Integer.MAX_VALUE};
+        collectBottomSurfaceColor(root, root.getHeight(), root.getWidth(), best);
+        return best[0];
+    }
+
+    private static void collectBottomSurfaceColor(View view, int rootHeight, int rootWidth, int[] best) {
+        if (view == null || view.getVisibility() != View.VISIBLE) return;
+
+        try {
+            int color = findSolidBackgroundColor(view);
+            if (isOpaque(color) && view.getWidth() >= Math.max(1, rootWidth / 2)) {
+                int top = view.getTop();
+                int bottom = view.getBottom();
+                boolean nearBottom = bottom >= rootHeight - Math.max(96, rootHeight / 12);
+                boolean plausibleHeight = view.getHeight() >= 24 && view.getHeight() <= Math.max(320, rootHeight / 4);
+                if (nearBottom && plausibleHeight) {
+                    int score = Math.abs(rootHeight - bottom) + Math.abs(view.getHeight() - 112);
+                    if (score < best[1]) {
+                        best[0] = color;
+                        best[1] = score;
+                    }
+                }
+            }
+
+            if (view instanceof ViewGroup) {
+                ViewGroup group = (ViewGroup) view;
+                for (int i = 0; i < group.getChildCount(); i++) {
+                    collectBottomSurfaceColor(group.getChildAt(i), rootHeight, rootWidth, best);
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static void applyLightNavigationBarFlag(View decor, int color) {
+        if (decor == null || Build.VERSION.SDK_INT < 26) return;
+
+        int flags = decor.getSystemUiVisibility();
+        if (isLightColor(color)) {
+            flags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        } else {
+            flags &= ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        }
+        decor.setSystemUiVisibility(flags);
+    }
+
     private static boolean isLightColor(int color) {
         double r = Color.red(color) / 255.0;
         double g = Color.green(color) / 255.0;
@@ -597,13 +799,13 @@ public final class BoostSystemBarInsetsFix {
 
     private static void applyCommentsToolbarForeground(Activity activity, View decor, int statusHeight, int surfaceColor) {
         try {
-            if (!shouldApply(activity) || !isCommentsActivity(activity)) return;
+            if (!shouldApply(activity) || !isToolbarSurfaceActivity(activity)) return;
 
             int foreground = isLightColor(surfaceColor) ? Color.rgb(32, 33, 36) : Color.WHITE;
             View toolbar = findCommentsToolbarView(activity, decor, statusHeight);
 
             if (toolbar != null) {
-                toolbar.setTag(COMMENTS_TOOLBAR_FOREGROUND_MARKER);
+                toolbar.setTag(isCommentsActivity(activity) ? COMMENTS_TOOLBAR_FOREGROUND_MARKER : TOOLBAR_SURFACE_FOREGROUND_MARKER_V2);
                 tintToolbarObject(toolbar, foreground);
                 tintToolbarTree(toolbar, foreground);
             }
