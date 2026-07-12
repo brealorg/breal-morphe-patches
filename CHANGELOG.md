@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.69](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-68...morphe-patches-69) (2026-07-12)
+
+* **Boost for Reddit:** Boost comments toolbar foreground now follows the resolved light/dark toolbar surface. Fixes the remaining Issue #37 regression where Comments title, sort subtitle, and action icons could become white/invisible in light theme. Validated in DEV clone com.rubenmayayo.reddit.dev with targetSdk 35, both Issue #37 markers present, runtime blocker count 0, and manual visual PASS.
+
 ## [1.4.68](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-67...morphe-patches-68) (2026-07-12)
 
 * **Boost for Reddit:** Boost: fix comments status bar color regression on Android 15+/targetSdk35. Scope: CommentsActivity-only system bar surface sync; SlidrTheme duplicate-title guard preserved. Validation: DEV clone com.rubenmayayo.reddit.dev targetSdk=35; foreground DEV CommentsActivity; statusbar matched toolbar; duplicate Comments title absent.
