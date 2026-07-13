@@ -63,14 +63,14 @@ Preferred Morphe source setup is the deep link below. Raw `patches-bundle.json` 
 
 | Field | Value |
 |---|---|
-| Version | `1.4.70` |
-| Release tag | `morphe-patches-70` |
-| Asset | `patches-1.4.70.mpp` |
-| SHA256 | `398552fcd3674bfa72ecc207a898a8bf4d7b5fb026f29699540fd0e7bf4f9c7c` |
+| Version | `1.4.71` |
+| Release tag | `morphe-patches-71` |
+| Asset | `patches-1.4.71.mpp` |
+| SHA256 | `06eca8efb440315902fe5346f9d67330c510354339a690ed2964740b4cc6fcdf` |
 
-SHA256: `398552fcd3674bfa72ecc207a898a8bf4d7b5fb026f29699540fd0e7bf4f9c7c`
+SHA256: `06eca8efb440315902fe5346f9d67330c510354339a690ed2964740b4cc6fcdf`
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-70/patches-1.4.70.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-71/patches-1.4.71.mpp` |
 
 ## What this bundle does
 
@@ -103,10 +103,10 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.70` • `main` • 39 unique patches • 91 package entries
+> **Patch source version:** `1.4.71` • `main` • 44 unique patches • 96 package entries
 
 <details>
-<summary><strong>Boost for Reddit</strong> • 30 patches</summary>
+<summary><strong>Boost for Reddit</strong> • 35 patches</summary>
 
 
 
@@ -118,6 +118,7 @@ Included Imgur patches:
 | Patch | Description | Options |
 |---|---|---|
 | [Add archive links to context menu](#add-archive-links-to-context-menu) |  |  |
+| [Add Boost Search bottom navigation](#add-boost-search-bottom-navigation) | Shows Boost's native Home, Search, Subscriptions, Inbox and Profile menu in Search and Go To. |  |
 | [Automatically undelete Imgur images](#automatically-undelete-imgur-images) |  |  |
 | [Automatically undelete Reddit content](#automatically-undelete-reddit-content) |  |  |
 | [Boost Morphe settings](#boost-morphe-settings) | Adds Boost Morphe settings for inline media previews, undelete toggles, adaptive refresh rate, source text visibility, and preview alignment. |  |
@@ -146,6 +147,10 @@ Included Imgur patches:
 | [Restore GIF URL insertion](#restore-gif-url-insertion) | Adds provider-independent manual GIF URL insertion to Boost's existing image menu. |  |
 | [Show inline Giphy previews in comments](#show-inline-giphy-previews-in-comments) | Adds inline media previews below Boost comment text for Giphy links and direct static image URLs. |  |
 | [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
+| [Stabilize Boost subreddit bottom navigation surface](#stabilize-boost-subreddit-bottom-navigation-surface) | Applies theme contrast and gesture-inset surface handling to SubredditActivity while preserving native selection and routes. |  |
+| [Standardize Boost bottom navigation](#standardize-boost-bottom-navigation) | Applies one destination, listener, selection, tint, and system-surface contract to Boost's Material bottom navigation. |  |
+| [Standardize Boost Home bottom navigation](#standardize-boost-home-bottom-navigation) | Applies the canonical five-destination Material navigation and native Home tint when MainActivity resumes. |  |
+| [Standardize Boost Inbox and Profile bottom navigation](#standardize-boost-inbox-and-profile-bottom-navigation) | Applies the canonical five-destination Material bottom-navigation contract after Inbox and Profile complete lifecycle setup. |  |
 | [Support keyboard GIF insertion](#support-keyboard-gif-insertion) | Enables keyboard GIF/image rich content insertion through Android receive-content when a public URL is available. |  |
 
 </details>
@@ -503,16 +508,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.70` is prepared and locally verified with:
+Release `1.4.71` is prepared and locally verified with:
 
-- Release tag `morphe-patches-70`.
+- Release tag `morphe-patches-71`.
 - Local built MPP SHA256 matching README.
-`398552fcd3674bfa72ecc207a898a8bf4d7b5fb026f29699540fd0e7bf4f9c7c`
-- `patches-bundle.json` returning version `1.4.70`.
-- `patches-bundle.json` pointing to the `morphe-patches-70` asset.
+`06eca8efb440315902fe5346f9d67330c510354339a690ed2964740b4cc6fcdf`
+- `patches-bundle.json` returning version `1.4.71`.
+- `patches-bundle.json` pointing to the `morphe-patches-71` asset.
 - Expected release asset:
-`patches-1.4.70.mpp`
-- `398552fcd3674bfa72ecc207a898a8bf4d7b5fb026f29699540fd0e7bf4f9c7c  patches-1.4.70.mpp`
+`patches-1.4.71.mpp`
+- `06eca8efb440315902fe5346f9d67330c510354339a690ed2964740b4cc6fcdf  patches-1.4.71.mpp`
 
 ## Development notes
 

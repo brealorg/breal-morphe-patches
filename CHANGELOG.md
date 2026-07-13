@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.71](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-70...morphe-patches-71) (2026-07-13)
+
+* **Boost for Reddit:** Boost for Reddit: Stabilize the five-button bottom navigation and fix remaining portrait/landscape system-inset and display-cutout rendering issues.
+
 ## [1.4.70](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-69...morphe-patches-70) (2026-07-12)
 
 * **Boost for Reddit:** Fix Boost system bar color sync on Android edge-to-edge surfaces. Restore readable toolbar/status bar foreground on main feed, comments, and settings. Add scoped main-feed bottom navigation/gesture surface sync without changing media fullscreen behavior.
