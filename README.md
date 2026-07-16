@@ -63,14 +63,14 @@ Preferred Morphe source setup is the deep link below. Raw `patches-bundle.json` 
 
 | Field | Value |
 |---|---|
-| Version | `1.4.71` |
-| Release tag | `morphe-patches-71` |
-| Asset | `patches-1.4.71.mpp` |
-| SHA256 | `06eca8efb440315902fe5346f9d67330c510354339a690ed2964740b4cc6fcdf` |
+| Version | `1.4.72` |
+| Release tag | `morphe-patches-72` |
+| Asset | `patches-1.4.72.mpp` |
+| SHA256 | `3d935dffd5c54f3fd8004f473071b212fa232bb85551a06cad1e64c2bcc9b1cc` |
 
-SHA256: `06eca8efb440315902fe5346f9d67330c510354339a690ed2964740b4cc6fcdf`
+SHA256: `3d935dffd5c54f3fd8004f473071b212fa232bb85551a06cad1e64c2bcc9b1cc`
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-71/patches-1.4.71.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-72/patches-1.4.72.mpp` |
 
 ## What this bundle does
 
@@ -103,10 +103,10 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.71` • `main` • 44 unique patches • 96 package entries
+> **Patch source version:** `1.4.72` • `main` • 45 unique patches • 97 package entries
 
 <details>
-<summary><strong>Boost for Reddit</strong> • 35 patches</summary>
+<summary><strong>Boost for Reddit</strong> • 36 patches</summary>
 
 
 
@@ -129,6 +129,7 @@ Included Imgur patches:
 | [Fix /s/ links](#fix-s-links) |  |  |
 | [Fix Boost code block rendering](#fix-boost-code-block-rendering) | Preserves Reddit code blocks by normalizing multiline <code> HTML and malformed fenced selftext to Boost's native <pre> renderer path. |  |
 | [Fix Boost comments Lemmy-style toolbar UI](#fix-boost-comments-lemmy-style-toolbar-ui) | Removes the duplicate native comments title by disabling the SlidrTheme window title/actionbar layer while preserving Boost's selected light/dark theme, toolbar title, and dynamic sort subtitle. |  |
+| [Fix Boost Home floating action menu overlap](#fix-boost-home-floating-action-menu-overlap) | Raises the Home floating action menu above the bottom navigation without changing Comments or split-screen layouts. |  |
 | [Fix Boost image widget click target](#fix-boost-image-widget-click-target) | Prevents Boost's image widget from opening a stale post by making the CommentsActivity PendingIntent data unique per widget update. |  |
 | [Fix Boost native image upload](#fix-boost-native-image-upload) | Forces Boost's single-image submit flow to use Reddit's native image submission kind instead of creating external uploaded-media link posts. |  |
 | [Fix Boost navigation bar overlap](#fix-boost-navigation-bar-overlap) | Adds runtime system bar inset handling for Boost bottom controls and drawer content on Android 15+ target SDK builds. |  |
@@ -508,16 +509,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.71` is prepared and locally verified with:
+Release `1.4.72` is prepared and locally verified with:
 
-- Release tag `morphe-patches-71`.
+- Release tag `morphe-patches-72`.
 - Local built MPP SHA256 matching README.
-`06eca8efb440315902fe5346f9d67330c510354339a690ed2964740b4cc6fcdf`
-- `patches-bundle.json` returning version `1.4.71`.
-- `patches-bundle.json` pointing to the `morphe-patches-71` asset.
+`3d935dffd5c54f3fd8004f473071b212fa232bb85551a06cad1e64c2bcc9b1cc`
+- `patches-bundle.json` returning version `1.4.72`.
+- `patches-bundle.json` pointing to the `morphe-patches-72` asset.
 - Expected release asset:
-`patches-1.4.71.mpp`
-- `06eca8efb440315902fe5346f9d67330c510354339a690ed2964740b4cc6fcdf  patches-1.4.71.mpp`
+`patches-1.4.72.mpp`
+- `3d935dffd5c54f3fd8004f473071b212fa232bb85551a06cad1e64c2bcc9b1cc  patches-1.4.72.mpp`
 
 ## Development notes
 
