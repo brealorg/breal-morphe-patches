@@ -4299,6 +4299,408 @@ def finalize_release_workflow(
         )
 
 
+# MORPHE_RELEASECTL_IDEMPOTENT_DRAFT_V2
+#
+# GitHub allows multiple draft releases with the same tag. A persistent local
+# creation claim and an advisory lock ensure that a completed or in-progress
+# draft creation is never repeated merely because GitHub's release listing is
+# temporarily stale. All GitHub operations continue to use the workflow's
+# injected mutation runner.
+
+
+def _draft_creation_paths(
+    repo_root: Path,
+    identity: ReleaseIdentity,
+) -> tuple[Path, Path, Path]:
+    directory = (
+        repo_root
+        / "local-artifacts"
+        / "release-transactions"
+        / "draft-claims"
+    )
+
+    digest = hashlib.sha256(
+        (
+            identity.tag
+            + "\0"
+            + identity.release_commit
+            + "\0"
+            + identity.mpp_sha256
+        ).encode("utf-8")
+    ).hexdigest()[:24]
+
+    claim = directory / f"{identity.tag}-{digest}.json"
+    lock = directory / f"{identity.tag}-{digest}.lock"
+
+    transaction = (
+        repo_root
+        / "local-artifacts"
+        / "release-transactions"
+        / f"{identity.tag}.jsonl"
+    )
+
+    return claim, lock, transaction
+
+
+def _transaction_completed_draft_creation(
+    transaction_path: Path,
+    identity: ReleaseIdentity,
+) -> bool:
+    if not transaction_path.is_file():
+        return False
+
+    for raw_line in transaction_path.read_text(
+        encoding="utf-8",
+        errors="replace",
+    ).splitlines():
+        raw_line = raw_line.strip()
+
+        if not raw_line:
+            continue
+
+        try:
+            record = json.loads(raw_line)
+        except json.JSONDecodeError:
+            continue
+
+        if not isinstance(record, dict):
+            continue
+
+        if (
+            record.get("phase") == "CREATE_DRAFT_RELEASE"
+            and record.get("status") == "COMPLETED"
+            and record.get("tag") == identity.tag
+            and record.get("release_commit")
+            == identity.release_commit
+            and record.get("mpp_sha256")
+            == identity.mpp_sha256
+        ):
+            return True
+
+    return False
+
+
+def _runner_command(
+    runner: Any,
+    repo_root: Path,
+    args: Sequence[str],
+) -> str:
+    result = runner.run(repo_root, tuple(args))
+
+    if result.returncode != 0:
+        detail = result.stderr.strip() or result.stdout.strip()
+
+        raise RuntimeError(
+            "GitHub release command failed: "
+            + (detail or f"exit {result.returncode}")
+        )
+
+    return result.stdout
+
+
+def _github_releases_for_tag(
+    repo_root: Path,
+    repository: str,
+    identity: ReleaseIdentity,
+    runner: Any,
+) -> list[dict[str, Any]]:
+    raw = _runner_command(
+        runner,
+        repo_root,
+        (
+            "gh",
+            "api",
+            "--paginate",
+            "--slurp",
+            f"repos/{repository}/releases?per_page=100",
+        ),
+    )
+
+    try:
+        payload = json.loads(raw or "[]")
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(
+            "GitHub release listing returned invalid JSON"
+        ) from exc
+
+    if (
+        isinstance(payload, list)
+        and payload
+        and all(isinstance(page, list) for page in payload)
+    ):
+        releases = [
+            release
+            for page in payload
+            for release in page
+            if isinstance(release, dict)
+        ]
+    elif isinstance(payload, list):
+        releases = [
+            release
+            for release in payload
+            if isinstance(release, dict)
+        ]
+    else:
+        raise RuntimeError(
+            "GitHub release listing returned an unexpected JSON shape"
+        )
+
+    return [
+        release
+        for release in releases
+        if release.get("tag_name") == identity.tag
+    ]
+
+
+def _release_asset_count(
+    release: dict[str, Any],
+) -> int:
+    assets = release.get("assets")
+
+    if not isinstance(assets, list):
+        raise RuntimeError(
+            "GitHub release has an invalid assets field"
+        )
+
+    return len(assets)
+
+
+def _reconcile_matching_releases(
+    repo_root: Path,
+    repository: str,
+    identity: ReleaseIdentity,
+    runner: Any,
+) -> dict[str, Any] | None:
+    matching = _github_releases_for_tag(
+        repo_root,
+        repository,
+        identity,
+        runner,
+    )
+
+    if not matching:
+        return None
+
+    compatible: list[dict[str, Any]] = []
+
+    for release in matching:
+        release_id = release.get("id")
+        target = release.get("target_commitish")
+        draft = release.get("draft")
+        prerelease = release.get("prerelease")
+
+        if not isinstance(release_id, int):
+            raise RuntimeError(
+                "matching GitHub release has no integer id"
+            )
+
+        if prerelease is not False:
+            raise RuntimeError(
+                f"release {release_id} is unexpectedly a prerelease"
+            )
+
+        if draft not in {True, False}:
+            raise RuntimeError(
+                f"release {release_id} has invalid draft state"
+            )
+
+        if target not in {
+            identity.release_commit,
+            identity.tag,
+        }:
+            raise RuntimeError(
+                f"release {release_id} targets incompatible "
+                f"ref {target!r}"
+            )
+
+        compatible.append(release)
+
+    published = [
+        release
+        for release in compatible
+        if release.get("draft") is False
+    ]
+
+    drafts = [
+        release
+        for release in compatible
+        if release.get("draft") is True
+    ]
+
+    if len(published) > 1:
+        raise RuntimeError(
+            f"multiple published releases exist for {identity.tag}"
+        )
+
+    if published:
+        canonical = published[0]
+        duplicates = drafts
+    else:
+        ordered = sorted(
+            drafts,
+            key=lambda release: (
+                -_release_asset_count(release),
+                release.get("created_at", ""),
+                release["id"],
+            ),
+        )
+
+        canonical = ordered[0]
+        duplicates = ordered[1:]
+
+    for duplicate in duplicates:
+        release_id = duplicate["id"]
+
+        if _release_asset_count(duplicate) != 0:
+            raise RuntimeError(
+                f"duplicate release {release_id} contains assets; "
+                "automatic deletion is unsafe"
+            )
+
+        _runner_command(
+            runner,
+            repo_root,
+            (
+                "gh",
+                "api",
+                "--method",
+                "DELETE",
+                f"repos/{repository}/releases/{release_id}",
+            ),
+        )
+
+        print(
+            "INFO: removed duplicate empty GitHub draft "
+            f"id={release_id} tag={identity.tag}"
+        )
+
+    return canonical
+
+
+def _wait_for_claimed_draft(
+    repo_root: Path,
+    repository: str,
+    identity: ReleaseIdentity,
+    runner: Any,
+    *,
+    attempts: int = 12,
+    delay_seconds: float = 0.25,
+) -> dict[str, Any] | None:
+    import time
+
+    for attempt in range(attempts):
+        release = _reconcile_matching_releases(
+            repo_root,
+            repository,
+            identity,
+            runner,
+        )
+
+        if release is not None:
+            return release
+
+        if attempt + 1 < attempts:
+            time.sleep(delay_seconds)
+
+    return None
+
+
+def _idempotent_draft_creation_guard(
+    repo_root: Path,
+    repository: str,
+    identity: ReleaseIdentity,
+    runner: Any,
+):
+    from contextlib import contextmanager
+    import fcntl
+
+    @contextmanager
+    def guard():
+        claim_path, lock_path, transaction_path = (
+            _draft_creation_paths(repo_root, identity)
+        )
+
+        claim_path.parent.mkdir(parents=True, exist_ok=True)
+
+        with lock_path.open("a+", encoding="utf-8") as lock_file:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+
+            previously_claimed = (
+                claim_path.is_file()
+                or _transaction_completed_draft_creation(
+                    transaction_path,
+                    identity,
+                )
+            )
+
+            if previously_claimed:
+                release = _wait_for_claimed_draft(
+                    repo_root,
+                    repository,
+                    identity,
+                    runner,
+                )
+
+                if release is None:
+                    raise RuntimeError(
+                        "draft creation was already claimed or "
+                        "completed, but GitHub still reports no "
+                        "matching release; refusing duplicate creation"
+                    )
+
+                print(
+                    "INFO: reusing existing GitHub release "
+                    f"id={release['id']} tag={identity.tag}"
+                )
+
+                yield False
+                return
+
+            claim_payload = {
+                "schema_version": 1,
+                "tag": identity.tag,
+                "release_commit": identity.release_commit,
+                "mpp_sha256": identity.mpp_sha256,
+                "state": "CREATION_CLAIMED",
+            }
+
+            temporary = claim_path.with_suffix(".tmp")
+            temporary.write_text(
+                json.dumps(
+                    claim_payload,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            os.replace(temporary, claim_path)
+
+            try:
+                yield True
+            except BaseException:
+                observed = _wait_for_claimed_draft(
+                    repo_root,
+                    repository,
+                    identity,
+                    runner,
+                    attempts=4,
+                )
+
+                if observed is not None:
+                    print(
+                        "INFO: draft command failed locally, but "
+                        "GitHub release creation is observable; "
+                        "treating creation as satisfied"
+                    )
+                    return
+
+                claim_path.unlink(missing_ok=True)
+                raise
+
+    return guard()
+
 def publish_release_workflow(
     repo_path: str | Path,
     repository: str,
@@ -4413,9 +4815,20 @@ def publish_release_workflow(
             elif operation.operation_type is PlanOperationType.PUSH_RELEASE_REFS_ATOMIC:
                 _atomic_push_release_refs(repo_root, identity, remote_name, active_runner)
             elif operation.operation_type is PlanOperationType.CREATE_DRAFT_RELEASE:
-                _create_draft_release(
-                    repo_root, repository, identity, notes_path, active_runner
-                )
+                with _idempotent_draft_creation_guard(
+                    repo_root,
+                    repository,
+                    identity,
+                    active_runner,
+                ) as should_create_draft:
+                    if should_create_draft:
+                        _create_draft_release(
+                            repo_root,
+                            repository,
+                            identity,
+                            notes_path,
+                            active_runner,
+                        )
             elif operation.operation_type is PlanOperationType.UPLOAD_MPP_ASSET:
                 if not mpp_path.is_file() or mpp_path.is_symlink():
                     raise RuntimeError("canonical MPP is unavailable for upload")
