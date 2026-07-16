@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.73](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-72...morphe-patches-73) (2026-07-16)
+
+* **Boost for Reddit:** Boost for Reddit: Adds a one-time Open by default recovery prompt after patch updates so users can re-enable Reddit link handling in Android settings.
+
 ## [1.4.72](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-71...morphe-patches-72) (2026-07-16)
 
 * **Boost for Reddit:** Boost: Fix the Home floating action menu overlapping the bottom navigation.
