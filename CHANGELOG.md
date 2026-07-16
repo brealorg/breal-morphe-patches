@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.74](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-73...morphe-patches-74) (2026-07-16)
+
+* **Boost for Reddit:** Boost: Open Reddit polls in the in-app WebView so users can vote without being redirected back to the post.
+
 ## [1.4.73](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-72...morphe-patches-73) (2026-07-16)
 
 * **Boost for Reddit:** Boost for Reddit: Adds a one-time Open by default recovery prompt after patch updates so users can re-enable Reddit link handling in Android settings.

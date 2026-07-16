@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-16T21:23:16",
-  "description": "Boost for Reddit: Adds a one-time Open by default recovery prompt after patch updates so users can re-enable Reddit link handling in Android settings.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-73/patches-1.4.73.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-73/patches-1.4.73.mpp.asc",
-  "version": "1.4.73"
+  "created_at": "2026-07-16T21:57:43",
+  "description": "Boost: Open Reddit polls in the in-app WebView so users can vote without being redirected back to the post.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-74/patches-1.4.74.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-74/patches-1.4.74.mpp.asc",
+  "version": "1.4.74"
 }
