@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.75](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-74...morphe-patches-75) (2026-07-16)
+
+* **Boost for Reddit:** Boost: Open YouTube links externally when the legacy embedded player service is unavailable.
+
 ## [1.4.74](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-73...morphe-patches-74) (2026-07-16)
 
 * **Boost for Reddit:** Boost: Open Reddit polls in the in-app WebView so users can vote without being redirected back to the post.

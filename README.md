@@ -63,14 +63,14 @@ Preferred Morphe source setup is the deep link below. Raw `patches-bundle.json` 
 
 | Field | Value |
 |---|---|
-| Version | `1.4.74` |
-| Release tag | `morphe-patches-74` |
-| Asset | `patches-1.4.74.mpp` |
-| SHA256 | `79d67ec21c486a5620ebab418a572626397811f083be1c5764f33d4a5d98fff9` |
+| Version | `1.4.75` |
+| Release tag | `morphe-patches-75` |
+| Asset | `patches-1.4.75.mpp` |
+| SHA256 | `5aaf77a5d63254a9556fdb5a63c522f9dd3d45417795c589e1eb8b4f0de1a42f` |
 
-SHA256: `79d67ec21c486a5620ebab418a572626397811f083be1c5764f33d4a5d98fff9`
+SHA256: `5aaf77a5d63254a9556fdb5a63c522f9dd3d45417795c589e1eb8b4f0de1a42f`
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-74/patches-1.4.74.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-75/patches-1.4.75.mpp` |
 
 ## What this bundle does
 
@@ -103,10 +103,10 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.74` • `main` • 46 unique patches • 98 package entries
+> **Patch source version:** `1.4.75` • `main` • 47 unique patches • 99 package entries
 
 <details>
-<summary><strong>Boost for Reddit</strong> • 37 patches</summary>
+<summary><strong>Boost for Reddit</strong> • 38 patches</summary>
 
 
 
@@ -134,6 +134,7 @@ Included Imgur patches:
 | [Fix Boost native image upload](#fix-boost-native-image-upload) | Forces Boost's single-image submit flow to use Reddit's native image submission kind instead of creating external uploaded-media link posts. |  |
 | [Fix Boost navigation bar overlap](#fix-boost-navigation-bar-overlap) | Adds runtime system bar inset handling for Boost bottom controls and drawer content on Android 15+ target SDK builds. |  |
 | [Fix Boost target SDK 35 compatibility](#fix-boost-target-sdk-35-compatibility) | Sets Boost for Reddit's target SDK to 35 and fixes BillingClient receiver registration for newer Android versions. |  |
+| [Fix Boost YouTube playback fallback](#fix-boost-youtube-playback-fallback) | Opens the original YouTube link externally when Boost's legacy embedded YouTube player is unavailable. |  |
 | [Fix download completed notification visibility](#fix-download-completed-notification-visibility) | Moves completed download notifications to a separate default-importance channel so download completion is visible while progress notifications remain low-priority. |  |
 | [Fix Hide crash](#fix-hide-crash) | Prevents Boost from crashing when Hide receives an invalid feed/list index. |  |
 | [Fix missing audio in video downloads](#fix-missing-audio-in-video-downloads) | Fixes audio missing in videos downloaded from v.redd.it. |  |
@@ -510,16 +511,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.74` is prepared and locally verified with:
+Release `1.4.75` is prepared and locally verified with:
 
-- Release tag `morphe-patches-74`.
+- Release tag `morphe-patches-75`.
 - Local built MPP SHA256 matching README.
-`79d67ec21c486a5620ebab418a572626397811f083be1c5764f33d4a5d98fff9`
-- `patches-bundle.json` returning version `1.4.74`.
-- `patches-bundle.json` pointing to the `morphe-patches-74` asset.
+`5aaf77a5d63254a9556fdb5a63c522f9dd3d45417795c589e1eb8b4f0de1a42f`
+- `patches-bundle.json` returning version `1.4.75`.
+- `patches-bundle.json` pointing to the `morphe-patches-75` asset.
 - Expected release asset:
-`patches-1.4.74.mpp`
-- `79d67ec21c486a5620ebab418a572626397811f083be1c5764f33d4a5d98fff9  patches-1.4.74.mpp`
+`patches-1.4.75.mpp`
+- `5aaf77a5d63254a9556fdb5a63c522f9dd3d45417795c589e1eb8b4f0de1a42f  patches-1.4.75.mpp`
 
 ## Development notes
 
