@@ -93,6 +93,8 @@ This project will not implement age-verification bypasses, moderator-status or c
 
 The inherited `Fix Redgifs API` patch provides best-effort compatibility with an obsolete client API flow. It does not guarantee access to NSFW communities, availability or reliable playback of individual Redgifs media, or future provider compatibility. See [Issue #12](https://github.com/brealorg/breal-morphe-patches/issues/12) and [Issue #13](https://github.com/brealorg/breal-morphe-patches/issues/13).
 
+For the complete rationale and support boundaries, see [NSFW and mature-content support policy](docs/nsfw-support-policy.md).
+
 An issue is not automatically rejected merely because the affected post is marked NSFW. Generic crashes, layout problems, viewer bugs, and media-routing regressions may still be investigated when the same problem can be reproduced with non-NSFW content, or when Reddit has returned the content successfully and Boost handles it incorrectly.
 
 ### Imgur selected media sharing
