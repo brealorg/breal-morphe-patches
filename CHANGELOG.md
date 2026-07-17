@@ -1,6 +1,13 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.77](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-76...morphe-patches-77) (2026-07-17)
+
+* **Boost for Reddit:** Bug Fixes:
+- Hide the non-functional bottom navigation from Settings search.
+- Make Settings preference icons follow the active light or dark theme.
+- Show and dynamically update the unread Inbox badge in Morphe canonical bottom navigation.
+
 ## [1.4.76](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-75...morphe-patches-76) (2026-07-17)
 
 * **Boost for Reddit:** Bug Fixes: Marking a Boost post as read now removes the correct post immediately while preserving invalid-index crash protection across feed variants.

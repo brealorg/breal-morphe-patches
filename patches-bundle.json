@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-17T10:04:12",
-  "description": "Bug Fixes: Marking a Boost post as read now removes the correct post immediately while preserving invalid-index crash protection across feed variants.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-76/patches-1.4.76.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-76/patches-1.4.76.mpp.asc",
-  "version": "1.4.76"
+  "created_at": "2026-07-17T14:38:27",
+  "description": "Bug Fixes:\n- Hide the non-functional bottom navigation from Settings search.\n- Make Settings preference icons follow the active light or dark theme.\n- Show and dynamically update the unread Inbox badge in Morphe canonical bottom navigation.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-77/patches-1.4.77.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-77/patches-1.4.77.mpp.asc",
+  "version": "1.4.77"
 }

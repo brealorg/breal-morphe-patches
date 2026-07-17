@@ -63,14 +63,14 @@ Preferred Morphe source setup is the deep link below. Raw `patches-bundle.json` 
 
 | Field | Value |
 |---|---|
-| Version | `1.4.76` |
-| Release tag | `morphe-patches-76` |
-| Asset | `patches-1.4.76.mpp` |
-| SHA256 | `62938c0ed7f1357107a079d54e1c59b4d99645144b2d5f91c8882ba7b57af5c7` |
+| Version | `1.4.77` |
+| Release tag | `morphe-patches-77` |
+| Asset | `patches-1.4.77.mpp` |
+| SHA256 | `a47f0df38caaa488be5c574e35ea308122869cb7593e73ffb349b0ad20a08e5e` |
 
-SHA256: `62938c0ed7f1357107a079d54e1c59b4d99645144b2d5f91c8882ba7b57af5c7`
+SHA256: `a47f0df38caaa488be5c574e35ea308122869cb7593e73ffb349b0ad20a08e5e`
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-76/patches-1.4.76.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-77/patches-1.4.77.mpp` |
 
 ## What this bundle does
 
@@ -103,10 +103,10 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.76` • `main` • 47 unique patches • 99 package entries
+> **Patch source version:** `1.4.77` • `main` • 48 unique patches • 100 package entries
 
 <details>
-<summary><strong>Boost for Reddit</strong> • 38 patches</summary>
+<summary><strong>Boost for Reddit</strong> • 39 patches</summary>
 
 
 
@@ -155,6 +155,7 @@ Included Imgur patches:
 | [Standardize Boost Home bottom navigation](#standardize-boost-home-bottom-navigation) | Applies the canonical five-destination Material navigation and native Home tint when MainActivity resumes. |  |
 | [Standardize Boost Inbox and Profile bottom navigation](#standardize-boost-inbox-and-profile-bottom-navigation) | Applies the canonical five-destination Material bottom-navigation contract after Inbox and Profile complete lifecycle setup. |  |
 | [Support keyboard GIF insertion](#support-keyboard-gif-insertion) | Enables keyboard GIF/image rich content insertion through Android receive-content when a public URL is available. |  |
+| [Theme Boost settings icons](#theme-boost-settings-icons) | Uses the active theme primary text color for Boost preference icons. |  |
 
 </details>
 
@@ -511,16 +512,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.76` is prepared and locally verified with:
+Release `1.4.77` is prepared and locally verified with:
 
-- Release tag `morphe-patches-76`.
+- Release tag `morphe-patches-77`.
 - Local built MPP SHA256 matching README.
-`62938c0ed7f1357107a079d54e1c59b4d99645144b2d5f91c8882ba7b57af5c7`
-- `patches-bundle.json` returning version `1.4.76`.
-- `patches-bundle.json` pointing to the `morphe-patches-76` asset.
+`a47f0df38caaa488be5c574e35ea308122869cb7593e73ffb349b0ad20a08e5e`
+- `patches-bundle.json` returning version `1.4.77`.
+- `patches-bundle.json` pointing to the `morphe-patches-77` asset.
 - Expected release asset:
-`patches-1.4.76.mpp`
-- `62938c0ed7f1357107a079d54e1c59b4d99645144b2d5f91c8882ba7b57af5c7  patches-1.4.76.mpp`
+`patches-1.4.77.mpp`
+- `a47f0df38caaa488be5c574e35ea308122869cb7593e73ffb349b0ad20a08e5e  patches-1.4.77.mpp`
 
 ## Development notes
 
