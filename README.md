@@ -63,14 +63,14 @@ Preferred Morphe source setup is the deep link below. Raw `patches-bundle.json` 
 
 | Field | Value |
 |---|---|
-| Version | `1.4.79` |
-| Release tag | `morphe-patches-79` |
-| Asset | `patches-1.4.79.mpp` |
-| SHA256 | `92f4fe3b994b532ddf261d8235861e53eb9339f89b5a0ceb2a1cc53ccdf6ba53` |
+| Version | `1.4.80` |
+| Release tag | `morphe-patches-80` |
+| Asset | `patches-1.4.80.mpp` |
+| SHA256 | `5aee2dcf48b65f2671f5192351da505446d8f255a9f0b56ba51b433391314206` |
 
-SHA256: `92f4fe3b994b532ddf261d8235861e53eb9339f89b5a0ceb2a1cc53ccdf6ba53`
+SHA256: `5aee2dcf48b65f2671f5192351da505446d8f255a9f0b56ba51b433391314206`
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-79/patches-1.4.79.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-80/patches-1.4.80.mpp` |
 
 ## What this bundle does
 
@@ -103,10 +103,10 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.79` • `main` • 48 unique patches • 100 package entries
+> **Patch source version:** `1.4.80` • `main` • 49 unique patches • 101 package entries
 
 <details>
-<summary><strong>Boost for Reddit</strong> • 39 patches</summary>
+<summary><strong>Boost for Reddit</strong> • 40 patches</summary>
 
 
 
@@ -123,6 +123,7 @@ Included Imgur patches:
 | [Automatically undelete Reddit content](#automatically-undelete-reddit-content) |  |  |
 | [Boost Morphe settings](#boost-morphe-settings) | Adds Boost Morphe settings for inline media previews, undelete toggles, adaptive refresh rate, source text visibility, and preview alignment. |  |
 | [Boost search default discovery](#boost-search-default-discovery) | Starts Boost search on an instant cached active-subreddit landing with Reddit-native labels. |  |
+| [Custom Synccit URL](#custom-synccit-url) | Allows Boost to use a custom self-hosted Synccit API endpoint. | • Synccit API URL |
 | [Disable ads](#disable-ads) |  |  |
 | [Disable Boost Crashlytics startup network calls](#disable-boost-crashlytics-startup-network-calls) | Disables Boost's Crashlytics startup initialization while keeping Firebase Analytics and other Firebase components. |  |
 | [Fix /r/all](#fix-r-all) |  |  |
@@ -512,16 +513,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.79` is prepared and locally verified with:
+Release `1.4.80` is prepared and locally verified with:
 
-- Release tag `morphe-patches-79`.
+- Release tag `morphe-patches-80`.
 - Local built MPP SHA256 matching README.
-`92f4fe3b994b532ddf261d8235861e53eb9339f89b5a0ceb2a1cc53ccdf6ba53`
-- `patches-bundle.json` returning version `1.4.79`.
-- `patches-bundle.json` pointing to the `morphe-patches-79` asset.
+`5aee2dcf48b65f2671f5192351da505446d8f255a9f0b56ba51b433391314206`
+- `patches-bundle.json` returning version `1.4.80`.
+- `patches-bundle.json` pointing to the `morphe-patches-80` asset.
 - Expected release asset:
-`patches-1.4.79.mpp`
-- `92f4fe3b994b532ddf261d8235861e53eb9339f89b5a0ceb2a1cc53ccdf6ba53  patches-1.4.79.mpp`
+`patches-1.4.80.mpp`
+- `5aee2dcf48b65f2671f5192351da505446d8f255a9f0b56ba51b433391314206  patches-1.4.80.mpp`
 
 ## Development notes
 

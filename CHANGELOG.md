@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.80](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-79...morphe-patches-80) (2026-07-17)
+
+* **Boost for Reddit:** Allow Boost users to configure a custom self-hosted Synccit API endpoint for read-state synchronization.
+
 ## [1.4.79](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-78...morphe-patches-79) (2026-07-17)
 
 * **Boost for Reddit:** Bug Fixes
