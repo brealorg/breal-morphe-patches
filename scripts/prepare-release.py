@@ -285,8 +285,7 @@ def print_summary(version: str, tag: str, mpp: Path | None, sha: str | None) -> 
     print("  git add CHANGELOG.md README.md gradle.properties patches-bundle.json patches-list.json")
     print("  git commit -m \"Prepare patch bundle release <N>\"")
     print("  git tag -a <tag> -m <tag>")
-    print("  git push origin main")
-    print("  git push origin <tag>")
+    print("  git push --atomic origin HEAD:refs/heads/main HEAD:refs/heads/dev refs/tags/<tag>:refs/tags/<tag>")
     print("  gh release create <tag> patches/build/libs/<asset> --title <tag> --notes-file <notes-file>")
     print("  make verify-remote VERSION=<version> TAG=<tag>")
 

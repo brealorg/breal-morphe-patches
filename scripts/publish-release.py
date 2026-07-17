@@ -334,16 +334,20 @@ def create_tag(tag: str, *, dry_run: bool) -> None:
 
 
 def push_refs(remote: str, branch: str, mirror_branches: list[str], tag: str, *, dry_run: bool) -> None:
-    refs = [branch, *mirror_branches]
+    refs = list(dict.fromkeys([branch, *mirror_branches]))
+    command = [
+        "git",
+        "push",
+        "--atomic",
+        remote,
+        *(f"HEAD:refs/heads/{ref}" for ref in refs),
+        f"refs/tags/{tag}:refs/tags/{tag}",
+    ]
     if dry_run:
-        for ref in refs:
-            print(f"DRY RUN: would push HEAD:{ref}")
-        print(f"DRY RUN: would push tag {tag}")
+        print("DRY RUN: would run", " ".join(command))
         return
 
-    for ref in refs:
-        run(["git", "push", remote, f"HEAD:{ref}"])
-    run(["git", "push", remote, tag])
+    run(command)
 
 
 def create_github_release(args: argparse.Namespace, asset_path: Path, signature_path: Path) -> None:
