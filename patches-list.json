@@ -60,6 +60,34 @@
       "options": []
     },
     {
+      "name": "Animate media in Boost gallery previews",
+      "description": "Autoplays the selected Reddit gallery GIF while preserving Boost's poster, data preferences, and full-screen media route.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.rubenmayayo.reddit",
+          "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Automatically undelete Imgur images",
       "description": null,
       "default": false,
