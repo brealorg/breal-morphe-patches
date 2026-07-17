@@ -23,7 +23,7 @@ USAGE
 }
 
 DEFAULT_BASE='/home/b-real/com.rubenmayayo.reddit_1.12.12-210011212_minAPI21(arm64-v8a,armeabi,armeabi-v7a,mips,mips64,x86,x86_64)(nodpi)_apkmirror.com.apk'
-DEFAULT_JAR='/home/b-real/.local/share/morphe/tools/morphe-cli-1.10.0-dev.1-all.jar'
+DEFAULT_JAR='/home/b-real/.local/share/morphe/tools/morphe-desktop-1.11.0-all.jar'
 
 VERSION="$(grep -E '^version\s*=' gradle.properties 2>/dev/null | sed -E 's/^version\s*=\s*//')"
 DEFAULT_MPP="patches/build/libs/patches-${VERSION}.mpp"

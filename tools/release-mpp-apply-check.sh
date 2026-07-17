@@ -3,7 +3,7 @@
 FAIL=0
 BASE_APK=""
 MPP=""
-JAR="${HOME}/.local/share/morphe/tools/morphe-cli-1.10.0-dev.1-all.jar"
+JAR="${HOME}/.local/share/morphe/tools/morphe-desktop-1.11.0-all.jar"
 OPTIONS_FILE=""
 PACKAGE="com.rubenmayayo.reddit"
 EXPECTED_TARGET_SDK="35"
