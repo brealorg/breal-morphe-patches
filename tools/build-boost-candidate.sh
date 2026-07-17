@@ -299,7 +299,6 @@ sha256sum "$MPP" | tee "$ROOT/mpp.sha256"
 CMD=(
   java -jar "$JAR"
   patch
-  --purge
   "${VERIFY_ARG[@]}"
   -p "$MPP"
   --options-file "$OPTIONS_FILE"
