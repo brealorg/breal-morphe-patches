@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.81](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-80...morphe-patches-81) (2026-07-17)
+
+* **Boost for Reddit:** Bug Fixes: Stabilize Boost bottom navigation above Android gesture and three-button system controls, including live navigation-mode changes.
+
 ## [1.4.80](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-79...morphe-patches-80) (2026-07-17)
 
 * **Boost for Reddit:** Allow Boost users to configure a custom self-hosted Synccit API endpoint for read-state synchronization.

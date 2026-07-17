@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-17T17:38:04",
-  "description": "Allow Boost users to configure a custom self-hosted Synccit API endpoint for read-state synchronization.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-80/patches-1.4.80.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-80/patches-1.4.80.mpp.asc",
-  "version": "1.4.80"
+  "created_at": "2026-07-17T19:24:55",
+  "description": "Bug Fixes: Stabilize Boost bottom navigation above Android gesture and three-button system controls, including live navigation-mode changes.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-81/patches-1.4.81.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-81/patches-1.4.81.mpp.asc",
+  "version": "1.4.81"
 }
