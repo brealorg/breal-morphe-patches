@@ -46,7 +46,7 @@ public final class BoostSearchBottomNavigation {
     private static final String VISIBLE_NAV_FALLBACK_MARKER =
             "MORPHE_BOOST_VISIBLE_BOTTOM_NAV_FALLBACK_V751";
     private static volatile String SEARCH_ROUTE_MARKER =
-            "MORPHE_BOOST_GOTO_SEARCH_ROUTE_V761";
+            "MORPHE_BOOST_SEARCH_BACK_STACK_V1_PRESERVE_CALLER";
     private static volatile String UNIFIED_MATERIAL_MARKER =
             "MORPHE_BOOST_UNIFIED_MATERIAL_BOTTOM_NAV_V771";
     private static final String CANONICAL_NAV_BASE_MARKER =
@@ -3565,7 +3565,11 @@ if (selectedId == searchId) {
             );
 
             activity.startActivity(intent);
-            activity.finish();
+            Log.i(
+                TAG,
+                "search caller preserved marker=" + SEARCH_ROUTE_MARKER
+                    + " from=" + activity.getClass().getName()
+            );
             return true;
         } catch (Throwable error) {
             Log.e(
