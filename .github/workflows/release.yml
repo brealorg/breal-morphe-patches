@@ -287,9 +287,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          git push origin HEAD:main
-          git push origin HEAD:dev
-          git push origin "$TAG"
+          git push --atomic origin \
+            "HEAD:refs/heads/main" \
+            "HEAD:refs/heads/dev" \
+            "refs/tags/$TAG:refs/tags/$TAG"
 
 
       - name: Create GitHub release
