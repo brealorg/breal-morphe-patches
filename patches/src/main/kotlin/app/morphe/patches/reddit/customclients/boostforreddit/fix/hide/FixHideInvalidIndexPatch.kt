@@ -8,6 +8,7 @@ package app.morphe.patches.reddit.customclients.boostforreddit.fix.hide
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
@@ -20,7 +21,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 @Suppress("unused")
 val fixHideInvalidIndexPatch = bytecodePatch(
     name = "Fix Hide crash",
-    description = "Prevents Boost from crashing when Hide receives an invalid feed/list index.",
+    description = "Stabilizes Boost feed position handling and prevents invalid-index crashes when hiding read posts.",
     default = true
 ) {
     compatibleWith(*BoostCompatible)
@@ -107,6 +108,38 @@ val fixHideInvalidIndexPatch = bytecodePatch(
                         nop
                     """,
                     ExternalLabel("morphe_after_fragment_original_remove", afterOriginalRemove),
+                )
+            }
+        }
+
+        // Central adapter-position contract for the three feed fragment variants.
+        //
+        // O2(index) converts a RecyclerView adapter position to the backing
+        // submission-list position. When a wrapper exists, its result is
+        // authoritative, including -1 for advertisements/non-submission rows.
+        //
+        // When neither wrapper exists, p1 already is the backing-list position.
+        // Boost currently overwrites it with -1; replace only that final fallback
+        // assignment and leave all wrapper conversion paths unchanged.
+        feedPositionResolverFingerprints.forEach { fingerprint ->
+            fingerprint.method.apply {
+                val fallbackReturnIndex =
+                    indexOfFirstInstructionReversedOrThrow {
+                        opcode == Opcode.RETURN
+                    }
+                val fallbackAssignmentIndex = fallbackReturnIndex - 1
+
+                check(
+                    getInstruction(fallbackAssignmentIndex).opcode ==
+                        Opcode.CONST_4,
+                ) {
+                    "Unexpected Boost O2(I)I fallback shape in " +
+                        definingClass
+                }
+
+                replaceInstruction(
+                    fallbackAssignmentIndex,
+                    "const-string v0, \"morphe_boost_feed_position_contract_v2\"",
                 )
             }
         }

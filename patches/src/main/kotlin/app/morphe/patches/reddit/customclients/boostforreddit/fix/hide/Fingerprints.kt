@@ -51,3 +51,20 @@ internal val feedActionS1InvalidIndexFingerprint = Fingerprint(
     },
 )
 
+private val feedPositionResolverClassTypes = listOf(
+    "Lcom/rubenmayayo/reddit/ui/fragments/g;",
+    "Lcom/rubenmayayo/reddit/ui/fragments/h;",
+    "Lcom/rubenmayayo/reddit/ui/fragments/j;",
+)
+
+internal val feedPositionResolverFingerprints =
+    feedPositionResolverClassTypes.map { classType ->
+        Fingerprint(
+            returnType = "I",
+            parameters = listOf("I"),
+            custom = { method, classDef ->
+                classDef.type == classType && method.name == "O2"
+            },
+        )
+    }
+
