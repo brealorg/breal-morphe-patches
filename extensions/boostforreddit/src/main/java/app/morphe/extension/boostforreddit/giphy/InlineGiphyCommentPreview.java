@@ -49,6 +49,8 @@ public final class InlineGiphyCommentPreview {
             "morphe_boost_comment_direct_reddit_gif_route";
     private static final String COMMENT_STATIC_IMAGE_URL_PREVIEW_MARKER =
             "morphe_boost_comment_static_image_url_preview_v1";
+    private static final String STATIC_PREVIEW_CANONICAL_ROUTE_MARKER =
+            "morphe_boost_static_preview_canonical_media_image_v1";
     private static final String PREF_GIPHY_PREVIEW_TAP_ACTION =
             "morphe_boost_giphy_preview_tap_action";
     private static final String PREF_STATIC_PREVIEW_TAP_ACTION =
@@ -1250,34 +1252,69 @@ public final class InlineGiphyCommentPreview {
     private static boolean openStaticImageViaBoost(Activity activity, Class<?> submissionClass, Object submission, boolean directRedditGif) {
         if (activity == null || submissionClass == null || submission == null) return false;
 
-        // Forced image routes must avoid MediaImageActivity. That activity can reclassify
-        // inline comment media through its async metadata path and bounce GIF/static URLs
-        // into MediaVideoActivity. Legacy ImageActivity is the stricter image-only viewer.
-        //
-        // Direct i.redd.it GIFs are a special case: ImageActivity with comment=true opens
-        // first, but immediately bounces to MediaVideoActivity. Use non-comment image mode
-        // for this direct-GIF image-viewer route while preserving comment mode for normal
-        // static inline previews.
-        boolean legacyCommentMode = !directRedditGif;
-        if (openLegacyImageActivityViaBoost(activity, submission, legacyCommentMode)) {
-            if (directRedditGif) {
-                Log.d(LOG_TAG, COMMENT_DIRECT_GIF_ROUTE_MARKER + ": forced direct i.redd.it gif to non-comment image route");
+        /*
+         * Issue #60:
+         *
+         * Normal static inline previews must use the same canonical Boost image
+         * intent as ordinary source-link navigation. The legacy ImageActivity
+         * does not participate in the MediaImageActivity system-inset patch and
+         * can render its toolbar underneath the status bar on target SDK 35.
+         *
+         * Direct i.redd.it GIFs remain a special case. MediaImageActivity can
+         * asynchronously reclassify those URLs as video, so retain the strict
+         * non-comment legacy image route for that path.
+         */
+        if (directRedditGif) {
+            if (openLegacyImageActivityViaBoost(activity, submission, false)) {
+                Log.d(
+                        LOG_TAG,
+                        COMMENT_DIRECT_GIF_ROUTE_MARKER
+                                + ": forced direct i.redd.it gif to non-comment image route"
+                );
+                return true;
             }
-            return true;
         }
 
         try {
-            Class<?> navigationClass = Class.forName("com.rubenmayayo.reddit.ui.activities.i");
-            Method method = navigationClass.getMethod("h", Context.class, submissionClass, boolean.class);
+            Class<?> navigationClass =
+                    Class.forName("com.rubenmayayo.reddit.ui.activities.i");
+            Method method = navigationClass.getMethod(
+                    "h",
+                    Context.class,
+                    submissionClass,
+                    boolean.class
+            );
             method.setAccessible(true);
 
             Object intent = method.invoke(null, activity, submission, true);
             if (intent instanceof Intent) {
                 activity.startActivity((Intent) intent);
+
+                Log.d(
+                        LOG_TAG,
+                        STATIC_PREVIEW_CANONICAL_ROUTE_MARKER
+                                + ": opened canonical Boost image intent"
+                                + " directRedditGif=" + directRedditGif
+                );
                 return true;
             }
         } catch (Throwable throwable) {
-            Log.w(LOG_TAG, "openStaticImageViaBoost failed", throwable);
+            Log.w(
+                    LOG_TAG,
+                    STATIC_PREVIEW_CANONICAL_ROUTE_MARKER
+                            + ": canonical Boost image intent failed",
+                    throwable
+            );
+        }
+
+        if (!directRedditGif
+                && openLegacyImageActivityViaBoost(activity, submission, true)) {
+            Log.w(
+                    LOG_TAG,
+                    STATIC_PREVIEW_CANONICAL_ROUTE_MARKER
+                            + ": canonical route unavailable; used legacy fallback"
+            );
+            return true;
         }
 
         return false;

@@ -22,6 +22,7 @@ EXTENSION_REQUIRED_MARKERS = [
     "browser",
     "disabled",
     "openStaticImageViaBoost",
+    "morphe_boost_static_preview_canonical_media_image_v1",
     "open direct i.redd.it gif via Boost image viewer",
 ]
 
