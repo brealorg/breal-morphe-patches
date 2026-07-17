@@ -1421,6 +1421,12 @@ public final class BoostSearchBottomNavigation {
                 new Class<?>[]{int.class},
                 new Object[]{2}
         );
+
+        Log.i(
+                TAG,
+                "Issue #54 shared Search host scoped marker="
+                        + "MORPHE_BOOST_ISSUE54_SHARED_HOST_SCOPE_V8"
+        );
         invokeOptional(
                 navigation,
                 "setItemHorizontalTranslationEnabled",

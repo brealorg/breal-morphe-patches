@@ -45,7 +45,7 @@ private val addSearchBottomNavigationHostPatch = resourcePatch(
                     .createElement(MATERIAL_BOTTOM_NAVIGATION)
                     .apply {
                         setAttribute("android:id", "@id/bottom_navigation_view")
-                        setAttribute("android:visibility", "visible")
+                        setAttribute("android:visibility", "gone")
                         setAttribute("android:layout_gravity", "bottom")
                         setAttribute("android:layout_width", "match_parent")
                         setAttribute("android:layout_height", "wrap_content")
@@ -70,7 +70,7 @@ private val addSearchBottomNavigationHostPatch = resourcePatch(
                     "Existing Search BottomNavigationView has unexpected id"
                 }
 
-                navigation.setAttribute("android:visibility", "visible")
+                navigation.setAttribute("android:visibility", "gone")
                 navigation.setAttribute(
                     "app:menu",
                     "@menu/bottom_navigation_menu",
