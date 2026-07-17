@@ -27,6 +27,7 @@ def test_default_asset_path_and_name():
 def test_dirty_file_classification():
     mod = load_module()
     files = [
+        "CHANGELOG.md",
         "README.md",
         "gradle.properties",
         "patches-bundle.json",
@@ -34,6 +35,7 @@ def test_dirty_file_classification():
         "scripts/publish-release.py",
     ]
     assert mod.changed_metadata_files(files) == [
+        "CHANGELOG.md",
         "README.md",
         "gradle.properties",
         "patches-bundle.json",
