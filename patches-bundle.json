@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-17T20:03:57",
-  "description": "Fixed Back navigation from Search by preserving the calling Boost activity.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-82/patches-1.4.82.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-82/patches-1.4.82.mpp.asc",
-  "version": "1.4.82"
+  "created_at": "2026-07-17T23:06:48",
+  "description": "Boost for Reddit\n\n- Autoplay the selected animated gallery item after swiping settles.\n- Prevent neighboring pages and player surfaces from flickering during rapid swipes.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-83/patches-1.4.83.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-83/patches-1.4.83.mpp.asc",
+  "version": "1.4.83"
 }

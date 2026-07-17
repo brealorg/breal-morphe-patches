@@ -1,6 +1,13 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.83](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-82...morphe-patches-83) (2026-07-17)
+
+* **Boost for Reddit:** Boost for Reddit
+
+- Autoplay the selected animated gallery item after swiping settles.
+- Prevent neighboring pages and player surfaces from flickering during rapid swipes.
+
 ## [1.4.82](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-81...morphe-patches-82) (2026-07-17)
 
 * **Boost for Reddit:** Fixed Back navigation from Search by preserving the calling Boost activity.
