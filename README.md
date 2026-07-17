@@ -63,14 +63,14 @@ Preferred Morphe source setup is the deep link below. Raw `patches-bundle.json` 
 
 | Field | Value |
 |---|---|
-| Version | `1.4.75` |
-| Release tag | `morphe-patches-75` |
-| Asset | `patches-1.4.75.mpp` |
-| SHA256 | `5aaf77a5d63254a9556fdb5a63c522f9dd3d45417795c589e1eb8b4f0de1a42f` |
+| Version | `1.4.76` |
+| Release tag | `morphe-patches-76` |
+| Asset | `patches-1.4.76.mpp` |
+| SHA256 | `62938c0ed7f1357107a079d54e1c59b4d99645144b2d5f91c8882ba7b57af5c7` |
 
-SHA256: `5aaf77a5d63254a9556fdb5a63c522f9dd3d45417795c589e1eb8b4f0de1a42f`
+SHA256: `62938c0ed7f1357107a079d54e1c59b4d99645144b2d5f91c8882ba7b57af5c7`
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-75/patches-1.4.75.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-76/patches-1.4.76.mpp` |
 
 ## What this bundle does
 
@@ -103,7 +103,7 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.75` • `main` • 47 unique patches • 99 package entries
+> **Patch source version:** `1.4.76` • `main` • 47 unique patches • 99 package entries
 
 <details>
 <summary><strong>Boost for Reddit</strong> • 38 patches</summary>
@@ -136,7 +136,7 @@ Included Imgur patches:
 | [Fix Boost target SDK 35 compatibility](#fix-boost-target-sdk-35-compatibility) | Sets Boost for Reddit's target SDK to 35 and fixes BillingClient receiver registration for newer Android versions. |  |
 | [Fix Boost YouTube playback fallback](#fix-boost-youtube-playback-fallback) | Opens the original YouTube link externally when Boost's legacy embedded YouTube player is unavailable. |  |
 | [Fix download completed notification visibility](#fix-download-completed-notification-visibility) | Moves completed download notifications to a separate default-importance channel so download completion is visible while progress notifications remain low-priority. |  |
-| [Fix Hide crash](#fix-hide-crash) | Prevents Boost from crashing when Hide receives an invalid feed/list index. |  |
+| [Fix Hide crash](#fix-hide-crash) | Stabilizes Boost feed position handling and prevents invalid-index crashes when hiding read posts. |  |
 | [Fix missing audio in video downloads](#fix-missing-audio-in-video-downloads) | Fixes audio missing in videos downloaded from v.redd.it. |  |
 | [Fix Random subreddit](#fix-random-subreddit) | Normalizes Boost's broken r/random route by resolving a live non-NSFW subreddit through Reddit search and subscriber-count filtering. |  |
 | [Fix Redgifs API](#fix-redgifs-api) |  |  |
@@ -511,16 +511,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.75` is prepared and locally verified with:
+Release `1.4.76` is prepared and locally verified with:
 
-- Release tag `morphe-patches-75`.
+- Release tag `morphe-patches-76`.
 - Local built MPP SHA256 matching README.
-`5aaf77a5d63254a9556fdb5a63c522f9dd3d45417795c589e1eb8b4f0de1a42f`
-- `patches-bundle.json` returning version `1.4.75`.
-- `patches-bundle.json` pointing to the `morphe-patches-75` asset.
+`62938c0ed7f1357107a079d54e1c59b4d99645144b2d5f91c8882ba7b57af5c7`
+- `patches-bundle.json` returning version `1.4.76`.
+- `patches-bundle.json` pointing to the `morphe-patches-76` asset.
 - Expected release asset:
-`patches-1.4.75.mpp`
-- `5aaf77a5d63254a9556fdb5a63c522f9dd3d45417795c589e1eb8b4f0de1a42f  patches-1.4.75.mpp`
+`patches-1.4.76.mpp`
+- `62938c0ed7f1357107a079d54e1c59b4d99645144b2d5f91c8882ba7b57af5c7  patches-1.4.76.mpp`
 
 ## Development notes
 

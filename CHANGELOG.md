@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.76](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-75...morphe-patches-76) (2026-07-17)
+
+* **Boost for Reddit:** Bug Fixes: Marking a Boost post as read now removes the correct post immediately while preserving invalid-index crash protection across feed variants.
+
 ## [1.4.75](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-74...morphe-patches-75) (2026-07-16)
 
 * **Boost for Reddit:** Boost: Open YouTube links externally when the legacy embedded player service is unavailable.

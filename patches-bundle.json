@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-16T23:32:07",
-  "description": "Boost: Open YouTube links externally when the legacy embedded player service is unavailable.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-75/patches-1.4.75.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-75/patches-1.4.75.mpp.asc",
-  "version": "1.4.75"
+  "created_at": "2026-07-17T10:04:12",
+  "description": "Bug Fixes: Marking a Boost post as read now removes the correct post immediately while preserving invalid-index crash protection across feed variants.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-76/patches-1.4.76.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-76/patches-1.4.76.mpp.asc",
+  "version": "1.4.76"
 }
