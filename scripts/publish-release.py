@@ -18,10 +18,11 @@ from typing import Any
 ROOT = Path.cwd()
 
 ALLOWED_PREPARED_METADATA_FILES = {
+    "CHANGELOG.md",
+    "README.md",
     "gradle.properties",
     "patches-bundle.json",
     "patches-list.json",
-    "README.md",
 }
 
 REQUIRED_MPP_ENTRIES = {

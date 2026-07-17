@@ -247,16 +247,16 @@ jobs:
         run: |
           set -euo pipefail
 
-          git diff --check -- gradle.properties patches-bundle.json patches-list.json README.md
+          git diff --check -- CHANGELOG.md README.md gradle.properties patches-bundle.json patches-list.json
 
-          UNEXPECTED="$(git diff --name-only | grep -Ev '^(gradle\.properties|patches-bundle\.json|patches-list\.json|README\.md)$' || true)"
+          UNEXPECTED="$(git diff --name-only | grep -Ev '^(CHANGELOG\.md|README\.md|gradle\.properties|patches-bundle\.json|patches-list\.json)$' || true)"
           if [ -n "$UNEXPECTED" ]; then
             echo "Unexpected prepared file changes:"
             printf '%s\n' "$UNEXPECTED"
             exit 1
           fi
 
-          git --no-pager diff -- gradle.properties patches-bundle.json patches-list.json README.md | sed -n '1,280p'
+          git --no-pager diff -- CHANGELOG.md README.md gradle.properties patches-bundle.json patches-list.json | sed -n '1,280p'
           git --no-pager status -sb
 
       - name: Stop before publish
@@ -275,7 +275,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add gradle.properties patches-bundle.json patches-list.json README.md
+          git add CHANGELOG.md README.md gradle.properties patches-bundle.json patches-list.json
           git --no-pager diff --cached --name-only
 
           git commit -m "Prepare Morphe patch bundle $VERSION [skip ci]"
