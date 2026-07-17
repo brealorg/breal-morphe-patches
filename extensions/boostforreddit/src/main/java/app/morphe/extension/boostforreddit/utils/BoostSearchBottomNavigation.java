@@ -68,7 +68,7 @@ public final class BoostSearchBottomNavigation {
     private static final String CANONICAL_NAV_PREVIOUS_MARKER =
             "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_V10011_REMOVE_HOME_UNDERLAY_LOOP";
     private static volatile String CANONICAL_NAV_MARKER =
-            "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_V10027_CUTOUT_SURFACE_FILL";
+            "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_V10028_STABLE_ROOT_INSET";
     private static final String HOME_RESELECT_TOP_MARKER =
             "MORPHE_BOOST_HOME_RESELECT_FAB_GO_TOP_V2";
     private static final java.util.WeakHashMap<View, Boolean>
@@ -671,54 +671,150 @@ public final class BoostSearchBottomNavigation {
             final View navigation,
             WindowInsets insets
     ) {
-        int bottomInset = insets == null
-                ? resolveNavigationInsetBottom(
-                        activity,
-                        activity.getWindow().getDecorView()
-                )
-                : (
-                    Build.VERSION.SDK_INT >= 30
-                            ? insets.getInsets(
-                                WindowInsets.Type.navigationBars()
-                            ).bottom
-                            : insets.getSystemWindowInsetBottom()
-                );
+        final View decor = activity
+                .getWindow()
+                .getDecorView();
+
+        int reportedInset = 0;
+
+        if (insets != null) {
+            reportedInset = Build.VERSION.SDK_INT >= 30
+                    ? insets.getInsets(
+                            WindowInsets.Type.navigationBars()
+                    ).bottom
+                    : insets.getSystemWindowInsetBottom();
+        }
+
+        int rootInset = resolveNavigationInsetBottom(
+                activity,
+                decor
+        );
+
+        int previousInset = Math.max(
+                0,
+                container.getPaddingBottom()
+        );
+
+        /*
+         * Some OEM implementations first deliver the correct navigation
+         * inset and then dispatch an already-consumed zero inset to this
+         * decor-owned child. Do not allow that transient zero to erase a
+         * previously confirmed system-navigation reservation.
+         */
+        int effectiveInset = Math.max(
+                reportedInset,
+                rootInset
+        );
+
+        if (effectiveInset == 0 && previousInset > 0) {
+            effectiveInset = previousInset;
+        }
 
         int navigationHeight = ownedNavigationHeight(activity);
+        boolean geometryChanged = false;
 
-        FrameLayout.LayoutParams containerParams =
-                new FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        navigationHeight + bottomInset,
-                        Gravity.BOTTOM
-                );
+        ViewGroup.LayoutParams rawContainerParams =
+                container.getLayoutParams();
 
-        container.setLayoutParams(containerParams);
-        container.setPadding(0, 0, 0, bottomInset);
+        if (
+                !(rawContainerParams
+                        instanceof FrameLayout.LayoutParams)
+                        || rawContainerParams.width
+                            != ViewGroup.LayoutParams.MATCH_PARENT
+                        || rawContainerParams.height
+                            != navigationHeight + effectiveInset
+                        || (
+                            (FrameLayout.LayoutParams)
+                                    rawContainerParams
+                        ).gravity != Gravity.BOTTOM
+        ) {
+            FrameLayout.LayoutParams containerParams =
+                    new FrameLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            navigationHeight + effectiveInset,
+                            Gravity.BOTTOM
+                    );
 
-        FrameLayout.LayoutParams navigationParams =
-                new FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        navigationHeight,
-                        Gravity.TOP
-                );
+            container.setLayoutParams(containerParams);
+            geometryChanged = true;
+        }
 
-        navigation.setLayoutParams(navigationParams);
-        navigation.setTranslationY(0.0f);
-        navigation.setAlpha(1.0f);
-        navigation.setVisibility(View.VISIBLE);
+        if (
+                container.getPaddingLeft() != 0
+                        || container.getPaddingTop() != 0
+                        || container.getPaddingRight() != 0
+                        || container.getPaddingBottom()
+                            != effectiveInset
+        ) {
+            container.setPadding(
+                    0,
+                    0,
+                    0,
+                    effectiveInset
+            );
+            geometryChanged = true;
+        }
 
-        Log.i(
-                TAG,
-                "decor navigation geometry marker="
-                        + CANONICAL_NAV_MARKER
-                        + " navigationHeight="
-                        + navigationHeight
-                        + " bottomInset="
-                        + bottomInset
-                        + " activity="
-                        + activity.getClass().getName()
-        );
+        ViewGroup.LayoutParams rawNavigationParams =
+                navigation.getLayoutParams();
+
+        if (
+                !(rawNavigationParams
+                        instanceof FrameLayout.LayoutParams)
+                        || rawNavigationParams.width
+                            != ViewGroup.LayoutParams.MATCH_PARENT
+                        || rawNavigationParams.height
+                            != navigationHeight
+                        || (
+                            (FrameLayout.LayoutParams)
+                                    rawNavigationParams
+                        ).gravity != Gravity.TOP
+        ) {
+            FrameLayout.LayoutParams navigationParams =
+                    new FrameLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            navigationHeight,
+                            Gravity.TOP
+                    );
+
+            navigation.setLayoutParams(navigationParams);
+            geometryChanged = true;
+        }
+
+        if (Float.compare(navigation.getTranslationY(), 0.0f) != 0) {
+            navigation.setTranslationY(0.0f);
+            geometryChanged = true;
+        }
+
+        if (Float.compare(navigation.getAlpha(), 1.0f) != 0) {
+            navigation.setAlpha(1.0f);
+            geometryChanged = true;
+        }
+
+        if (navigation.getVisibility() != View.VISIBLE) {
+            navigation.setVisibility(View.VISIBLE);
+            geometryChanged = true;
+        }
+
+        if (geometryChanged) {
+            Log.i(
+                    TAG,
+                    "decor navigation geometry marker="
+                            + CANONICAL_NAV_MARKER
+                            + " navigationHeight="
+                            + navigationHeight
+                            + " reportedInset="
+                            + reportedInset
+                            + " rootInset="
+                            + rootInset
+                            + " previousInset="
+                            + previousInset
+                            + " effectiveInset="
+                            + effectiveInset
+                            + " activity="
+                            + activity.getClass().getName()
+            );
+        }
     }
 
     private static void normalizeOwnedNavigationInsets(
