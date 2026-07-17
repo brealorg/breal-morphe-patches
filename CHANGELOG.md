@@ -1,6 +1,12 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.79](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-78...morphe-patches-79) (2026-07-17)
+
+* **Boost for Reddit:** Bug Fixes
+
+- Static inline image previews now open in Boost's canonical image viewer, keeping toolbar controls correctly positioned and functional.
+
 ## [1.4.78](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-77...morphe-patches-78) (2026-07-17)
 
 * **Boost for Reddit:** Restore Boost Home button reselection so tapping the already-selected Home tab returns the feed to the top.
