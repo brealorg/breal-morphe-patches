@@ -69,6 +69,8 @@ public final class BoostSearchBottomNavigation {
             "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_V10011_REMOVE_HOME_UNDERLAY_LOOP";
     private static volatile String CANONICAL_NAV_MARKER =
             "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_V10027_CUTOUT_SURFACE_FILL";
+    private static final String HOME_RESELECT_TOP_MARKER =
+            "MORPHE_BOOST_HOME_RESELECT_FAB_GO_TOP_V2";
     private static final java.util.WeakHashMap<View, Boolean>
             SUBREDDIT_SURFACE_GUARDS =
                     new java.util.WeakHashMap<>();
@@ -3250,7 +3252,11 @@ public final class BoostSearchBottomNavigation {
                                     (MenuItem) args[0];
 
                             boolean handled =
-                                    handleItem(
+                                    dispatchHomeGoToTop(
+                                            activity,
+                                            item
+                                    )
+                                    || handleItem(
                                             activity,
                                             item
                                     );
@@ -3298,6 +3304,87 @@ public final class BoostSearchBottomNavigation {
         );
 
         return "setOnItemReselectedListener";
+    }
+
+    private static boolean dispatchHomeGoToTop(
+            Activity activity,
+            MenuItem item
+    ) {
+        if (
+                activity == null
+                        || item == null
+                        || !MAIN_ACTIVITY.equals(
+                                activity.getClass().getName()
+                        )
+        ) {
+            return false;
+        }
+
+        int homeId = resourceId(
+                activity,
+                "item_home",
+                "id"
+        );
+
+        if (
+                homeId == 0
+                        || item.getItemId() != homeId
+        ) {
+            return false;
+        }
+
+        try {
+            int goTopId = resourceId(
+                    activity,
+                    "subreddit_fab_go_top",
+                    "id"
+            );
+
+            if (goTopId == 0) {
+                throw new IllegalStateException(
+                        "subreddit_fab_go_top resource unavailable"
+                );
+            }
+
+            View goTop = activity.findViewById(goTopId);
+
+            if (goTop == null) {
+                throw new IllegalStateException(
+                        "subreddit_fab_go_top view unavailable"
+                );
+            }
+
+            /*
+             * Reuse Boost's existing and independently working Go to top
+             * action. performClick() invokes the same listener as the FAB
+             * submenu button without duplicating feed internals.
+             */
+            boolean clicked = goTop.performClick();
+
+            Log.i(
+                    TAG,
+                    "Home reselect dispatched to FAB Go to top marker="
+                            + HOME_RESELECT_TOP_MARKER
+                            + " clicked="
+                            + clicked
+                            + " visibility="
+                            + goTop.getVisibility()
+                            + " enabled="
+                            + goTop.isEnabled()
+                            + " viewClass="
+                            + goTop.getClass().getName()
+            );
+
+            return clicked;
+        } catch (Throwable error) {
+            Log.e(
+                    TAG,
+                    "Home reselect FAB Go to top failed marker="
+                            + HOME_RESELECT_TOP_MARKER,
+                    error
+            );
+            return false;
+        }
     }
 
     private static boolean handleItem(
