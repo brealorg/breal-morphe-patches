@@ -7,6 +7,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "scripts" / "publish-release.py"
+WORKFLOW = ROOT / ".github" / "workflows" / "release.yml"
+PREPARE = ROOT / "scripts" / "prepare-release.py"
+
+EXPECTED_METADATA_FILES = (
+    "CHANGELOG.md",
+    "README.md",
+    "gradle.properties",
+    "patches-bundle.json",
+    "patches-list.json",
+)
 
 
 def load_module():
@@ -44,6 +54,65 @@ def test_dirty_file_classification():
     assert mod.unexpected_changed_files(files) == ["scripts/publish-release.py"]
 
 
+def test_release_metadata_contract_is_aligned():
+    mod = load_module()
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    prepare = PREPARE.read_text(encoding="utf-8")
+    metadata = " ".join(EXPECTED_METADATA_FILES)
+
+    assert mod.ALLOWED_PREPARED_METADATA_FILES == set(EXPECTED_METADATA_FILES)
+    assert f"git diff --check -- {metadata}" in workflow
+    assert f"git add {metadata}" in workflow
+    assert f"git --no-pager diff -- {metadata}" in workflow
+    assert f"git --no-pager diff -- {metadata}" in prepare
+    assert f"git add {metadata}" in prepare
+    assert (
+        "grep -Ev '^(CHANGELOG\\.md|README\\.md|gradle\\.properties|"
+        "patches-bundle\\.json|patches-list\\.json)$'"
+    ) in workflow
+
+
+def test_push_refs_is_one_atomic_transaction():
+    mod = load_module()
+    calls = []
+    mod.run = lambda command: calls.append(command)
+
+    mod.push_refs(
+        "origin",
+        "main",
+        ["dev", "main"],
+        "morphe-patches-83",
+        dry_run=False,
+    )
+
+    assert calls == [[
+        "git",
+        "push",
+        "--atomic",
+        "origin",
+        "HEAD:refs/heads/main",
+        "HEAD:refs/heads/dev",
+        "refs/tags/morphe-patches-83:refs/tags/morphe-patches-83",
+    ]]
+
+
+def test_workflow_and_manual_hint_use_atomic_release_push():
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    prepare = PREPARE.read_text(encoding="utf-8")
+
+    assert "git push --atomic origin" in workflow
+    assert '"HEAD:refs/heads/main"' in workflow
+    assert '"HEAD:refs/heads/dev"' in workflow
+    assert '"refs/tags/$TAG:refs/tags/$TAG"' in workflow
+    assert "git push origin HEAD:main" not in workflow
+    assert "git push origin HEAD:dev" not in workflow
+    assert "git push origin \"$TAG\"" not in workflow
+    assert (
+        "git push --atomic origin HEAD:refs/heads/main HEAD:refs/heads/dev "
+        "refs/tags/<tag>:refs/tags/<tag>"
+    ) in prepare
+
+
 def test_readme_current_release_table_parser():
     mod = load_module()
     readme = """# Repo
@@ -72,4 +141,7 @@ Release `1.4.46` was earlier.
 if __name__ == "__main__":
     test_default_asset_path_and_name()
     test_dirty_file_classification()
+    test_release_metadata_contract_is_aligned()
+    test_push_refs_is_one_atomic_transaction()
+    test_workflow_and_manual_hint_use_atomic_release_push()
     test_readme_current_release_table_parser()
