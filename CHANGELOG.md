@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.78](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-77...morphe-patches-78) (2026-07-17)
+
+* **Boost for Reddit:** Restore Boost Home button reselection so tapping the already-selected Home tab returns the feed to the top.
+
 ## [1.4.77](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-76...morphe-patches-77) (2026-07-17)
 
 * **Boost for Reddit:** Bug Fixes:
