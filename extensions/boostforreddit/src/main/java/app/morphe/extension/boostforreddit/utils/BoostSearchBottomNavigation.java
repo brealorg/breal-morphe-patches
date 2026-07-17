@@ -87,6 +87,9 @@ public final class BoostSearchBottomNavigation {
     private static final java.util.WeakHashMap<Activity, View>
             DECOR_NAVIGATION_VIEWS =
                     new java.util.WeakHashMap<>();
+    private static final java.util.WeakHashMap<Activity, Integer>
+            INBOX_BADGE_COUNTS =
+                    new java.util.WeakHashMap<>();
     private static final String DECOR_NAVIGATION_CONTAINER_TAG =
             "morphe_boost_decor_owned_navigation_container";
     private static final int UNDERLAY_RETRY_LIMIT = 24;
@@ -846,6 +849,230 @@ public final class BoostSearchBottomNavigation {
         }
     }
 
+    public static void syncInboxBadge(
+            Activity activity,
+            int count
+    ) {
+        if (activity == null) {
+            return;
+        }
+
+        int normalizedCount = Math.max(0, count);
+
+        synchronized (INBOX_BADGE_COUNTS) {
+            INBOX_BADGE_COUNTS.put(
+                    activity,
+                    normalizedCount
+            );
+        }
+
+        View navigation;
+
+        synchronized (DECOR_NAVIGATION_VIEWS) {
+            navigation = DECOR_NAVIGATION_VIEWS.get(activity);
+        }
+
+        if (navigation == null) {
+            Log.i(
+                    TAG,
+                    "inbox badge count stored marker=MORPHE_BOOST_INBOX_BADGE_SYNC_V2_ENTRY_HOOK"
+                            + " count="
+                            + normalizedCount
+                            + " activity="
+                            + activity.getClass().getName()
+            );
+            return;
+        }
+
+        try {
+            applyInboxBadge(
+                    activity,
+                    navigation,
+                    normalizedCount
+            );
+        } catch (Throwable error) {
+            Log.e(
+                    TAG,
+                    "inbox badge synchronization failed marker=MORPHE_BOOST_INBOX_BADGE_SYNC_V2_ENTRY_HOOK"
+                            + " count="
+                            + normalizedCount,
+                    error
+            );
+        }
+    }
+
+    private static void applyStoredInboxBadge(
+            Activity activity,
+            View navigation
+    ) {
+        Integer count;
+
+        synchronized (INBOX_BADGE_COUNTS) {
+            count = INBOX_BADGE_COUNTS.get(activity);
+        }
+
+        if (count == null) {
+            return;
+        }
+
+        try {
+            applyInboxBadge(
+                    activity,
+                    navigation,
+                    count
+            );
+        } catch (Throwable error) {
+            Log.e(
+                    TAG,
+                    "stored inbox badge application failed marker=MORPHE_BOOST_INBOX_BADGE_SYNC_V2_ENTRY_HOOK",
+                    error
+            );
+        }
+    }
+
+    private static void applyInboxBadge(
+            Activity activity,
+            View navigation,
+            int count
+    ) throws Exception {
+        int inboxId = resourceId(
+                activity,
+                "item_inbox",
+                "id"
+        );
+
+        if (inboxId == 0) {
+            throw new IllegalStateException(
+                    "item_inbox resource unavailable"
+            );
+        }
+
+        if (count <= 0) {
+            Method removeBadge = findMethod(
+                    navigation.getClass(),
+                    "g",
+                    int.class
+            );
+
+            if (removeBadge == null) {
+                removeBadge = findMethod(
+                        navigation.getClass(),
+                        "removeBadge",
+                        int.class
+                );
+            }
+
+            if (removeBadge == null) {
+                throw new NoSuchMethodException(
+                        "NavigationBarView.removeBadge"
+                );
+            }
+
+            removeBadge.setAccessible(true);
+            removeBadge.invoke(
+                    navigation,
+                    inboxId
+            );
+
+            Log.i(
+                    TAG,
+                    "inbox badge removed marker=MORPHE_BOOST_INBOX_BADGE_SYNC_V2_ENTRY_HOOK"
+                            + " activity="
+                            + activity.getClass().getName()
+            );
+            return;
+        }
+
+        Method getOrCreateBadge = findMethod(
+                navigation.getClass(),
+                "e",
+                int.class
+        );
+
+        if (getOrCreateBadge == null) {
+            getOrCreateBadge = findMethod(
+                    navigation.getClass(),
+                    "getOrCreateBadge",
+                    int.class
+            );
+        }
+
+        if (getOrCreateBadge == null) {
+            throw new NoSuchMethodException(
+                    "NavigationBarView.getOrCreateBadge"
+            );
+        }
+
+        getOrCreateBadge.setAccessible(true);
+
+        Object badge = getOrCreateBadge.invoke(
+                navigation,
+                inboxId
+        );
+
+        if (badge == null) {
+            throw new IllegalStateException(
+                    "Inbox BadgeDrawable unavailable"
+            );
+        }
+
+        Method setNumber = findMethod(
+                badge.getClass(),
+                "z",
+                int.class
+        );
+
+        if (setNumber == null) {
+            setNumber = findMethod(
+                    badge.getClass(),
+                    "setNumber",
+                    int.class
+            );
+        }
+
+        Method setVisible = findMethod(
+                badge.getClass(),
+                "C",
+                boolean.class
+        );
+
+        if (setVisible == null) {
+            setVisible = findMethod(
+                    badge.getClass(),
+                    "setVisible",
+                    boolean.class
+            );
+        }
+
+        if (setNumber == null || setVisible == null) {
+            throw new NoSuchMethodException(
+                    "BadgeDrawable number/visibility API"
+            );
+        }
+
+        setNumber.setAccessible(true);
+        setVisible.setAccessible(true);
+
+        setNumber.invoke(
+                badge,
+                count
+        );
+
+        setVisible.invoke(
+                badge,
+                true
+        );
+
+        Log.i(
+                TAG,
+                "inbox badge synchronized marker=MORPHE_BOOST_INBOX_BADGE_SYNC_V2_ENTRY_HOOK"
+                        + " count="
+                        + count
+                        + " activity="
+                        + activity.getClass().getName()
+        );
+    }
+
     private static View ensureDecorOwnedNavigation(
             final Activity activity,
             final View nativeMaterial,
@@ -1050,6 +1277,11 @@ public final class BoostSearchBottomNavigation {
         }
 
         installOwnedCanonicalMenu(
+                activity,
+                navigation
+        );
+
+        applyStoredInboxBadge(
                 activity,
                 navigation
         );

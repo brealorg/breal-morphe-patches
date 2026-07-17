@@ -49,3 +49,12 @@ internal val drawerBottomNavigationVisibilityFingerprint = Fingerprint(
             method.name == "p3"
     },
 )
+internal val inboxCountUpdateFingerprint = Fingerprint(
+    returnType = "V",
+    parameters = listOf("I"),
+    custom = { method, classDef ->
+        classDef.type ==
+            "Lcom/rubenmayayo/reddit/ui/activities/e;" &&
+            method.name == "N3"
+    },
+)

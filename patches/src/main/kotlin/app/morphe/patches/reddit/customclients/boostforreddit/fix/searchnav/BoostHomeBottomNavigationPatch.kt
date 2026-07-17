@@ -41,5 +41,14 @@ val boostHomeBottomNavigationPatch = bytecodePatch(
                 )
             }
         }
+
+        inboxCountUpdateFingerprint.method.apply {
+            addInstructions(
+                0,
+                """
+                    invoke-static {p0, p1}, $HOME_NAV_EXTENSION_DESCRIPTOR->syncInboxBadge(Landroid/app/Activity;I)V
+                """.trimIndent(),
+            )
+        }
     }
 }
