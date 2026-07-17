@@ -82,6 +82,19 @@ Tested against Boost for Reddit `1.12.12` / versionCode `210011212`.
 
 Current Boost coverage includes keyboard GIF insertion through Android receive-content / Gboard, restored manual GIF URL insertion, code block rendering fixes, comments toolbar cleanup, media tap-action settings, Android 15+ / target SDK 35 compatibility, navigation bar inset fixes, download notification/audio fixes, direct `i.redd.it` GIF handling, Giphy preview/loading fixes, archive/undelete behavior, gallery metadata recovery, Hide crash prevention, and subreddit listing fallback handling.
 
+
+### NSFW and mature-content scope
+
+Restoring or bypassing access to Reddit NSFW communities is not currently within the scope of this project. This is a technical and maintenance decision, not a judgement about legal adult content or the people who use it.
+
+Reddit controls mature-content availability through its servers, API, account state, and age-assurance systems. Boost can only display content that Reddit returns to the authenticated client. Local "show mature content" settings cannot override an API response that rejects, filters, or omits the content.
+
+This project will not implement age-verification bypasses, moderator-status or client-identity workarounds, scraping or proxy services for restricted Reddit content, a replacement random-NSFW discovery service, or dedicated ongoing maintenance of adult-oriented media providers.
+
+The inherited `Fix Redgifs API` patch provides best-effort compatibility with an obsolete client API flow. It does not guarantee access to NSFW communities, availability or reliable playback of individual Redgifs media, or future provider compatibility. See [Issue #12](https://github.com/brealorg/breal-morphe-patches/issues/12) and [Issue #13](https://github.com/brealorg/breal-morphe-patches/issues/13).
+
+An issue is not automatically rejected merely because the affected post is marked NSFW. Generic crashes, layout problems, viewer bugs, and media-routing regressions may still be investigated when the same problem can be reproduced with non-NSFW content, or when Reddit has returned the content successfully and Boost handles it incorrectly.
+
 ### Imgur selected media sharing
 
 Tested against Imgur `7.33.0.0`.
