@@ -15,12 +15,15 @@ import android.view.Gravity;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
+import android.view.WindowManager;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 import android.widget.FrameLayout;
 import android.util.Log;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -47,6 +50,12 @@ public final class BoostSearchBottomNavigation {
             "MORPHE_BOOST_VISIBLE_BOTTOM_NAV_FALLBACK_V751";
     private static volatile String SEARCH_ROUTE_MARKER =
             "MORPHE_BOOST_SEARCH_BACK_STACK_V1_PRESERVE_CALLER";
+    private static final String SEARCH_CONTEXT_MARKER =
+            "MORPHE_BOOST_SEARCH_CONTEXT_ISSUE94_SUBREDDIT_T1_V2";
+    private static final String SEARCH_SCOPE_HINT_MARKER =
+            "MORPHE_BOOST_SEARCH_SCOPE_HINT_ISSUE94_POST_ONCREATE_V2";
+    private static final String SEARCH_RESELECT_MARKER =
+            "MORPHE_BOOST_SEARCH_RESELECT_ISSUE86_V1";
     private static volatile String UNIFIED_MATERIAL_MARKER =
             "MORPHE_BOOST_UNIFIED_MATERIAL_BOTTOM_NAV_V771";
     private static final String CANONICAL_NAV_BASE_MARKER =
@@ -154,6 +163,8 @@ public final class BoostSearchBottomNavigation {
             return;
         }
 
+        scheduleSearchScopeHint(activity);
+
         int fallbackIndex = GO_TO_ACTIVITY.equals(
                 activity.getClass().getName()
         ) ? 2 : 1;
@@ -167,6 +178,96 @@ public final class BoostSearchBottomNavigation {
             INSTALLED.put(
                     activity,
                     Boolean.TRUE
+            );
+        }
+    }
+
+    private static void scheduleSearchScopeHint(
+            final Activity activity
+    ) {
+        if (
+                activity == null
+                        || !SEARCH_ACTIVITY.equals(
+                                activity.getClass().getName()
+                        )
+        ) {
+            return;
+        }
+
+        View decor = activity
+                .getWindow()
+                .getDecorView();
+
+        decor.post(new Runnable() {
+            @Override
+            public void run() {
+                applySearchScopeHint(activity);
+            }
+        });
+    }
+
+    private static void applySearchScopeHint(
+            Activity activity
+    ) {
+        if (
+                activity == null
+                        || !SEARCH_ACTIVITY.equals(
+                                activity.getClass().getName()
+                        )
+        ) {
+            return;
+        }
+
+        try {
+            Intent intent = activity.getIntent();
+            if (intent == null) return;
+
+            Object subscription =
+                    intent.getParcelableExtra("subscription");
+            if (subscription == null) return;
+
+            Field subredditField = findField(
+                    subscription.getClass(),
+                    "b"
+            );
+            if (subredditField == null) return;
+
+            subredditField.setAccessible(true);
+            Object rawSubreddit =
+                    subredditField.get(subscription);
+            if (!(rawSubreddit instanceof String)) return;
+
+            String subreddit =
+                    ((String) rawSubreddit).trim();
+            if (subreddit.length() == 0) return;
+
+            Field inputField = findField(
+                    activity.getClass(),
+                    "searchEditText"
+            );
+            if (inputField == null) return;
+
+            inputField.setAccessible(true);
+            Object input = inputField.get(activity);
+            if (!(input instanceof android.widget.TextView)) return;
+
+            ((android.widget.TextView) input).setHint(
+                    "Search in r/" + subreddit
+            );
+
+            Log.i(
+                    TAG,
+                    "search scope hint applied marker="
+                            + SEARCH_SCOPE_HINT_MARKER
+                            + " subreddit="
+                            + subreddit
+            );
+        } catch (Throwable error) {
+            Log.w(
+                    TAG,
+                    "search scope hint failed marker="
+                            + SEARCH_SCOPE_HINT_MARKER,
+                    error
             );
         }
     }
@@ -3767,6 +3868,14 @@ public final class BoostSearchBottomNavigation {
         int inboxId = resourceId(activity, "item_inbox", "id");
         int profileId = resourceId(activity, "item_profile", "id");
 
+        if (
+                selectedId == searchId
+                        && SEARCH_ACTIVITY.equals(
+                                activity.getClass().getName()
+                        )
+        ) {
+            return focusSearchInput(activity);
+        }
 
         int currentItemId =
                 selectedItemIdForActivity(activity, -1);
@@ -3777,15 +3886,7 @@ public final class BoostSearchBottomNavigation {
         ) {
             return true;
         }
-if (selectedId == searchId) {
-            if (
-                    SEARCH_ACTIVITY.equals(
-                            activity.getClass().getName()
-                    )
-            ) {
-                return true;
-            }
-
+        if (selectedId == searchId) {
             return completeStaticTabTransition(
                     activity,
                     openSearch(activity)
@@ -3822,16 +3923,51 @@ if (selectedId == searchId) {
     private static boolean openSearch(
             Activity activity
     ) {
+        if (activity == null) {
+            return false;
+        }
+
+        if (
+                SEARCH_ACTIVITY.equals(
+                        activity.getClass().getName()
+                )
+        ) {
+            return focusSearchInput(activity);
+        }
+
+        if (SUBREDDIT_ACTIVITY.equals(activity.getClass().getName())) {
         try {
-            if (
-                    activity == null
-                            || SEARCH_ACTIVITY.equals(
-                                    activity.getClass().getName()
-                            )
-            ) {
+            Method nativeSearch = findMethod(
+                    activity.getClass(),
+                    "T1"
+            );
+
+            if (nativeSearch != null) {
+                nativeSearch.setAccessible(true);
+                nativeSearch.invoke(activity);
+
+                Log.i(
+                        TAG,
+                        "native search route marker="
+                                + SEARCH_CONTEXT_MARKER
+                                + " from="
+                                + activity.getClass().getName()
+                );
                 return true;
             }
+        } catch (Throwable error) {
+            Log.w(
+                    TAG,
+                    "native search route failed marker="
+                            + SEARCH_CONTEXT_MARKER
+                            + " from="
+                            + activity.getClass().getName(),
+                    error
+            );
+        }
+        }
 
+        try {
             Class<?> destination = Class.forName(
                     SEARCH_ACTIVITY,
                     false,
@@ -3877,6 +4013,71 @@ if (selectedId == searchId) {
                                             .getClass()
                                             .getName()
                             ),
+                    error
+            );
+            return false;
+        }
+    }
+
+    private static boolean focusSearchInput(
+            final Activity activity
+    ) {
+        if (activity == null) {
+            return false;
+        }
+
+        try {
+            Field field = findField(
+                    activity.getClass(),
+                    "searchEditText"
+            );
+
+            if (field == null) {
+                throw new NoSuchFieldException("searchEditText");
+            }
+
+            field.setAccessible(true);
+            Object value = field.get(activity);
+
+            if (!(value instanceof View)) {
+                throw new IllegalStateException(
+                        "searchEditText is not a View"
+                );
+            }
+
+            final View searchInput = (View) value;
+            searchInput.requestFocus();
+            activity.getWindow().setSoftInputMode(
+                    WindowManager.LayoutParams
+                            .SOFT_INPUT_STATE_ALWAYS_VISIBLE
+            );
+            searchInput.post(new Runnable() {
+                @Override
+                public void run() {
+                    Object service = activity.getSystemService(
+                            Context.INPUT_METHOD_SERVICE
+                    );
+
+                    if (service instanceof InputMethodManager) {
+                        ((InputMethodManager) service).showSoftInput(
+                                searchInput,
+                                InputMethodManager.SHOW_IMPLICIT
+                        );
+                    }
+                }
+            });
+
+            Log.i(
+                    TAG,
+                    "search reselect focused marker="
+                            + SEARCH_RESELECT_MARKER
+            );
+            return true;
+        } catch (Throwable error) {
+            Log.e(
+                    TAG,
+                    "search reselect failed marker="
+                            + SEARCH_RESELECT_MARKER,
                     error
             );
             return false;
@@ -4151,6 +4352,23 @@ if (selectedId == searchId) {
                         parameterTypes
                 );
             } catch (NoSuchMethodException ignored) {
+                current = current.getSuperclass();
+            }
+        }
+
+        return null;
+    }
+
+    private static Field findField(
+            Class<?> type,
+            String name
+    ) {
+        Class<?> current = type;
+
+        while (current != null) {
+            try {
+                return current.getDeclaredField(name);
+            } catch (NoSuchFieldException ignored) {
                 current = current.getSuperclass();
             }
         }

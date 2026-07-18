@@ -149,6 +149,9 @@ jobs:
       - name: Verify Boost Search dedup contract
         run: ./tools/check-boost-search-dedup-contract.sh
 
+      - name: Verify Boost Search routing contract
+        run: ./tools/check-boost-search-route-contract.sh
+
       - name: Cache Gradle
         uses: gradle/actions/setup-gradle@v6
         with:
