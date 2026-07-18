@@ -31,7 +31,8 @@ import java.util.WeakHashMap;
  * fallback contract.
  */
 public final class GalleryAnimatedPreview {
-    public static final String MARKER = "MORPHE_BOOST_GALLERY_ANIMATED_PREVIEW_V7";
+    public static final String MARKER =
+            "MORPHE_BOOST_GALLERY_ANIMATED_PREVIEW_V8_MEDIA_SOURCES";
 
     private static final String LOG_TAG = "GalleryAnimated";
     private static final String PREF_AUTOPLAY_SWIPE = "pref_autoplay_swipe";
@@ -46,6 +47,9 @@ public final class GalleryAnimatedPreview {
 
     private static final int PLAYER_STATE_READY = 3;
     private static final int PLAYER_REPEAT_ALL = 2;
+    private static final int MEDIA_SOURCE_PROGRESSIVE = 0;
+    private static final int MEDIA_SOURCE_DASH = 2;
+    private static final int MEDIA_SOURCE_HLS = 3;
     private static final int PAGER_STATE_IDLE = 0;
     private static final int READY_POLL_INTERVAL_MS = 100;
     private static final int READY_POLL_LIMIT = 150;
@@ -169,7 +173,8 @@ public final class GalleryAnimatedPreview {
             }
 
             page.animatedUrl = callString(model, "getMp4");
-            page.eligible = callBoolean(model, "isAnimated") && isDirectGif(page.animatedUrl);
+            page.eligible = callBoolean(model, "isAnimated")
+                    && isSupportedMediaUrl(page.animatedUrl);
             if (shouldHidePlayButton(page)) {
                 hidePlayButton(page);
             } else {
@@ -194,6 +199,7 @@ public final class GalleryAnimatedPreview {
                     LOG_TAG,
                     MARKER + ": bind position=" + page.position
                             + " eligible=" + page.eligible
+                            + " source=" + mediaSourceName(mediaSourceType(page.animatedUrl))
             );
             updatePage(page);
         } catch (Throwable throwable) {
@@ -423,7 +429,7 @@ public final class GalleryAnimatedPreview {
             playerViewClass.getMethod("setPlayer", playerInterface)
                     .invoke(playerViewObject, player);
 
-            Object mediaSource = buildProgressiveMediaSource(context, page.animatedUrl);
+            Object mediaSource = buildMediaSource(context, page.animatedUrl);
             Class<?> exoPlayerInterface = Class.forName("com.google.android.exoplayer2.k");
             Class<?> mediaSourceInterface = Class.forName("s4.t");
 
@@ -435,7 +441,11 @@ public final class GalleryAnimatedPreview {
 
             int generation = ++page.playerGeneration;
             scheduleReadyPoll(page, generation);
-            Log.d(LOG_TAG, MARKER + ": exoplayer prepared position=" + page.position);
+            Log.d(
+                    LOG_TAG,
+                    MARKER + ": exoplayer prepared position=" + page.position
+                            + " source=" + mediaSourceName(mediaSourceType(page.animatedUrl))
+            );
             return true;
         } catch (Throwable throwable) {
             logFailure("inline-player-start", throwable);
@@ -523,7 +533,7 @@ public final class GalleryAnimatedPreview {
         return null;
     }
 
-    private static Object buildProgressiveMediaSource(Context context, String url)
+    private static Object buildMediaSource(Context context, String url)
             throws Exception {
         Class<?> boostHttpClass = Class.forName("tb.a");
         Method boostHttpMethod = boostHttpClass.getDeclaredMethod("b");
@@ -557,6 +567,42 @@ public final class GalleryAnimatedPreview {
                 .invoke(null, Uri.parse(url));
 
         Class<?> dataSourceFactoryInterface = Class.forName("m5.j$a");
+        int sourceType = mediaSourceType(url);
+        if (sourceType == MEDIA_SOURCE_DASH) {
+            Class<?> dashChunkSourceFactoryInterface = Class.forName(
+                    "com.google.android.exoplayer2.source.dash.a$a"
+            );
+            Class<?> dashChunkSourceFactoryClass = Class.forName(
+                    "com.google.android.exoplayer2.source.dash.c$a"
+            );
+            Object dashChunkSourceFactory = dashChunkSourceFactoryClass
+                    .getConstructor(dataSourceFactoryInterface)
+                    .newInstance(dataSourceFactory);
+
+            Class<?> dashMediaSourceFactoryClass = Class.forName(
+                    "com.google.android.exoplayer2.source.dash.DashMediaSource$Factory"
+            );
+            Object dashMediaSourceFactory = dashMediaSourceFactoryClass
+                    .getConstructor(
+                            dashChunkSourceFactoryInterface,
+                            dataSourceFactoryInterface
+                    )
+                    .newInstance(dashChunkSourceFactory, dataSourceFactory);
+            return dashMediaSourceFactoryClass.getMethod("a", mediaItemClass)
+                    .invoke(dashMediaSourceFactory, mediaItem);
+        }
+
+        if (sourceType == MEDIA_SOURCE_HLS) {
+            Class<?> hlsMediaSourceFactoryClass = Class.forName(
+                    "com.google.android.exoplayer2.source.hls.HlsMediaSource$Factory"
+            );
+            Object hlsMediaSourceFactory = hlsMediaSourceFactoryClass
+                    .getConstructor(dataSourceFactoryInterface)
+                    .newInstance(dataSourceFactory);
+            return hlsMediaSourceFactoryClass.getMethod("a", mediaItemClass)
+                    .invoke(hlsMediaSourceFactory, mediaItem);
+        }
+
         Class<?> progressiveFactoryClass = Class.forName("s4.h0$b");
         Object progressiveFactory = progressiveFactoryClass
                 .getConstructor(dataSourceFactoryInterface)
@@ -798,11 +844,37 @@ public final class GalleryAnimatedPreview {
         }
     }
 
-    private static boolean isDirectGif(String value) {
-        if (value == null) return false;
-        int query = value.indexOf('?');
-        String path = query >= 0 ? value.substring(0, query) : value;
-        return path.toLowerCase(java.util.Locale.ROOT).endsWith(".gif");
+    private static boolean isSupportedMediaUrl(String value) {
+        if (value == null || value.length() == 0) return false;
+        try {
+            Uri uri = Uri.parse(value);
+            String scheme = uri.getScheme();
+            String host = uri.getHost();
+            return ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
+                    && host != null
+                    && host.length() > 0;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    private static int mediaSourceType(String value) {
+        if (value == null) return MEDIA_SOURCE_PROGRESSIVE;
+        try {
+            String path = Uri.parse(value).getPath();
+            if (path == null) return MEDIA_SOURCE_PROGRESSIVE;
+            path = path.toLowerCase(java.util.Locale.ROOT);
+            if (path.endsWith(".mpd")) return MEDIA_SOURCE_DASH;
+            if (path.endsWith(".m3u8")) return MEDIA_SOURCE_HLS;
+        } catch (Throwable ignored) {
+        }
+        return MEDIA_SOURCE_PROGRESSIVE;
+    }
+
+    private static String mediaSourceName(int sourceType) {
+        if (sourceType == MEDIA_SOURCE_DASH) return "dash";
+        if (sourceType == MEDIA_SOURCE_HLS) return "hls";
+        return "progressive";
     }
 
     private static void prune(Session session) {

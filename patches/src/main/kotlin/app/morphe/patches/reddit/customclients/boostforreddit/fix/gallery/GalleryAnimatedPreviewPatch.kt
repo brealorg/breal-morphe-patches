@@ -28,7 +28,7 @@ private const val GALLERY_PREVIEW_EXTENSION_DESCRIPTOR =
 @Suppress("unused")
 val galleryAnimatedPreviewPatch = bytecodePatch(
     name = "Animate media in Boost gallery previews",
-    description = "Autoplays the selected Reddit gallery GIF while preserving Boost's poster, data preferences, and full-screen media route.",
+    description = "Autoplays selected Reddit gallery GIF and video media while preserving Boost's poster, data preferences, and full-screen media route.",
     default = true,
 ) {
     dependsOn(sharedExtensionPatch)
