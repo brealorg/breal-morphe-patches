@@ -1,6 +1,13 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.90](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-89...morphe-patches-90) (2026-07-18)
+
+* **Boost for Reddit:** Bug Fixes
+
+- Preserved subreddit search context and restored reliable Search routing.
+- Tapping the selected Search destination again now opens the keyboard.
+
 ## [1.4.89](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-88...morphe-patches-89) (2026-07-18)
 
 * **Boost for Reddit:** Bug Fixes
