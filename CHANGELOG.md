@@ -1,6 +1,12 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.88](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-87...morphe-patches-88) (2026-07-18)
+
+* **Boost for Reddit:** Bug Fixes
+
+- Stabilized Boost bottom-navigation state, routing, visibility and unread Inbox badge across all five destinations.
+
 ## [1.4.87](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-86...morphe-patches-87) (2026-07-18)
 
 * **Boost for Reddit:** Bug Fixes

@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-18T14:10:21",
-  "description": "Bug Fixes\n\n• Prevented duplicate Active subreddits sections in Boost Search.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-87/patches-1.4.87.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-87/patches-1.4.87.mpp.asc",
-  "version": "1.4.87"
+  "created_at": "2026-07-18T16:34:13",
+  "description": "Bug Fixes\n\n- Stabilized Boost bottom-navigation state, routing, visibility and unread Inbox badge across all five destinations.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-88/patches-1.4.88.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-88/patches-1.4.88.mpp.asc",
+  "version": "1.4.88"
 }
