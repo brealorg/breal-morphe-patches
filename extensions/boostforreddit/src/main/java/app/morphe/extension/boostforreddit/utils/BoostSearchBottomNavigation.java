@@ -18,6 +18,7 @@ import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 import android.widget.FrameLayout;
@@ -78,6 +79,10 @@ public final class BoostSearchBottomNavigation {
             "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_V10011_REMOVE_HOME_UNDERLAY_LOOP";
     private static volatile String CANONICAL_NAV_MARKER =
             "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_V10028_STABLE_ROOT_INSET";
+    private static final String NATIVE_COORDINATOR_MARKER =
+            "MORPHE_BOOST_NATIVE_COORDINATOR_BOTTOM_NAV_ISSUE97_V1";
+    private static final String NATIVE_COORDINATOR_INSET_MARKER =
+            "MORPHE_BOOST_NATIVE_COORDINATOR_SEARCH_GOTO_INSET_V2";
     private static final String NAVIGATION_VISIBILITY_STATE_MARKER =
             "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_VISIBILITY_STATE_V1";
     private static final String ACTIVITY_STACK_STATE_MARKER =
@@ -1129,6 +1134,10 @@ public final class BoostSearchBottomNavigation {
         }
 
         if (navigation == null) {
+            navigation = findNativeMaterialNavigation(activity);
+        }
+
+        if (navigation == null) {
             Log.i(
                     TAG,
                     "inbox badge count stored marker=MORPHE_BOOST_INBOX_BADGE_SYNC_V2_ENTRY_HOOK"
@@ -1819,6 +1828,178 @@ public final class BoostSearchBottomNavigation {
         );
     }
 
+
+    private static String nativeCoordinatorBehaviorName(
+            View navigation
+    ) {
+        if (navigation == null) {
+            return "navigation-null";
+        }
+
+        try {
+            ViewGroup.LayoutParams params =
+                    navigation.getLayoutParams();
+
+            if (params == null) {
+                return "layout-params-null";
+            }
+
+            for (Method method : params.getClass().getMethods()) {
+                if (
+                        "getBehavior".equals(method.getName())
+                                && method.getParameterTypes().length == 0
+                ) {
+                    Object behavior = method.invoke(params);
+
+                    return behavior == null
+                            ? "none"
+                            : behavior.getClass().getName();
+                }
+            }
+
+            return "unsupported-layout-params:"
+                    + params.getClass().getName();
+        } catch (Throwable error) {
+            return "error:" + error.getClass().getSimpleName();
+        }
+    }
+
+    private static View configureNativeCanonicalNavigation(
+            Activity activity,
+            View nativeMaterial,
+            boolean visible
+    ) throws Exception {
+        if (activity == null || nativeMaterial == null) {
+            throw new IllegalStateException(
+                    "Native Material navigation unavailable"
+            );
+        }
+
+        int legacyId = resourceId(
+                activity,
+                "bottom_navigation",
+                "id"
+        );
+
+        View legacy = legacyId == 0
+                ? null
+                : activity.findViewById(legacyId);
+
+        if (legacy != null && legacy != nativeMaterial) {
+            legacy.setEnabled(false);
+            legacy.setClickable(false);
+            legacy.setVisibility(View.GONE);
+        }
+
+        /*
+         * Follow Boost for Lemmy and Material's CoordinatorLayout contract:
+         * the same BottomNavigationView owns rendering, badges, selection,
+         * nested-scroll behavior and translation. Do not cancel animations,
+         * replace its behavior, mirror translation or move it into decor.
+         */
+        nativeMaterial.setEnabled(true);
+        nativeMaterial.setClickable(true);
+        nativeMaterial.setAlpha(1.0f);
+
+        String activityName =
+                activity.getClass().getName();
+
+        if (
+                SEARCH_ACTIVITY.equals(activityName)
+                        || GO_TO_ACTIVITY.equals(activityName)
+        ) {
+            /*
+             * These layouts already stop above the system gesture area.
+             * Material otherwise adds the same bottom inset again, moving
+             * the entire native navigation row one inset too high.
+             */
+            normalizeBottomInset(nativeMaterial);
+
+            Log.i(
+                    TAG,
+                    "native Search/GoTo inset normalized marker="
+                            + NATIVE_COORDINATOR_INSET_MARKER
+                            + " activity="
+                            + activityName
+                            + " paddingBottom="
+                            + nativeMaterial.getPaddingBottom()
+            );
+        }
+
+        installOwnedCanonicalMenu(
+                activity,
+                nativeMaterial
+        );
+        applyStoredInboxBadge(
+                activity,
+                nativeMaterial
+        );
+
+        FrameLayout obsoleteContainer;
+
+        synchronized (DECOR_NAVIGATION_CONTAINERS) {
+            obsoleteContainer =
+                    DECOR_NAVIGATION_CONTAINERS.remove(activity);
+            DECOR_NAVIGATION_VIEWS.put(
+                    activity,
+                    nativeMaterial
+            );
+        }
+
+        if (
+                obsoleteContainer != null
+                        && obsoleteContainer.getParent()
+                            instanceof ViewGroup
+        ) {
+            ((ViewGroup) obsoleteContainer.getParent())
+                    .removeView(obsoleteContainer);
+        }
+
+        nativeMaterial.setVisibility(
+                visible
+                        ? View.VISIBLE
+                        : View.GONE
+        );
+
+        if (visible) {
+            if (Build.VERSION.SDK_INT >= 21) {
+                nativeMaterial.requestApplyInsets();
+            }
+
+            nativeMaterial.requestLayout();
+            nativeMaterial.invalidate();
+        }
+
+        fillLandscapeCutoutSurface(
+                activity,
+                nativeMaterial
+        );
+
+        ViewParent parent = nativeMaterial.getParent();
+
+        Log.i(
+                TAG,
+                "native CoordinatorLayout navigation configured marker="
+                        + NATIVE_COORDINATOR_MARKER
+                        + " activity="
+                        + activity.getClass().getName()
+                        + " visible="
+                        + visible
+                        + " parent="
+                        + (
+                            parent == null
+                                    ? "null"
+                                    : parent.getClass().getName()
+                        )
+                        + " behavior="
+                        + nativeCoordinatorBehaviorName(nativeMaterial)
+                        + " translationY="
+                        + nativeMaterial.getTranslationY()
+        );
+
+        return nativeMaterial;
+    }
+
     public static void enforceMaterialOnlyVisibility(
             Activity activity,
             boolean visible
@@ -1844,25 +2025,36 @@ public final class BoostSearchBottomNavigation {
                 );
             }
 
+            boolean appliedVisible =
+                    visible
+                            && isBottomNavigationPreferenceEnabled(
+                                activity
+                            );
+
             installMainLandscapeCutoutInsetFix(activity);
 
-            View navigation = ensureDecorOwnedNavigation(
-                    activity,
-                    nativeMaterial,
-                    visible
-            );
+            View navigation =
+                    configureNativeCanonicalNavigation(
+                            activity,
+                            nativeMaterial,
+                            appliedVisible
+                    );
+
+            if (appliedVisible) {
+                syncSystemNavigationBar(activity);
+            } else {
+                hideDecorUnderlay(activity);
+            }
 
             Log.i(
                     TAG,
-                    "decor-owned visibility marker="
-                            + CANONICAL_NAV_MARKER
-                            + " nativeRequestedVisible="
+                    "native visibility applied marker="
+                            + NATIVE_COORDINATOR_MARKER
+                            + " requestedVisible="
                             + visible
                             + " appliedVisible="
-                            + visible
-                            + " visibilityStateMarker="
-                            + NAVIGATION_VISIBILITY_STATE_MARKER
-                            + " navigationVisible="
+                            + appliedVisible
+                            + " navigationVisibility="
                             + navigation.getVisibility()
                             + " activity="
                             + activity.getClass().getName()
@@ -1870,8 +2062,8 @@ public final class BoostSearchBottomNavigation {
         } catch (Throwable error) {
             Log.e(
                     TAG,
-                    "decor-owned visibility failed marker="
-                            + CANONICAL_NAV_MARKER,
+                    "native visibility failed marker="
+                            + NATIVE_COORDINATOR_MARKER,
                     error
             );
         }
@@ -2198,7 +2390,9 @@ public final class BoostSearchBottomNavigation {
 
             synchronized (NATIVE_NAVIGATION_VISIBILITY_REQUESTS) {
                 Boolean requested =
-                        NATIVE_NAVIGATION_VISIBILITY_REQUESTS.get(activity);
+                        NATIVE_NAVIGATION_VISIBILITY_REQUESTS.get(
+                                activity
+                        );
 
                 if (requested != null) {
                     requestedVisible = requested;
@@ -2210,23 +2404,12 @@ public final class BoostSearchBottomNavigation {
             requestedVisible =
                     requestedVisible && preferenceEnabled;
 
-            Log.i(
-                    TAG,
-                    "All-activity visibility gate marker="
-                            + "MORPHE_BOOST_BOTTOM_NAV_PREFERENCE_V4C_ALL_ACTIVITIES"
-                            + " preferenceEnabled="
-                            + preferenceEnabled
-                            + " appliedVisible="
-                            + requestedVisible
-                            + " activity="
-                            + activity.getClass().getName()
-            );
-
-            View navigation = ensureDecorOwnedNavigation(
-                    activity,
-                    nativeMaterial,
-                    requestedVisible
-            );
+            View navigation =
+                    configureNativeCanonicalNavigation(
+                            activity,
+                            nativeMaterial,
+                            requestedVisible
+                    );
 
             int selectedItemId = selectedItemIdForActivity(
                     activity,
@@ -2252,32 +2435,26 @@ public final class BoostSearchBottomNavigation {
                     activity,
                     navigation
             );
-
             attachHomeStabilityGuard(
                     activity,
                     navigation,
                     selectedItemId
             );
-            Log.i(
-                    TAG,
-                    "Back-stack selection synchronized marker="
-                            + "MORPHE_BOOST_BOTTOM_NAV_BACK_SELECTION_V3"
-                            + " activity="
-                            + activity.getClass().getName()
+            applyStoredInboxBadge(
+                    activity,
+                    navigation
             );
 
-            navigation.setTranslationY(0.0f);
-            navigation.setAlpha(1.0f);
-            navigation.setVisibility(View.VISIBLE);
-            navigation.requestLayout();
-            navigation.invalidate();
-
-            syncSystemNavigationBar(activity);
+            if (requestedVisible) {
+                syncSystemNavigationBar(activity);
+            } else {
+                hideDecorUnderlay(activity);
+            }
 
             Log.i(
                     TAG,
-                    "decor-owned canonical navigation marker="
-                            + CANONICAL_NAV_MARKER
+                    "native canonical navigation marker="
+                            + NATIVE_COORDINATOR_MARKER
                             + " activity="
                             + activity.getClass().getName()
                             + " selectedItemId="
@@ -2286,14 +2463,26 @@ public final class BoostSearchBottomNavigation {
                             + fallbackIndex
                             + " requestedVisible="
                             + requestedVisible
-                            + " visibilityStateMarker="
-                            + NAVIGATION_VISIBILITY_STATE_MARKER
+                            + " parent="
+                            + (
+                                navigation.getParent() == null
+                                        ? "null"
+                                        : navigation.getParent()
+                                            .getClass()
+                                            .getName()
+                            )
+                            + " behavior="
+                            + nativeCoordinatorBehaviorName(
+                                navigation
+                            )
+                            + " translationY="
+                            + navigation.getTranslationY()
             );
         } catch (Throwable error) {
             Log.e(
                     TAG,
-                    "decor-owned canonical navigation failed marker="
-                            + CANONICAL_NAV_MARKER
+                    "native canonical navigation failed marker="
+                            + NATIVE_COORDINATOR_MARKER
                             + " activity="
                             + (
                                 activity == null
