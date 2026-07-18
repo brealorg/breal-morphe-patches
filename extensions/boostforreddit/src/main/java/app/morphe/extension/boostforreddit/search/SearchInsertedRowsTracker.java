@@ -7,6 +7,7 @@ import java.util.WeakHashMap;
 /** Tracks Search rows by a stable owner and removes only rows owned by Morphe. */
 final class SearchInsertedRowsTracker<K> {
     private final WeakHashMap<K, List<Object>> insertedByOwner = new WeakHashMap<>();
+    private final WeakHashMap<K, Integer> insertionIndexByOwner = new WeakHashMap<>();
 
     void record(K owner, List<?> inserted) {
         if (owner == null) {
@@ -21,6 +22,30 @@ final class SearchInsertedRowsTracker<K> {
         ArrayList<Object> snapshot = new ArrayList<Object>(inserted.size());
         snapshot.addAll(inserted);
         insertedByOwner.put(owner, snapshot);
+    }
+
+    int insertionIndex(K owner, List<?> rows) {
+        if (owner == null) {
+            throw new NullPointerException("owner");
+        }
+        if (rows == null) {
+            throw new NullPointerException("rows");
+        }
+
+        Integer recorded = insertionIndexByOwner.get(owner);
+        int resolved = recorded == null
+            ? rows.size()
+            : recorded.intValue();
+
+        if (resolved < 0) {
+            resolved = 0;
+        }
+        if (resolved > rows.size()) {
+            resolved = rows.size();
+        }
+
+        insertionIndexByOwner.put(owner, Integer.valueOf(resolved));
+        return resolved;
     }
 
     RemovalStats remove(K owner, List<?> rows) {
