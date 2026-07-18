@@ -69,6 +69,10 @@ public final class BoostSearchBottomNavigation {
             "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_V10011_REMOVE_HOME_UNDERLAY_LOOP";
     private static volatile String CANONICAL_NAV_MARKER =
             "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_V10028_STABLE_ROOT_INSET";
+    private static final String NAVIGATION_VISIBILITY_STATE_MARKER =
+            "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_VISIBILITY_STATE_V1";
+    private static final String ACTIVITY_STACK_STATE_MARKER =
+            "MORPHE_BOOST_BOTTOM_NAV_ACTIVITY_STACK_V2_PRESERVE_CALLER";
     private static final String HOME_RESELECT_TOP_MARKER =
             "MORPHE_BOOST_HOME_RESELECT_FAB_GO_TOP_V2";
     private static final java.util.WeakHashMap<View, Boolean>
@@ -92,6 +96,18 @@ public final class BoostSearchBottomNavigation {
     private static final java.util.WeakHashMap<Activity, Integer>
             INBOX_BADGE_COUNTS =
                     new java.util.WeakHashMap<>();
+    private static final String SHARED_INBOX_BADGE_MARKER =
+            "MORPHE_BOOST_INBOX_BADGE_SHARED_STATE_V4D";
+    private static volatile Integer SHARED_INBOX_BADGE_COUNT;
+    private static final String ALL_ACTIVITY_SELECTION_GUARD_MARKER =
+            "MORPHE_BOOST_BOTTOM_NAV_ALL_ACTIVITY_SELECTION_GUARD_V6";
+    private static final String PERSISTED_INBOX_BADGE_MARKER =
+            "MORPHE_BOOST_INBOX_BADGE_COLD_START_PERSISTENCE_V6";
+    private static final String PERSISTED_INBOX_BADGE_PREFERENCES =
+            "morphe_boost_bottom_navigation";
+    private static final String PERSISTED_INBOX_BADGE_KEY =
+            "last_known_inbox_badge_count";
+
     private static final String DECOR_NAVIGATION_CONTAINER_TAG =
             "morphe_boost_decor_owned_navigation_container";
     private static final int UNDERLAY_RETRY_LIMIT = 24;
@@ -124,6 +140,9 @@ public final class BoostSearchBottomNavigation {
 
     private static final WeakHashMap<Activity, Boolean> INSTALLED =
             new WeakHashMap<>();
+    private static final WeakHashMap<Activity, Boolean>
+            NATIVE_NAVIGATION_VISIBILITY_REQUESTS =
+                    new WeakHashMap<>();
 
     private static volatile ColorStateList CANONICAL_ITEM_TINT;
 
@@ -957,6 +976,44 @@ public final class BoostSearchBottomNavigation {
 
         int normalizedCount = Math.max(0, count);
 
+        SHARED_INBOX_BADGE_COUNT = normalizedCount;
+
+        try {
+            activity.getSharedPreferences(
+                            PERSISTED_INBOX_BADGE_PREFERENCES,
+                            0
+                    )
+                    .edit()
+                    .putInt(
+                            PERSISTED_INBOX_BADGE_KEY,
+                            normalizedCount
+                    )
+                    .apply();
+
+            Log.i(
+                    TAG,
+                    "inbox badge persisted marker="
+                            + PERSISTED_INBOX_BADGE_MARKER
+                            + " count="
+                            + normalizedCount
+            );
+        } catch (Throwable error) {
+            Log.e(
+                    TAG,
+                    "inbox badge persistence failed marker="
+                            + PERSISTED_INBOX_BADGE_MARKER,
+                    error
+            );
+        }
+
+        Log.i(
+                TAG,
+                "shared inbox badge stored marker="
+                        + SHARED_INBOX_BADGE_MARKER
+                        + " count="
+                        + normalizedCount
+        );
+
         synchronized (INBOX_BADGE_COUNTS) {
             INBOX_BADGE_COUNTS.put(
                     activity,
@@ -1007,6 +1064,48 @@ public final class BoostSearchBottomNavigation {
 
         synchronized (INBOX_BADGE_COUNTS) {
             count = INBOX_BADGE_COUNTS.get(activity);
+        }
+
+        Integer sharedCount = SHARED_INBOX_BADGE_COUNT;
+
+        if (sharedCount == null) {
+            try {
+                android.content.SharedPreferences preferences =
+                        activity.getSharedPreferences(
+                                PERSISTED_INBOX_BADGE_PREFERENCES,
+                                0
+                        );
+
+                if (preferences.contains(PERSISTED_INBOX_BADGE_KEY)) {
+                    sharedCount =
+                            Math.max(
+                                    0,
+                                    preferences.getInt(
+                                            PERSISTED_INBOX_BADGE_KEY,
+                                            0
+                                    )
+                            );
+                    SHARED_INBOX_BADGE_COUNT = sharedCount;
+
+                    Log.i(
+                            TAG,
+                            "inbox badge restored marker="
+                                    + PERSISTED_INBOX_BADGE_MARKER
+                                    + " count="
+                                    + sharedCount
+                    );
+                }
+            } catch (Throwable error) {
+                Log.e(
+                        TAG,
+                        "inbox badge restoration failed marker="
+                                + PERSISTED_INBOX_BADGE_MARKER,
+                        error
+                );
+            }
+        }
+        if (sharedCount != null) {
+            count = sharedCount;
         }
 
         if (count == null) {
@@ -1541,6 +1640,84 @@ public final class BoostSearchBottomNavigation {
         }
     }
 
+    private static boolean isBottomNavigationPreferenceEnabled(
+            Activity activity
+    ) {
+        if (activity == null) {
+            return false;
+        }
+
+        try {
+            return android.preference.PreferenceManager
+                    .getDefaultSharedPreferences(activity)
+                    .getBoolean(
+                            "pref_bottom_navigation",
+                            false
+                    );
+        } catch (Throwable error) {
+            Log.e(
+                    TAG,
+                    "Bottom-navigation preference read failed marker="
+                            + "MORPHE_BOOST_BOTTOM_NAV_PREFERENCE_V4B_ON_RESUME",
+                    error
+            );
+            return false;
+        }
+    }
+
+    public static void enforceMaterialOnlyRuntimeVisibility(
+            Activity activity,
+            boolean runtimeVisible
+    ) {
+        boolean preferenceEnabled =
+                isBottomNavigationPreferenceEnabled(activity);
+        boolean visible =
+                runtimeVisible && preferenceEnabled;
+
+        Log.i(
+                TAG,
+                "Preference-gated visibility marker="
+                        + "MORPHE_BOOST_BOTTOM_NAV_PREFERENCE_V4B_ON_RESUME"
+                        + " runtimeVisible="
+                        + runtimeVisible
+                        + " preferenceEnabled="
+                        + preferenceEnabled
+                        + " appliedVisible="
+                        + visible
+        );
+
+        enforceMaterialOnlyVisibility(
+                activity,
+                visible
+        );
+    }
+
+    public static void refreshMaterialNavigationPreference(
+            Activity activity
+    ) {
+        boolean visible =
+                isBottomNavigationPreferenceEnabled(activity);
+
+        enforceMaterialOnlyVisibility(
+                activity,
+                visible
+        );
+
+        Log.i(
+                TAG,
+                "Bottom-navigation preference refreshed marker="
+                        + "MORPHE_BOOST_BOTTOM_NAV_PREFERENCE_V4B_ON_RESUME"
+                        + " preferenceVisible="
+                        + visible
+                        + " activity="
+                        + (
+                            activity == null
+                                    ? "null"
+                                    : activity.getClass().getName()
+                        )
+        );
+    }
+
     public static void enforceMaterialOnlyVisibility(
             Activity activity,
             boolean visible
@@ -1550,6 +1727,13 @@ public final class BoostSearchBottomNavigation {
         }
 
         try {
+            synchronized (NATIVE_NAVIGATION_VISIBILITY_REQUESTS) {
+                NATIVE_NAVIGATION_VISIBILITY_REQUESTS.put(
+                        activity,
+                        visible
+                );
+            }
+
             View nativeMaterial =
                     findNativeMaterialNavigation(activity);
 
@@ -1564,7 +1748,7 @@ public final class BoostSearchBottomNavigation {
             View navigation = ensureDecorOwnedNavigation(
                     activity,
                     nativeMaterial,
-                    true
+                    visible
             );
 
             Log.i(
@@ -1573,7 +1757,10 @@ public final class BoostSearchBottomNavigation {
                             + CANONICAL_NAV_MARKER
                             + " nativeRequestedVisible="
                             + visible
-                            + " forcedVisible=true"
+                            + " appliedVisible="
+                            + visible
+                            + " visibilityStateMarker="
+                            + NAVIGATION_VISIBILITY_STATE_MARKER
                             + " navigationVisible="
                             + navigation.getVisibility()
                             + " activity="
@@ -1906,10 +2093,38 @@ public final class BoostSearchBottomNavigation {
 
             installMainLandscapeCutoutInsetFix(activity);
 
+            boolean requestedVisible = true;
+
+            synchronized (NATIVE_NAVIGATION_VISIBILITY_REQUESTS) {
+                Boolean requested =
+                        NATIVE_NAVIGATION_VISIBILITY_REQUESTS.get(activity);
+
+                if (requested != null) {
+                    requestedVisible = requested;
+                }
+            }
+
+            boolean preferenceEnabled =
+                    isBottomNavigationPreferenceEnabled(activity);
+            requestedVisible =
+                    requestedVisible && preferenceEnabled;
+
+            Log.i(
+                    TAG,
+                    "All-activity visibility gate marker="
+                            + "MORPHE_BOOST_BOTTOM_NAV_PREFERENCE_V4C_ALL_ACTIVITIES"
+                            + " preferenceEnabled="
+                            + preferenceEnabled
+                            + " appliedVisible="
+                            + requestedVisible
+                            + " activity="
+                            + activity.getClass().getName()
+            );
+
             View navigation = ensureDecorOwnedNavigation(
                     activity,
                     nativeMaterial,
-                    true
+                    requestedVisible
             );
 
             int selectedItemId = selectedItemIdForActivity(
@@ -1937,6 +2152,19 @@ public final class BoostSearchBottomNavigation {
                     navigation
             );
 
+            attachHomeStabilityGuard(
+                    activity,
+                    navigation,
+                    selectedItemId
+            );
+            Log.i(
+                    TAG,
+                    "Back-stack selection synchronized marker="
+                            + "MORPHE_BOOST_BOTTOM_NAV_BACK_SELECTION_V3"
+                            + " activity="
+                            + activity.getClass().getName()
+            );
+
             navigation.setTranslationY(0.0f);
             navigation.setAlpha(1.0f);
             navigation.setVisibility(View.VISIBLE);
@@ -1955,6 +2183,10 @@ public final class BoostSearchBottomNavigation {
                             + selectedItemId
                             + " fallbackIndex="
                             + fallbackIndex
+                            + " requestedVisible="
+                            + requestedVisible
+                            + " visibilityStateMarker="
+                            + NAVIGATION_VISIBILITY_STATE_MARKER
             );
         } catch (Throwable error) {
             Log.e(
@@ -2117,9 +2349,6 @@ public final class BoostSearchBottomNavigation {
         if (
                 activity == null
                         || navigation == null
-                        || !MAIN_ACTIVITY.equals(
-                                activity.getClass().getName()
-                        )
         ) {
             return;
         }
@@ -2138,6 +2367,16 @@ public final class BoostSearchBottomNavigation {
                     Boolean.TRUE
             );
         }
+
+        Log.i(
+                TAG,
+                "all-activity selection guard attached marker="
+                        + ALL_ACTIVITY_SELECTION_GUARD_MARKER
+                        + " activity="
+                        + activity.getClass().getName()
+                        + " selectedItemId="
+                        + selectedItemId
+        );
 
         final android.view.ViewTreeObserver observer =
                 navigation.getViewTreeObserver();
@@ -3483,6 +3722,39 @@ public final class BoostSearchBottomNavigation {
         }
     }
 
+    private static boolean completeStaticTabTransition(
+            Activity activity,
+            boolean handled
+    ) {
+        if (!handled || activity == null) {
+            return handled;
+        }
+
+        try {
+            activity.overridePendingTransition(
+                    0,
+                    0
+            );
+
+            Log.i(
+                    TAG,
+                    "Static tab transition applied marker="
+                            + "MORPHE_BOOST_BOTTOM_NAV_STATIC_TAB_TRANSITION_V5"
+                            + " activity="
+                            + activity.getClass().getName()
+            );
+        } catch (Throwable error) {
+            Log.e(
+                    TAG,
+                    "Static tab transition failed marker="
+                            + "MORPHE_BOOST_BOTTOM_NAV_STATIC_TAB_TRANSITION_V5",
+                    error
+            );
+        }
+
+        return handled;
+    }
+
     private static boolean handleItem(
             Activity activity,
             MenuItem item
@@ -3514,14 +3786,35 @@ if (selectedId == searchId) {
                 return true;
             }
 
-            return openSearch(activity);
+            return completeStaticTabTransition(
+                    activity,
+                    openSearch(activity)
+            );
         }
-        if (selectedId == homeId) return openHome(activity);
+        if (selectedId == homeId) {
+            return completeStaticTabTransition(
+                    activity,
+                    openHome(activity)
+            );
+        }
         if (selectedId == subscriptionsId) {
-            return openSubscriptions(activity);
+            return completeStaticTabTransition(
+                    activity,
+                    openSubscriptions(activity)
+            );
         }
-        if (selectedId == inboxId) return openInbox(activity);
-        if (selectedId == profileId) return openProfile(activity);
+        if (selectedId == inboxId) {
+            return completeStaticTabTransition(
+                    activity,
+                    openInbox(activity)
+            );
+        }
+        if (selectedId == profileId) {
+            return completeStaticTabTransition(
+                    activity,
+                    openProfile(activity)
+            );
+        }
 
         return false;
     }
@@ -3605,7 +3898,13 @@ if (selectedId == searchId) {
             );
 
             activity.startActivity(intent);
-            activity.finish();
+            Log.i(
+                    TAG,
+                    "Home caller preserved marker="
+                            + ACTIVITY_STACK_STATE_MARKER
+                            + " from="
+                            + activity.getClass().getName()
+            );
             return true;
         } catch (Throwable error) {
             Log.e(TAG, "Home route failed", error);
@@ -3630,7 +3929,13 @@ if (selectedId == searchId) {
             if (route != null) {
                 route.setAccessible(true);
                 route.invoke(null, activity);
-                activity.finish();
+                Log.i(
+                        TAG,
+                        "Subscriptions caller preserved marker="
+                                + ACTIVITY_STACK_STATE_MARKER
+                                + " from="
+                                + activity.getClass().getName()
+                );
                 return true;
             }
         } catch (Throwable error) {
@@ -3677,7 +3982,13 @@ if (selectedId == searchId) {
 
             openProfile.setAccessible(true);
             openProfile.invoke(activity, username);
-            activity.finish();
+            Log.i(
+                    TAG,
+                    "Profile caller preserved marker="
+                            + ACTIVITY_STACK_STATE_MARKER
+                            + " from="
+                            + activity.getClass().getName()
+            );
             return true;
         } catch (Throwable error) {
             Log.e(TAG, "Profile route failed", error);
@@ -3699,7 +4010,15 @@ if (selectedId == searchId) {
             activity.startActivity(
                     new Intent(activity, destination)
             );
-            activity.finish();
+            Log.i(
+                    TAG,
+                    "Direct caller preserved marker="
+                            + ACTIVITY_STACK_STATE_MARKER
+                            + " from="
+                            + activity.getClass().getName()
+                            + " to="
+                            + destinationClassName
+            );
             return true;
         } catch (Throwable error) {
             Log.e(
