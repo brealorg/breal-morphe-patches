@@ -1,6 +1,13 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.91](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-90...morphe-patches-91) (2026-07-18)
+
+* **Boost for Reddit:** Bug Fixes
+
+- Restored native bottom-navigation hide-on-scroll across Home, Search, Subscriptions, Inbox, and Profile.
+- Removed residual Inbox/Profile artifacts during hide animations and corrected Search/Subscriptions bottom-bar alignment.
+
 ## [1.4.90](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-89...morphe-patches-90) (2026-07-18)
 
 * **Boost for Reddit:** Bug Fixes
