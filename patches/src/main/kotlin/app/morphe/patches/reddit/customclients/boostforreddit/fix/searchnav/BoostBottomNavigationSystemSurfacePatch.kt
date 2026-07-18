@@ -58,9 +58,32 @@ val boostBottomNavigationSystemSurfacePatch = bytecodePatch(
             addInstructions(
                 returns.single(),
                 """
-                    invoke-static {p0, p1}, $SYSTEM_SURFACE_EXTENSION_DESCRIPTOR->enforceMaterialOnlyVisibility(Landroid/app/Activity;Z)V
+                    invoke-static {p0, p1}, $SYSTEM_SURFACE_EXTENSION_DESCRIPTOR->enforceMaterialOnlyRuntimeVisibility(Landroid/app/Activity;Z)V
                 """.trimIndent(),
             )
+        }
+
+        mainActivityOnResumeFingerprint.method.apply {
+            val returnIndices =
+                implementation!!.instructions
+                    .withIndex()
+                    .filter { (_, instruction) ->
+                        instruction.opcode == Opcode.RETURN_VOID
+                    }
+                    .map { (index, _) -> index }
+
+            require(returnIndices.isNotEmpty()) {
+                "MainActivity.onResume has no RETURN_VOID instruction"
+            }
+
+            returnIndices.asReversed().forEach { returnIndex ->
+                addInstructions(
+                    returnIndex,
+                    """
+                        invoke-static {p0}, $SYSTEM_SURFACE_EXTENSION_DESCRIPTOR->refreshMaterialNavigationPreference(Landroid/app/Activity;)V
+                    """.trimIndent(),
+                )
+            }
         }
 
     }
