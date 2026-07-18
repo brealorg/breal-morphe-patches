@@ -1,6 +1,12 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.84](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-83...morphe-patches-84) (2026-07-18)
+
+* **Boost for Reddit:** Boost for Reddit
+
+- Align Home, Inbox and Profile floating action buttons above the bottom navigation.
+
 ## [1.4.83](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-82...morphe-patches-83) (2026-07-17)
 
 * **Boost for Reddit:** Boost for Reddit
