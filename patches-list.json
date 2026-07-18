@@ -632,32 +632,6 @@
       "options": []
     },
     {
-      "name": "Fix Boost Home floating action menu overlap",
-      "description": "Raises the Home floating action menu above the bottom navigation without changing Comments or split-screen layouts.",
-      "default": true,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.rubenmayayo.reddit",
-          "name": "Boost for Reddit",
-          "description": null,
-          "apkFileType": "APK_REQUIRED",
-          "appIconColor": "#FF4500",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "1.12.12",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": 21,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
       "name": "Fix Boost YouTube playback fallback",
       "description": "Opens the original YouTube link externally when Boost's legacy embedded YouTube player is unavailable.",
       "default": true,
@@ -2560,6 +2534,32 @@
       "dependencies": [
         "BytecodePatch"
       ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.rubenmayayo.reddit",
+          "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Standardize Boost bottom-navigation FAB clearance",
+      "description": "Keeps Home/Subreddit, Random, Inbox and Profile FABs 16 dp above the canonical bottom navigation.",
+      "default": true,
+      "dependencies": [],
       "compatiblePackages": [
         {
           "packageName": "com.rubenmayayo.reddit",
