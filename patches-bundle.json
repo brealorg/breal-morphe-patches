@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-18T08:47:31",
-  "description": "Boost for Reddit\n\n- Align Home, Inbox and Profile floating action buttons above the bottom navigation.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-84/patches-1.4.84.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-84/patches-1.4.84.mpp.asc",
-  "version": "1.4.84"
+  "created_at": "2026-07-18T09:51:01",
+  "description": "Boost for Reddit\n\n- Support progressive video, WebM, HLS, and DASH sources in animated gallery previews.\n- Preserve selected-page playback and flicker-free rapid swiping.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-85/patches-1.4.85.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-85/patches-1.4.85.mpp.asc",
+  "version": "1.4.85"
 }

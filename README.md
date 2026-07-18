@@ -63,14 +63,14 @@ Preferred Morphe source setup is the deep link below. Raw `patches-bundle.json` 
 
 | Field | Value |
 |---|---|
-| Version | `1.4.84` |
-| Release tag | `morphe-patches-84` |
-| Asset | `patches-1.4.84.mpp` |
-| SHA256 | `79c27e3c07ad86bdb63364c59c1a9f8e317d4d1f988ab01c215dda23bb66e949` |
+| Version | `1.4.85` |
+| Release tag | `morphe-patches-85` |
+| Asset | `patches-1.4.85.mpp` |
+| SHA256 | `138629f77b59778b954b77c7860064f7891f62b31a16279d5b266d6ecd8ef5fb` |
 
-SHA256: `79c27e3c07ad86bdb63364c59c1a9f8e317d4d1f988ab01c215dda23bb66e949`
+SHA256: `138629f77b59778b954b77c7860064f7891f62b31a16279d5b266d6ecd8ef5fb`
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-84/patches-1.4.84.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-85/patches-1.4.85.mpp` |
 
 ## What this bundle does
 
@@ -118,7 +118,7 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.84` • `main` • 50 unique patches • 102 package entries
+> **Patch source version:** `1.4.85` • `main` • 50 unique patches • 102 package entries
 
 <details>
 <summary><strong>Boost for Reddit</strong> • 41 patches</summary>
@@ -134,7 +134,7 @@ Included Imgur patches:
 |---|---|---|
 | [Add archive links to context menu](#add-archive-links-to-context-menu) |  |  |
 | [Add Boost Search bottom navigation](#add-boost-search-bottom-navigation) | Shows Boost's native Home, Search, Subscriptions, Inbox and Profile menu in Search and Go To. |  |
-| [Animate media in Boost gallery previews](#animate-media-in-boost-gallery-previews) | Autoplays the selected Reddit gallery GIF while preserving Boost's poster, data preferences, and full-screen media route. |  |
+| [Animate media in Boost gallery previews](#animate-media-in-boost-gallery-previews) | Autoplays selected Reddit gallery GIF and video media while preserving Boost's poster, data preferences, and full-screen media route. |  |
 | [Automatically undelete Imgur images](#automatically-undelete-imgur-images) |  |  |
 | [Automatically undelete Reddit content](#automatically-undelete-reddit-content) |  |  |
 | [Boost Morphe settings](#boost-morphe-settings) | Adds Boost Morphe settings for inline media previews, undelete toggles, adaptive refresh rate, source text visibility, and preview alignment. |  |
@@ -529,16 +529,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.84` is prepared and locally verified with:
+Release `1.4.85` is prepared and locally verified with:
 
-- Release tag `morphe-patches-84`.
+- Release tag `morphe-patches-85`.
 - Local built MPP SHA256 matching README.
-`79c27e3c07ad86bdb63364c59c1a9f8e317d4d1f988ab01c215dda23bb66e949`
-- `patches-bundle.json` returning version `1.4.84`.
-- `patches-bundle.json` pointing to the `morphe-patches-84` asset.
+`138629f77b59778b954b77c7860064f7891f62b31a16279d5b266d6ecd8ef5fb`
+- `patches-bundle.json` returning version `1.4.85`.
+- `patches-bundle.json` pointing to the `morphe-patches-85` asset.
 - Expected release asset:
-`patches-1.4.84.mpp`
-- `79c27e3c07ad86bdb63364c59c1a9f8e317d4d1f988ab01c215dda23bb66e949  patches-1.4.84.mpp`
+`patches-1.4.85.mpp`
+- `138629f77b59778b954b77c7860064f7891f62b31a16279d5b266d6ecd8ef5fb  patches-1.4.85.mpp`
 
 ## Development notes
 

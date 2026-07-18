@@ -1,6 +1,13 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.85](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-84...morphe-patches-85) (2026-07-18)
+
+* **Boost for Reddit:** Boost for Reddit
+
+- Support progressive video, WebM, HLS, and DASH sources in animated gallery previews.
+- Preserve selected-page playback and flicker-free rapid swiping.
+
 ## [1.4.84](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-83...morphe-patches-84) (2026-07-18)
 
 * **Boost for Reddit:** Boost for Reddit
