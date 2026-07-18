@@ -146,6 +146,15 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Install ripgrep
+        shell: bash
+        run: |
+          if ! command -v rg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install --yes ripgrep
+          fi
+          rg --version
+
       - name: Verify Boost Search dedup contract
         run: ./tools/check-boost-search-dedup-contract.sh
 
