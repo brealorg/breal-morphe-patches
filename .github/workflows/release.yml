@@ -146,6 +146,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Verify Boost Search dedup contract
+        run: ./tools/check-boost-search-dedup-contract.sh
+
       - name: Cache Gradle
         uses: gradle/actions/setup-gradle@v6
         with:

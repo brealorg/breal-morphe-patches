@@ -17,7 +17,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.WeakHashMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -26,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 public final class SearchExploreRows {
     private static final String TAG = "MorpheSearchExplore";
-    private static final String MARKER = "MORPHE_SEARCH_EXPLORE_V5M_ACTIVE_SUBREDDITS_REDDIT_LABELS";
+    private static final String MARKER = "MORPHE_SEARCH_EXPLORE_ISSUE61_DEDUP_V2_IDENTITY_GATE";
 
     private static final String CACHE_PREFS = "morphe_search_active_subreddits_v5l";
     private static final String CACHE_VALUE = "active_rows";
@@ -37,7 +36,7 @@ public final class SearchExploreRows {
     private static final int FINAL_LIMIT = 10;
     private static final Object LOCK = new Object();
 
-    private static final WeakHashMap<ArrayList, List<Object>> INSERTED_BY_ROWS = new WeakHashMap<>();
+    private static final SearchInsertedRowsTracker<Activity> INSERTED_ROWS = new SearchInsertedRowsTracker<>();
     private static List<Object> cachedRows;
     private static List<CacheEntry> cachedEntries;
     private static boolean inFlight;
@@ -95,7 +94,7 @@ public final class SearchExploreRows {
         boolean shouldFetch = false;
 
         synchronized (LOCK) {
-            removeInsertedLocked(rows);
+            removeInsertedLocked(activity, rows);
 
             List<Object> instantRows = null;
             String instantMode = null;
@@ -121,7 +120,7 @@ public final class SearchExploreRows {
                 inserted.add(makeHeader("Active subreddits"));
                 inserted.addAll(instantRows);
                 rows.addAll(inserted);
-                INSERTED_BY_ROWS.put(rows, inserted);
+                INSERTED_ROWS.record(activity, inserted);
                 log("mode=" + instantMode + " rows=" + instantRows.size() + " CACHE_HIT=true");
 
                 if (!inFlight) {
@@ -132,7 +131,7 @@ public final class SearchExploreRows {
                 List<Object> inserted = new ArrayList<Object>();
                 inserted.add(makeHeader("Loading active subreddits"));
                 rows.addAll(inserted);
-                INSERTED_BY_ROWS.put(rows, inserted);
+                INSERTED_ROWS.record(activity, inserted);
                 log("mode=loading_active CACHE_HIT=false");
 
                 if (!inFlight) {
@@ -184,7 +183,7 @@ public final class SearchExploreRows {
                         }
 
                         synchronized (LOCK) {
-                            removeInsertedLocked(rows);
+                            removeInsertedLocked(activity, rows);
 
                             List<Object> inserted = new ArrayList<Object>();
                             if (finalResult.rows != null && !finalResult.rows.isEmpty()) {
@@ -199,7 +198,7 @@ public final class SearchExploreRows {
 
                             if (!inserted.isEmpty()) {
                                 rows.addAll(inserted);
-                                INSERTED_BY_ROWS.put(rows, inserted);
+                                INSERTED_ROWS.record(activity, inserted);
                             }
                         }
 
@@ -1357,11 +1356,12 @@ public final class SearchExploreRows {
         return item == null ? "null" : item.getClass().getName();
     }
 
-    private static void removeInsertedLocked(ArrayList rows) {
-        List<Object> previous = INSERTED_BY_ROWS.remove(rows);
-        if (previous != null && !previous.isEmpty()) {
-            rows.removeAll(previous);
-        }
+    private static void removeInsertedLocked(Activity activity, ArrayList rows) {
+        SearchInsertedRowsTracker.RemovalStats removal = INSERTED_ROWS.remove(activity, rows);
+        log("dedup_remove previous=" + removal.previous
+            + " matchedBefore=" + removal.matchedBefore
+            + " removedOwned=" + removal.removedOwned
+            + " remainingOwned=" + removal.remainingOwned);
     }
 
     private static boolean isSearchTextEmpty(Activity activity) {
