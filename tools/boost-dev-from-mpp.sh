@@ -162,6 +162,7 @@ git rev-parse --show-toplevel >/dev/null 2>&1 || mark_fail "not inside git repo"
 
 [ -s "$BASE_APK" ] || mark_fail "base APK missing: $BASE_APK"
 [ -s "$MPP" ] || mark_fail "MPP missing: $MPP"
+[ -x tools/check-mpp-release-asset.sh ] || mark_fail "MPP structure checker missing or not executable"
 
 if [ "$FAIL" -eq 0 ]; then
   sha256sum "$BASE_APK" | tee "$OUT_DIR/base-apk.sha256"
@@ -186,8 +187,9 @@ if [ "$FAIL" -eq 0 ]; then
   fi
 
   unzip -t "$MPP" >/dev/null || mark_fail "MPP zip test failed"
-  unzip -l "$MPP" | tee "$OUT_DIR/mpp-list.txt" | grep -E 'classes.dex|extensions/boostforreddit.mpe' \
-    || mark_fail "MPP missing classes.dex or boost extension"
+  unzip -l "$MPP" | tee "$OUT_DIR/mpp-list.txt"
+  tools/check-mpp-release-asset.sh "$MPP" \
+    || mark_fail "MPP is not a canonical Android bundle; run :patches:buildAndroid"
 fi
 
 echo

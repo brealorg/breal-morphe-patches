@@ -26,7 +26,7 @@ Usage:
   tools/boost-dev-inline-preview-source-toggle-runtime.sh [options]
 
 Options:
-  --mpp PATH                 MPP to test. Default: newest patches/build/libs/patches-*.mpp
+  --mpp PATH                 MPP to test. Default: canonical current-version Android MPP
   --serial SERIAL            adb serial to use
   --adb-endpoint HOST:PORT   run adb connect HOST:PORT, then use resulting device
   --name NAME                artifact name suffix
@@ -125,15 +125,7 @@ cd "$ROOT" || {
 }
 
 if [ -z "$MPP" ]; then
-  MPP="$(
-    find patches/build/libs \
-      -maxdepth 1 \
-      -type f \
-      -name 'patches-*.mpp' \
-      -printf '%T@ %p\n' 2>/dev/null |
-      sort -nr |
-      awk 'NR == 1 {$1=""; sub(/^ /, ""); print}'
-  )"
+  MPP="$(tools/boost-resolve-mpp.sh)" || mark_fail "canonical Android MPP resolve failed"
 fi
 
 echo
