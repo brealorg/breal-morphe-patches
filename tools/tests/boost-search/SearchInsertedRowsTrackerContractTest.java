@@ -16,11 +16,14 @@ public final class SearchInsertedRowsTrackerContractTest {
         reproduceLegacyMutableListKeyFailure();
         preserveEqualButUnownedRows();
         isolateOwners();
+        preserveStableSectionAnchorAcrossRefresh();
         stressStableOwnerAcrossMutableRows();
 
         System.out.println("LEGACY_MUTABLE_LIST_KEY=REPRODUCED");
         System.out.println("IDENTITY_EQUAL_ROW=PASS");
         System.out.println("OWNER_ISOLATION=PASS");
+        System.out.println("SECTION_ANCHOR=PASS");
+        System.out.println("RESULT=MORPHE_ISSUE95_SEARCH_SECTION_STABILITY_CONTRACT_OK");
         System.out.println("STRESS_CYCLES=" + STRESS_CYCLES);
         System.out.println("RESULT=MORPHE_ISSUE61_SEARCH_DEDUP_CONTRACT_OK");
     }
@@ -73,6 +76,57 @@ public final class SearchInsertedRowsTrackerContractTest {
         require(rows.size() == 1 && rows.get(0) == rowB, "owner A removed owner B row");
         requireStats(tracker.remove(ownerB, rows), 1, 1, 1, 0, "owner B");
         require(rows.isEmpty(), "owner B row remained");
+    }
+
+    private static void preserveStableSectionAnchorAcrossRefresh() {
+        SearchInsertedRowsTracker<Object> tracker =
+            new SearchInsertedRowsTracker<>();
+        Object owner = new Object();
+        Object nativeBeforeA = new Object();
+        Object nativeBeforeB = new Object();
+        Object nativeAfterA = new Object();
+        Object nativeAfterB = new Object();
+        Object firstHeader = new Object();
+        Object firstRow = new Object();
+        Object refreshedHeader = new Object();
+        Object refreshedRow = new Object();
+
+        ArrayList<Object> rows = new ArrayList<Object>(
+            Arrays.asList(nativeBeforeA, nativeBeforeB)
+        );
+
+        int initialAnchor = tracker.insertionIndex(owner, rows);
+        require(initialAnchor == 2, "initial anchor=" + initialAnchor);
+
+        List<Object> firstOwned = Arrays.asList(firstHeader, firstRow);
+        rows.addAll(initialAnchor, firstOwned);
+        tracker.record(owner, firstOwned);
+
+        rows.add(nativeAfterA);
+        rows.add(nativeAfterB);
+
+        requireStats(
+            tracker.remove(owner, rows),
+            2, 2, 2, 0,
+            "stable anchor refresh"
+        );
+
+        int refreshAnchor = tracker.insertionIndex(owner, rows);
+        require(refreshAnchor == initialAnchor,
+            "refresh anchor moved from " + initialAnchor + " to " + refreshAnchor);
+
+        List<Object> refreshedOwned =
+            Arrays.asList(refreshedHeader, refreshedRow);
+        rows.addAll(refreshAnchor, refreshedOwned);
+        tracker.record(owner, refreshedOwned);
+
+        require(rows.size() == 6, "unexpected refreshed row count=" + rows.size());
+        require(rows.get(0) == nativeBeforeA, "native before A moved");
+        require(rows.get(1) == nativeBeforeB, "native before B moved");
+        require(rows.get(2) == refreshedHeader, "refreshed header moved");
+        require(rows.get(3) == refreshedRow, "refreshed row moved");
+        require(rows.get(4) == nativeAfterA, "native after A moved");
+        require(rows.get(5) == nativeAfterB, "native after B moved");
     }
 
     private static void stressStableOwnerAcrossMutableRows() {

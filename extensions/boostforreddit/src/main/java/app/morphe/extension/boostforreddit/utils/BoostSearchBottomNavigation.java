@@ -54,6 +54,8 @@ public final class BoostSearchBottomNavigation {
             "MORPHE_BOOST_SEARCH_CONTEXT_ISSUE94_SUBREDDIT_T1_V2";
     private static final String SEARCH_SCOPE_HINT_MARKER =
             "MORPHE_BOOST_SEARCH_SCOPE_HINT_ISSUE94_POST_ONCREATE_V2";
+    private static final String SEARCH_INITIAL_FOCUS_MARKER =
+            "MORPHE_BOOST_SEARCH_INITIAL_FOCUS_V1";
     private static final String SEARCH_RESELECT_MARKER =
             "MORPHE_BOOST_SEARCH_RESELECT_ISSUE86_V1";
     private static volatile String UNIFIED_MATERIAL_MARKER =
@@ -124,6 +126,9 @@ public final class BoostSearchBottomNavigation {
     private static final String DECOR_UNDERLAY_TAG =
             "morphe_boost_bottom_navigation_decor_underlay";
     private static final String TAG = "MorpheSearchNav";
+    private static final int SEARCH_INITIAL_FOCUS_RETRY_LIMIT = 24;
+    private static final long SEARCH_INITIAL_FOCUS_RETRY_DELAY_MS =
+            75L;
 
     private static final String SEARCH_ACTIVITY =
             "com.rubenmayayo.reddit.ui.search.SearchGenericActivity";
@@ -164,6 +169,7 @@ public final class BoostSearchBottomNavigation {
         }
 
         scheduleSearchScopeHint(activity);
+        scheduleInitialSearchInputFocus(activity);
 
         int fallbackIndex = GO_TO_ACTIVITY.equals(
                 activity.getClass().getName()
@@ -180,6 +186,77 @@ public final class BoostSearchBottomNavigation {
                     Boolean.TRUE
             );
         }
+    }
+
+    private static void scheduleInitialSearchInputFocus(
+            final Activity activity
+    ) {
+        if (
+                activity == null
+                        || !SEARCH_ACTIVITY.equals(
+                                activity.getClass().getName()
+                        )
+        ) {
+            return;
+        }
+
+        final View decor = activity
+                .getWindow()
+                .getDecorView();
+
+        decor.post(new Runnable() {
+            private int attempts;
+
+            @Override
+            public void run() {
+                attempts++;
+
+                if (activity.isFinishing() || activity.isDestroyed()) {
+                    return;
+                }
+
+                if (!activity.hasWindowFocus()) {
+                    if (attempts < SEARCH_INITIAL_FOCUS_RETRY_LIMIT) {
+                        decor.postDelayed(
+                                this,
+                                SEARCH_INITIAL_FOCUS_RETRY_DELAY_MS
+                        );
+                    } else {
+                        Log.w(
+                                TAG,
+                                "search initial focus exhausted marker="
+                                        + SEARCH_INITIAL_FOCUS_MARKER
+                                        + " attempts="
+                                        + attempts
+                        );
+                    }
+                    return;
+                }
+
+                boolean focused = focusSearchInput(activity);
+
+                Log.i(
+                        TAG,
+                        "search initial focus marker="
+                                + SEARCH_INITIAL_FOCUS_MARKER
+                                + " focused="
+                                + focused
+                                + " attempts="
+                                + attempts
+                );
+
+                if (
+                        !focused
+                                && attempts
+                                < SEARCH_INITIAL_FOCUS_RETRY_LIMIT
+                ) {
+                    decor.postDelayed(
+                            this,
+                            SEARCH_INITIAL_FOCUS_RETRY_DELAY_MS
+                    );
+                }
+            }
+        });
     }
 
     private static void scheduleSearchScopeHint(

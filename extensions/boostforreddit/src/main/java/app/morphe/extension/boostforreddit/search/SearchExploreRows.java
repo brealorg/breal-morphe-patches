@@ -26,6 +26,8 @@ import java.util.concurrent.TimeUnit;
 public final class SearchExploreRows {
     private static final String TAG = "MorpheSearchExplore";
     private static final String MARKER = "MORPHE_SEARCH_EXPLORE_ISSUE61_DEDUP_V2_IDENTITY_GATE";
+    private static final String SECTION_STABILITY_MARKER =
+            "MORPHE_SEARCH_EXPLORE_ISSUE95_STABLE_ANCHOR_V1";
 
     private static final String CACHE_PREFS = "morphe_search_active_subreddits_v5l";
     private static final String CACHE_VALUE = "active_rows";
@@ -119,8 +121,7 @@ public final class SearchExploreRows {
                 List<Object> inserted = new ArrayList<Object>();
                 inserted.add(makeHeader("Active subreddits"));
                 inserted.addAll(instantRows);
-                rows.addAll(inserted);
-                INSERTED_ROWS.record(activity, inserted);
+                insertOwnedLocked(activity, rows, inserted);
                 log("mode=" + instantMode + " rows=" + instantRows.size() + " CACHE_HIT=true");
 
                 if (!inFlight) {
@@ -130,8 +131,7 @@ public final class SearchExploreRows {
             } else {
                 List<Object> inserted = new ArrayList<Object>();
                 inserted.add(makeHeader("Loading active subreddits"));
-                rows.addAll(inserted);
-                INSERTED_ROWS.record(activity, inserted);
+                insertOwnedLocked(activity, rows, inserted);
                 log("mode=loading_active CACHE_HIT=false");
 
                 if (!inFlight) {
@@ -197,8 +197,7 @@ public final class SearchExploreRows {
                             }
 
                             if (!inserted.isEmpty()) {
-                                rows.addAll(inserted);
-                                INSERTED_ROWS.record(activity, inserted);
+                                insertOwnedLocked(activity, rows, inserted);
                             }
                         }
 
@@ -1354,6 +1353,23 @@ public final class SearchExploreRows {
 
     private static String typeName(Object item) {
         return item == null ? "null" : item.getClass().getName();
+    }
+
+    private static void insertOwnedLocked(
+            Activity activity,
+            ArrayList rows,
+            List<Object> inserted
+    ) {
+        int insertionIndex =
+                INSERTED_ROWS.insertionIndex(activity, rows);
+
+        rows.addAll(insertionIndex, inserted);
+        INSERTED_ROWS.record(activity, inserted);
+
+        log(SECTION_STABILITY_MARKER
+                + " insertionIndex=" + insertionIndex
+                + " inserted=" + inserted.size()
+                + " total=" + rows.size());
     }
 
     private static void removeInsertedLocked(Activity activity, ArrayList rows) {

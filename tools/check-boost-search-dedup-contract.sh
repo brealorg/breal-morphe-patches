@@ -15,6 +15,17 @@ test -f "$TEST"
 grep -F 'SearchInsertedRowsTracker<Activity>' "$SEARCH_ROWS" >/dev/null
 grep -F 'INSERTED_ROWS.record(activity, inserted)' "$SEARCH_ROWS" >/dev/null
 grep -F 'INSERTED_ROWS.remove(activity, rows)' "$SEARCH_ROWS" >/dev/null
+grep -F 'MORPHE_SEARCH_EXPLORE_ISSUE95_STABLE_ANCHOR_V1' \
+    "$SEARCH_ROWS" >/dev/null
+grep -F 'INSERTED_ROWS.insertionIndex(activity, rows)' \
+    "$SEARCH_ROWS" >/dev/null
+grep -F 'rows.addAll(insertionIndex, inserted)' \
+    "$SEARCH_ROWS" >/dev/null
+if grep -F 'rows.addAll(inserted)' "$SEARCH_ROWS" >/dev/null; then
+    echo 'FAIL: Search refresh still appends owned rows without anchor' >&2
+    exit 1
+fi
+
 if grep -F 'INSERTED_BY_ACTIVITY' "$SEARCH_ROWS" >/dev/null; then
     echo 'FAIL: legacy activity map remains in SearchExploreRows' >&2
     exit 1
