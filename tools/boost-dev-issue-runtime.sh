@@ -83,16 +83,18 @@ echo "===== build/select MPP ====="
 if [ -z "$MPP" ]; then
   ./gradlew :patches:buildAndroid --no-daemon || mark_fail "buildAndroid failed"
   if [ -n "$VERSION" ]; then
-    MPP="patches/build/libs/patches-${VERSION}.mpp"
+    MPP="$(tools/boost-resolve-mpp.sh --version "$VERSION")" \
+      || mark_fail "canonical Android MPP resolve failed"
   else
-    MPP="$(find patches/build/libs -maxdepth 1 -type f -name 'patches-*.mpp' -printf '%T@ %p\n' | sort -nr | awk 'NR==1{print $2}')"
+    MPP="$(tools/boost-resolve-mpp.sh)" \
+      || mark_fail "canonical Android MPP resolve failed"
   fi
 fi
 
 [ -f "$MPP" ] || mark_fail "MPP not found: $MPP"
 echo "MPP=$MPP"
 sha256sum "$MPP" || true
-unzip -l "$MPP" | grep -E 'classes.dex|extensions/boostforreddit.mpe' || mark_fail "MPP missing required entries"
+tools/check-mpp-release-asset.sh "$MPP" || mark_fail "MPP missing required Android entries"
 
 echo
 echo "===== build/install DEV clone ====="
