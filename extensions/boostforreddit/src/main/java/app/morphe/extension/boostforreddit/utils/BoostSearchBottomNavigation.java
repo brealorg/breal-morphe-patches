@@ -3936,35 +3936,35 @@ public final class BoostSearchBottomNavigation {
         }
 
         if (SUBREDDIT_ACTIVITY.equals(activity.getClass().getName())) {
-        try {
-            Method nativeSearch = findMethod(
-                    activity.getClass(),
-                    "T1"
-            );
+            try {
+                Method nativeSearch = findMethod(
+                        activity.getClass(),
+                        "T1"
+                );
 
-            if (nativeSearch != null) {
-                nativeSearch.setAccessible(true);
-                nativeSearch.invoke(activity);
+                if (nativeSearch != null) {
+                    nativeSearch.setAccessible(true);
+                    nativeSearch.invoke(activity);
 
-                Log.i(
+                    Log.i(
+                            TAG,
+                            "native search route marker="
+                                    + SEARCH_CONTEXT_MARKER
+                                    + " from="
+                                    + activity.getClass().getName()
+                    );
+                    return true;
+                }
+            } catch (Throwable error) {
+                Log.w(
                         TAG,
-                        "native search route marker="
+                        "native search route failed marker="
                                 + SEARCH_CONTEXT_MARKER
                                 + " from="
-                                + activity.getClass().getName()
+                                + activity.getClass().getName(),
+                        error
                 );
-                return true;
             }
-        } catch (Throwable error) {
-            Log.w(
-                    TAG,
-                    "native search route failed marker="
-                            + SEARCH_CONTEXT_MARKER
-                            + " from="
-                            + activity.getClass().getName(),
-                    error
-            );
-        }
         }
 
         try {
