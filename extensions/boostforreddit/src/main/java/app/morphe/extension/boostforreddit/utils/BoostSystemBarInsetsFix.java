@@ -20,6 +20,7 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.Window;
@@ -40,11 +41,18 @@ public final class BoostSystemBarInsetsFix {
     private static final String MAIN_NAV_BAR_SURFACE_MARKER_V3 = "MORPHE_BOOST_MAIN_NAV_BAR_SURFACE_V3";
     private static final String MAIN_NAV_BAR_SURFACE_OVERLAY_MARKER_V4 = "MORPHE_BOOST_MAIN_NAV_BAR_SURFACE_OVERLAY_V4";
     private static final String EXTENDED_ACTIVITY_SURFACE_SCOPE_MARKER_V5 = "MORPHE_BOOST_EXTENDED_ACTIVITY_SURFACE_SCOPE_V5";
+    private static final String DRAWER_STICKY_FOOTER_CLEARANCE_MARKER =
+            "MORPHE_BOOST_DRAWER_STICKY_FOOTER_CLEARANCE_V10031";
+    private static final String DECOR_NAVIGATION_CONTAINER_TAG =
+            "morphe_boost_decor_owned_navigation_container";
     private static final String COMMENTS_ACTIVITY_NAME = "com.rubenmayayo.reddit.ui.comments.CommentsActivity";
+    private static final String TAG = "MorpheInsetsFix";
 
     private static final WeakHashMap<Application, Boolean> INSTALLED = new WeakHashMap<>();
     private static final WeakHashMap<View, Padding> ORIGINAL_PADDING = new WeakHashMap<>();
     private static final WeakHashMap<View, Boolean> WATCHERS = new WeakHashMap<>();
+    private static final WeakHashMap<View, Integer> STICKY_FOOTER_CLEARANCE =
+            new WeakHashMap<>();
 
     private BoostSystemBarInsetsFix() {
     }
@@ -142,6 +150,86 @@ public final class BoostSystemBarInsetsFix {
             applyBottomInsetPadding(drawerRecycler, true);
             nudgeBottomVisibleChildAboveNavigationBar(drawerRecycler);
         }
+
+        View stickyFooter = findViewByName(activity, "material_drawer_sticky_footer");
+        if (stickyFooter != null) {
+            applyDrawerStickyFooterClearance(activity, stickyFooter);
+        }
+    }
+
+    private static void applyDrawerStickyFooterClearance(
+            Activity activity,
+            View stickyFooter
+    ) {
+        if (activity == null || stickyFooter == null) return;
+
+        Window window = activity.getWindow();
+        View decor = window == null ? null : window.getDecorView();
+        if (decor == null) return;
+
+        View navigationContainer = decor.findViewWithTag(
+                DECOR_NAVIGATION_CONTAINER_TAG
+        );
+
+        if (
+                navigationContainer == null
+                        || navigationContainer.getVisibility() != View.VISIBLE
+                        || navigationContainer.getHeight() <= 0
+                        || stickyFooter.getHeight() <= 0
+        ) {
+            return;
+        }
+
+        int[] footerLocation = new int[2];
+        int[] navigationLocation = new int[2];
+        stickyFooter.getLocationOnScreen(footerLocation);
+        navigationContainer.getLocationOnScreen(navigationLocation);
+
+        int footerBottom = footerLocation[1] + stickyFooter.getHeight();
+        int navigationTop = navigationLocation[1];
+        int overlap = Math.max(0, footerBottom - navigationTop);
+
+        saveOriginalPadding(stickyFooter);
+        Padding original = ORIGINAL_PADDING.get(stickyFooter);
+        if (original == null) return;
+
+        int targetBottomPadding = original.bottom + overlap;
+        Integer previousClearance = STICKY_FOOTER_CLEARANCE.get(stickyFooter);
+
+        if (
+                stickyFooter.getPaddingLeft() == original.left
+                        && stickyFooter.getPaddingTop() == original.top
+                        && stickyFooter.getPaddingRight() == original.right
+                        && stickyFooter.getPaddingBottom() == targetBottomPadding
+                        && previousClearance != null
+                        && previousClearance == overlap
+        ) {
+            return;
+        }
+
+        stickyFooter.setPadding(
+                original.left,
+                original.top,
+                original.right,
+                targetBottomPadding
+        );
+        stickyFooter.requestLayout();
+        stickyFooter.invalidate();
+        STICKY_FOOTER_CLEARANCE.put(stickyFooter, overlap);
+
+        Log.i(
+                TAG,
+                "drawer sticky footer clearance marker="
+                        + DRAWER_STICKY_FOOTER_CLEARANCE_MARKER
+                        + " overlap="
+                        + overlap
+                        + " originalBottomPadding="
+                        + original.bottom
+                        + " targetBottomPadding="
+                        + targetBottomPadding
+                        + " activity="
+                        + activity.getClass().getName()
+        );
     }
 
     private static boolean shouldApply(Activity activity) {
