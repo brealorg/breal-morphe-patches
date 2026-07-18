@@ -1,6 +1,12 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.87](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-86...morphe-patches-87) (2026-07-18)
+
+* **Boost for Reddit:** Bug Fixes
+
+• Prevented duplicate Active subreddits sections in Boost Search.
+
 ## [1.4.86](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-85...morphe-patches-86) (2026-07-18)
 
 * **Boost for Reddit:** Fixes Boost drawer sticky footer clearance so Settings and the theme toggle remain visible above bottom navigation.
