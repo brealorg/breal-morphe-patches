@@ -63,14 +63,14 @@ Preferred Morphe source setup is the deep link below. Raw `patches-bundle.json` 
 
 | Field | Value |
 |---|---|
-| Version | `1.4.88` |
-| Release tag | `morphe-patches-88` |
-| Asset | `patches-1.4.88.mpp` |
-| SHA256 | `c5f00ceacd55c6e3b3b320290d947fa0d6094248c1a2b36eaa611b84ec0116b9` |
+| Version | `1.4.89` |
+| Release tag | `morphe-patches-89` |
+| Asset | `patches-1.4.89.mpp` |
+| SHA256 | `dfe157f062111bbed6befe239c63ea8931a2bd8acc1974b12049d23aa07a263c` |
 
-SHA256: `c5f00ceacd55c6e3b3b320290d947fa0d6094248c1a2b36eaa611b84ec0116b9`
+SHA256: `dfe157f062111bbed6befe239c63ea8931a2bd8acc1974b12049d23aa07a263c`
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-88/patches-1.4.88.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-89/patches-1.4.89.mpp` |
 
 ## What this bundle does
 
@@ -118,10 +118,10 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.88` • `main` • 50 unique patches • 102 package entries
+> **Patch source version:** `1.4.89` • `main` • 51 unique patches • 103 package entries
 
 <details>
-<summary><strong>Boost for Reddit</strong> • 41 patches</summary>
+<summary><strong>Boost for Reddit</strong> • 42 patches</summary>
 
 
 
@@ -160,6 +160,7 @@ Included Imgur patches:
 | [Hook exception handler](#hook-exception-handler) | Hook the exception handler in Boost. Don't enable except for development purposes |  |
 | [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
 | [Prefer high refresh rate](#prefer-high-refresh-rate) | Requests a high display refresh rate for Boost on adaptive-refresh devices. |  |
+| [Remove obsolete profile tabs](#remove-obsolete-profile-tabs) | Removes the legacy Gilded and Friends tabs from Boost profiles. |  |
 | [Restore Boost Open by default prompt](#restore-boost-open-by-default-prompt) | Prompts after Boost patch updates to reopen Android's Open by default settings so supported Reddit links can be re-enabled. |  |
 | [Restore Boost sidebar Trending today](#restore-boost-sidebar-trending-today) | Uses native trending data when renderable, otherwise supplies HOT post rows and fixes the global community-limit control. |  |
 | [Restore GIF search integration probe](#restore-gif-search-integration-probe) | Fingerprint-only probe for Boost compose/reply GIF insertion through FormattingBar. No runtime behavior change. |  |
@@ -529,16 +530,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.88` is prepared and locally verified with:
+Release `1.4.89` is prepared and locally verified with:
 
-- Release tag `morphe-patches-88`.
+- Release tag `morphe-patches-89`.
 - Local built MPP SHA256 matching README.
-`c5f00ceacd55c6e3b3b320290d947fa0d6094248c1a2b36eaa611b84ec0116b9`
-- `patches-bundle.json` returning version `1.4.88`.
-- `patches-bundle.json` pointing to the `morphe-patches-88` asset.
+`dfe157f062111bbed6befe239c63ea8931a2bd8acc1974b12049d23aa07a263c`
+- `patches-bundle.json` returning version `1.4.89`.
+- `patches-bundle.json` pointing to the `morphe-patches-89` asset.
 - Expected release asset:
-`patches-1.4.88.mpp`
-- `c5f00ceacd55c6e3b3b320290d947fa0d6094248c1a2b36eaa611b84ec0116b9  patches-1.4.88.mpp`
+`patches-1.4.89.mpp`
+- `dfe157f062111bbed6befe239c63ea8931a2bd8acc1974b12049d23aa07a263c  patches-1.4.89.mpp`
 
 ## Development notes
 

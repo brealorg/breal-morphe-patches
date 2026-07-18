@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-07-18T16:34:13",
-  "description": "Bug Fixes\n\n- Stabilized Boost bottom-navigation state, routing, visibility and unread Inbox badge across all five destinations.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-88/patches-1.4.88.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-88/patches-1.4.88.mpp.asc",
-  "version": "1.4.88"
+  "created_at": "2026-07-18T17:36:33",
+  "description": "Bug Fixes\n\n- Removed obsolete Gilded and Friends tabs from Boost profiles.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-89/patches-1.4.89.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-89/patches-1.4.89.mpp.asc",
+  "version": "1.4.89"
 }

@@ -1,6 +1,12 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.89](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-88...morphe-patches-89) (2026-07-18)
+
+* **Boost for Reddit:** Bug Fixes
+
+- Removed obsolete Gilded and Friends tabs from Boost profiles.
+
 ## [1.4.88](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-87...morphe-patches-88) (2026-07-18)
 
 * **Boost for Reddit:** Bug Fixes
