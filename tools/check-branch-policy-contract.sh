@@ -19,13 +19,16 @@ test -f "$WRAPPER_UPDATE"
 test -f "$RELEASE"
 test -f "$POLICY"
 test ! -e "$LEGACY_DEV_PR"
+test ! -e "$ROOT/.releaserc"
+test ! -e "$ROOT/package.json"
+test ! -e "$ROOT/package-lock.json"
 
 if rg -n -F 'target-branch: dev' "$DEPENDABOT" "$WRAPPER_UPDATE"; then
   echo 'FAIL: maintenance automation still targets dev' >&2
   exit 1
 fi
 
-test "$(rg -c -F 'target-branch: main' "$DEPENDABOT")" -eq 3
+test "$(rg -c -F 'target-branch: main' "$DEPENDABOT")" -eq 2
 rg -q -F 'target-branch: main' "$WRAPPER_UPDATE"
 
 if rg -n -F -- '- dev' "$PR_BUILD"; then
@@ -34,9 +37,14 @@ if rg -n -F -- '- dev' "$PR_BUILD"; then
 fi
 
 rg -q -F -- '- main' "$PR_BUILD"
-rg -q -F 'HEAD:refs/heads/dev' "$RELEASE"
+rg -q -F -- '--protected-main-commit "$RELEASE_COMMIT"' "$RELEASE"
+if rg -n -F 'refs/heads/main:refs/heads/main' "$RELEASE" "$ROOT/scripts/releasectl.py"; then
+  echo 'FAIL: release publication still writes directly to main' >&2
+  exit 1
+fi
 rg -q -F '`main` is the canonical development and pull-request target.' "$POLICY"
 rg -q -F '`dev` is retained only as a release mirror' "$POLICY"
+rg -q -F 'Release metadata reaches `main` only through a pull request.' "$POLICY"
 
 python3 - "$PR_BUILD" "$FEED_SMOKE" "$BYTECODE_SAFETY" <<'PY_CHECK'
 import re
@@ -60,9 +68,16 @@ for raw_path in sys.argv[1:]:
         r"(?m)^\s*(?:-\s+dev|branches:.*\bdev\b)",
         block,
     ), f"pull_request still targets dev: {path}"
+    assert not re.search(
+        r"(?m)^\s*paths(?:-ignore)?:\s*",
+        block,
+    ), f"required pull-request check is path-filtered and may never register: {path}"
 PY_CHECK
 
 echo 'MAIN_CANONICAL_PR_TARGET=PASS'
 echo 'MAINTENANCE_AUTOMATION_TARGETS_MAIN=PASS'
 echo 'DEV_RELEASE_MIRROR_DOCUMENTED=PASS'
+echo 'PROTECTED_MAIN_RELEASE_PUBLICATION=PASS'
+echo 'REQUIRED_PR_CHECKS_ALWAYS_REGISTER=PASS'
+echo 'PARALLEL_SEMANTIC_RELEASE_PATH_REMOVED=PASS'
 echo 'RESULT=MORPHE_BRANCH_POLICY_CONTRACT_OK'

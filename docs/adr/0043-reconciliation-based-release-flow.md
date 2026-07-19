@@ -121,7 +121,7 @@ No operation may assume that the previous operation succeeded.
 
 `verify` is read-only and repeatable. A release is fully verified only when:
 
-- remote `main` and `dev` equal the release commit;
+- remote `main` and `dev` contain the release commit;
 - the remote tag peels to the release commit;
 - the GitHub release is published and not a prerelease;
 - the expected MPP and signature assets exist exactly once;
@@ -161,9 +161,13 @@ when the remote release is correct but the local worktree is dirty.
 
 ## Git ref strategy
 
-Remote `main`, `dev` and the release tag must be updated through one atomic Git
-push. The tooling must not fall back to separate pushes when atomic push is not
-supported.
+Release metadata must reach remote `main` through a normal pull request before
+publication. The workflow binds publication to that exact merged commit and
+must never use a token or app bypass to push `main` directly.
+
+After remote `main` is re-observed at the immutable release commit, remote
+`dev` and the release tag must be updated through one atomic Git push. The
+tooling must not fall back to separate pushes when atomic push is not supported.
 
 Local branch refs should use transactional ref updates with explicit expected
 old object IDs where practical.
@@ -172,7 +176,7 @@ old object IDs where practical.
 
 GitHub Releases use a draft-first lifecycle:
 
-1. push release refs atomically;
+1. verify remote `main`, then push the `dev` mirror and release tag atomically;
 2. re-observe refs;
 3. create a draft release;
 4. upload the MPP;

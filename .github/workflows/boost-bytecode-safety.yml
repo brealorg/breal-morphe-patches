@@ -4,17 +4,6 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - 'patches/src/main/kotlin/app/morphe/patches/reddit/customclients/boostforreddit/**'
-      - 'tools/boost-bytecode-safety-gate.sh'
-      - 'tools/boost_bytecode_safety.py'
-      - 'tools/build-boost-candidate.sh'
-      - 'tools/build-boost-devclone-candidate.sh'
-      - 'tools/boost-dev-from-mpp.sh'
-      - 'scripts/releasectl.py'
-      - 'tests/fixtures/bytecode-safety/**'
-      - 'tests/tools/test_boost_bytecode_safety.py'
-      - '.github/workflows/boost-bytecode-safety.yml'
   push:
     branches:
       - main

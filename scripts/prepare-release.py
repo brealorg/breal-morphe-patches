@@ -280,13 +280,13 @@ def print_summary(version: str, tag: str, mpp: Path | None, sha: str | None) -> 
     if sha is not None:
         print("sha256:", sha)
     print()
-    print("Next manual steps:")
+    print("Next protected-main steps:")
     print("  git --no-pager diff -- CHANGELOG.md README.md gradle.properties patches-bundle.json patches-list.json")
     print("  git add CHANGELOG.md README.md gradle.properties patches-bundle.json patches-list.json")
     print("  git commit -m \"Prepare patch bundle release <N>\"")
-    print("  git tag -a <tag> -m <tag>")
-    print("  git push --atomic origin HEAD:refs/heads/main HEAD:refs/heads/dev refs/tags/<tag>:refs/tags/<tag>")
-    print("  gh release create <tag> patches/build/libs/<asset> --title <tag> --notes-file <notes-file>")
+    print("  git push origin HEAD:refs/heads/work/release-<N>")
+    print("  open and merge a pull request into main after required checks pass")
+    print("  dispatch .github/workflows/release.yml from the merged main commit")
     print("  make verify-remote VERSION=<version> TAG=<tag>")
 
 
