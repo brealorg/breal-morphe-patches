@@ -5,13 +5,21 @@
 Use focused `work/*` branches for changes and open pull requests directly to
 `main`. Dependency and Gradle-wrapper automation also target `main`.
 
-`dev` is retained only as a release mirror while the current release controller
-requires atomic alignment of `main`, `dev`, and the annotated release tag. Do
-not use `dev` as a development, pull-request, or dependency-update target.
+Release metadata reaches `main` only through a pull request. Prepare it on a
+focused `work/release-*` branch, run the normal required checks, and merge it
+before dispatching the release workflow from that exact `main` commit.
+Every required check must register on every pull request to `main`; path filters
+must not leave an otherwise valid pull request permanently pending.
+
+`dev` is retained only as a release mirror. After remote `main` is verified at
+the immutable release commit, the release controller atomically advances only
+`dev` and the annotated release tag. It never pushes `main`. Do not use `dev`
+as a development, pull-request, or dependency-update target.
 
 Changing or removing the release mirror is a release-controller migration. It
 must update `scripts/releasectl.py`, release tests, release documentation, and
-the publication workflow together.
+the publication workflow together. A custom GitHub App or personal token is not
+an accepted bypass for ordinary release publication.
 
 ## Remote write preflight and handoff
 

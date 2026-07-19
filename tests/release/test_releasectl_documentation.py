@@ -33,12 +33,22 @@ class ReleaseStateDocumentationTests(unittest.TestCase):
     def test_d03_every_mutating_phase_requires_reinspection(self) -> None:
         text = DOC.read_text(encoding="utf-8")
         for phrase in (
-            "before local finalization",
+            "before protected-main artifact reconstruction",
             "before the atomic release-ref push",
             "before draft release creation",
             "before each asset upload",
             "before draft publication",
             "Re-run the command after every mutation",
+        ):
+            self.assertIn(phrase, text)
+
+    def test_d06_protected_main_publication_is_documented(self) -> None:
+        text = DOC.read_text(encoding="utf-8")
+        for phrase in (
+            "merge it through a pull request",
+            "--protected-main-commit FULL_MERGED_MAIN_SHA",
+            "It never writes `main`",
+            "atomic publication of `dev` and the annotated tag",
         ):
             self.assertIn(phrase, text)
 

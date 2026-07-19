@@ -71,17 +71,44 @@ class WorkflowFixture:
             "patches/build/\nlocal-artifacts/\n",
             encoding="utf-8",
         )
+        download_url = (
+            f"https://github.com/owner/repo/releases/download/{TAG}/"
+            f"patches-{VERSION}.mpp"
+        )
         (self.repo / "README.md").write_text(
-            f"## Current release\nVersion {VERSION}\nTag {TAG}\nSHA256 `{self.sha}`\n",
+            "## Current release\n\n"
+            "| Field | Value |\n"
+            "|---|---|\n"
+            f"| Version | `{VERSION}` |\n"
+            f"| Release tag | `{TAG}` |\n"
+            f"| Asset | `patches-{VERSION}.mpp` |\n"
+            f"| SHA256 | `{self.sha}` |\n"
+            "| Manager JSON | `https://raw.githubusercontent.com/owner/repo/main/patches-bundle.json` |\n"
+            f"| Download URL | `{download_url}` |\n\n"
+            f"SHA256: `{self.sha}`\n",
             encoding="utf-8",
         )
-        run("git", "add", ".gitignore", "README.md", "scripts/validate-release-notes.py", cwd=self.repo)
+        (self.repo / "patches-bundle.json").write_text(
+            "{\n"
+            f'  "version": "{VERSION}",\n'
+            '  "created_at": "2026-07-19T00:00:00",\n'
+            '  "description": "Test release.",\n'
+            f'  "download_url": "{download_url}",\n'
+            f'  "signature_download_url": "{download_url}.asc"\n'
+            "}\n",
+            encoding="utf-8",
+        )
+        run(
+            "git", "add", ".gitignore", "README.md", "patches-bundle.json",
+            "scripts/validate-release-notes.py", cwd=self.repo,
+        )
         run("git", "commit", "-m", "Release fixture", cwd=self.repo)
         self.commit = run("git", "rev-parse", "HEAD", cwd=self.repo)
         run("git", "branch", "dev", cwd=self.repo)
         run("git", "tag", "-a", TAG, "-m", TAG, cwd=self.repo)
         run("git", "init", "--bare", str(self.remote), cwd=self.root)
         run("git", "remote", "add", "origin", str(self.remote), cwd=self.repo)
+        run("git", "push", "origin", "main:refs/heads/main", cwd=self.repo)
 
     def close(self) -> None:
         self.temp.cleanup()
@@ -104,6 +131,10 @@ class HybridRunner:
                 f"[GNUPG:] VALIDSIG {self.signer} 2026-07-11 0 4 0 1 10 00 {self.signer}\n",
                 "",
             )
+        if call[:2] == ("./gradlew", ":patches:buildAndroid"):
+            return MODULE.MutationCommandResult(call, 0, "built\n", "")
+        if call[:2] == ("python3", "scripts/release-gate.py"):
+            return MODULE.MutationCommandResult(call, 0, "RELEASE GATE OK\n", "")
         completed = subprocess.run(
             call,
             cwd=repo_path,
@@ -345,6 +376,71 @@ class ReleaseWorkflowTests(unittest.TestCase):
         self.assertIn("COMMAND=resume", text)
         self.assertIn("POSTCHECK_RESULT=OK", text)
         self.assertIn("FINAL_STATE=PUBLISHED_AND_VERIFIED", text)
+
+    def test_w06_protected_main_rebuilds_then_pushes_only_dev_and_tag(self) -> None:
+        inspector = SequenceInspector(
+            [
+                inspection(MODULE.ReleaseState.READY_TO_PUBLISH),
+                inspection(
+                    MODULE.ReleaseState.READY_TO_PUBLISH,
+                    operation_type=MODULE.PlanOperationType.PUSH_RELEASE_REFS_ATOMIC,
+                ),
+                inspection(MODULE.ReleaseState.PUBLISHED_AND_VERIFIED),
+            ]
+        )
+        result = MODULE.publish_release_workflow(
+            self.fixture.repo,
+            "owner/repo",
+            version=VERSION,
+            tag=TAG,
+            release_notes_file=self.fixture.notes,
+            protected_main_commit=self.fixture.commit,
+            runner=self.runner,
+            inspect_fn=inspector,
+        )
+        self.assertEqual(result.postcheck_result, "OK")
+        self.assertTrue(
+            any(
+                call[:2] == ("./gradlew", ":patches:buildAndroid")
+                for call in self.runner.calls
+            )
+        )
+        push = next(
+            call
+            for call in self.runner.calls
+            if call[:3] == ("git", "push", "--atomic")
+        )
+        self.assertIn("refs/heads/dev:refs/heads/dev", push)
+        self.assertIn(f"refs/tags/{TAG}:refs/tags/{TAG}", push)
+        self.assertNotIn("refs/heads/main:refs/heads/main", push)
+
+    def test_w07_protected_main_drift_aborts_before_build_or_github_write(self) -> None:
+        expected = self.fixture.commit
+        run("git", "commit", "--allow-empty", "-m", "drift", cwd=self.fixture.repo)
+        run("git", "push", "origin", "main:refs/heads/main", cwd=self.fixture.repo)
+        run("git", "reset", "--hard", expected, cwd=self.fixture.repo)
+
+        result = MODULE.publish_release_workflow(
+            self.fixture.repo,
+            "owner/repo",
+            version=VERSION,
+            tag=TAG,
+            release_notes_file=self.fixture.notes,
+            protected_main_commit=expected,
+            runner=self.runner,
+        )
+        self.assertEqual(result.postcheck_result, "FAIL")
+        self.assertIn(
+            "dispatch commit, local main, and remote main must identify the same",
+            result.error or "",
+        )
+        self.assertFalse(
+            any(
+                call[:2] == ("./gradlew", ":patches:buildAndroid")
+                for call in self.runner.calls
+            )
+        )
+        self.assertFalse(any(call[0] == "gh" for call in self.runner.calls))
 
 
 if __name__ == "__main__":

@@ -13,7 +13,7 @@ help:
 > @echo "  make prepare-release VERSION=1.4.93 TAG=morphe-patches-93 CHANGELOG_FILE=/tmp/changelog.txt"
 > @echo "  make release-gate VERSION=1.4.93 TAG=morphe-patches-93 EXTRA_GATE_ARGS='...'"
 > @echo "  make verify-remote VERSION=1.4.93 TAG=morphe-patches-93"
-> @echo "  make release-publish VERSION=1.4.93 TAG=morphe-patches-93 EXTRA_PUBLISH_ARGS='--dry-run'"
+> @echo "  make release-publish VERSION=1.4.95 TAG=morphe-patches-95 NOTES_FILE=/tmp/release-notes.md SIGNING_IDENTITY=<fingerprint>"
 
 status:
 > git --no-pager status -sb
@@ -52,9 +52,11 @@ verify-remote:
 > ./scripts/verify-remote-release.sh "$(VERSION)" "$(TAG)"
 
 release-publish:
-> @test -n "$(VERSION)" || (echo "Usage: make release-publish VERSION=1.4.93 TAG=morphe-patches-93 EXTRA_PUBLISH_ARGS='--dry-run'"; exit 1)
-> @test -n "$(TAG)" || (echo "Usage: make release-publish VERSION=1.4.93 TAG=morphe-patches-93 EXTRA_PUBLISH_ARGS='--dry-run'"; exit 1)
-> ./scripts/publish-release.py --version "$(VERSION)" --tag "$(TAG)" $(EXTRA_PUBLISH_ARGS)
+> @test -n "$(VERSION)" || (echo "Usage: make release-publish VERSION=1.4.95 TAG=morphe-patches-95 NOTES_FILE=/tmp/release-notes.md SIGNING_IDENTITY=<fingerprint>"; exit 1)
+> @test -n "$(TAG)" || (echo "Usage: make release-publish VERSION=1.4.95 TAG=morphe-patches-95 NOTES_FILE=/tmp/release-notes.md SIGNING_IDENTITY=<fingerprint>"; exit 1)
+> @test -n "$(NOTES_FILE)" || (echo "NOTES_FILE is required"; exit 1)
+> @test -n "$(SIGNING_IDENTITY)" || (echo "SIGNING_IDENTITY is required"; exit 1)
+> ./scripts/publish-release.py --version "$(VERSION)" --tag "$(TAG)" --notes-file "$(NOTES_FILE)" --signing-identity "$(SIGNING_IDENTITY)" $(EXTRA_PUBLISH_ARGS)
 
 update-readme-sha:
 > @test -n "$(VERSION)" || (echo "Usage: make update-readme-sha VERSION=1.4.22"; exit 1)

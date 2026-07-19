@@ -160,7 +160,7 @@ class ReleaseMutationHelperTests(unittest.TestCase):
         self.assertEqual(run("git", "rev-parse", "dev", cwd=fixture.repo), identity.release_commit)
         self.assertEqual(run("git", "rev-parse", "main", cwd=fixture.repo), identity.release_commit)
 
-    def test_t07_atomic_push_publishes_main_dev_and_tag(self) -> None:
+    def test_t07_atomic_push_requires_main_and_publishes_dev_and_tag(self) -> None:
         fixture = GitFixture()
         self.addCleanup(fixture.close)
         identity = MODULE.derive_existing_release_identity(
@@ -170,6 +170,7 @@ class ReleaseMutationHelperTests(unittest.TestCase):
             signing_identity=SIGNER,
         )
         MODULE._align_local_dev(fixture.repo, identity, MODULE.SubprocessMutationRunner())
+        run("git", "push", "origin", "main:refs/heads/main", cwd=fixture.repo)
         MODULE._atomic_push_release_refs(
             fixture.repo,
             identity,
@@ -180,6 +181,35 @@ class ReleaseMutationHelperTests(unittest.TestCase):
             "git", "ls-remote", "origin", "refs/heads/main", "refs/heads/dev", f"refs/tags/{TAG}^{{}}", cwd=fixture.repo
         )
         self.assertEqual(listing.count(identity.release_commit), 3)
+
+    def test_t07b_atomic_push_aborts_when_remote_main_is_not_release_commit(self) -> None:
+        fixture = GitFixture()
+        self.addCleanup(fixture.close)
+        identity = MODULE.derive_existing_release_identity(
+            fixture.repo,
+            version=VERSION,
+            tag=TAG,
+            signing_identity=SIGNER,
+        )
+        MODULE._align_local_dev(
+            fixture.repo,
+            identity,
+            MODULE.SubprocessMutationRunner(),
+        )
+        with self.assertRaisesRegex(
+            RuntimeError,
+            "remote main must already equal the release commit",
+        ):
+            MODULE._atomic_push_release_refs(
+                fixture.repo,
+                identity,
+                "origin",
+                MODULE.SubprocessMutationRunner(),
+            )
+        self.assertEqual(
+            run("git", "ls-remote", "origin", cwd=fixture.repo),
+            "",
+        )
 
     def test_t08_wrapper_scripts_are_thin(self) -> None:
         finalize = (ROOT / "scripts" / "release-finalize-local.sh").read_text(encoding="utf-8")
@@ -195,8 +225,9 @@ class ReleaseMutationHelperTests(unittest.TestCase):
         text = (ROOT / "scripts" / "release-repair-metadata-only.sh").read_text(encoding="utf-8")
         self.assertNotIn("git tag -f", text)
         self.assertNotIn("push --force", text)
-        self.assertIn("git push --atomic", text)
-        self.assertIn("immutable release tag is intentionally unchanged", text)
+        self.assertNotIn("git push", text)
+        self.assertIn("direct metadata repair publication is retired", text)
+        self.assertIn("immutable release tag and published assets must remain unchanged", text)
 
     def test_t10_cli_exposes_mutating_commands(self) -> None:
         completed = subprocess.run(

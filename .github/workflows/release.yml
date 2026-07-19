@@ -4,29 +4,16 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version, for example 1.4.45'
-        required: true
-        type: string
-      changelog:
-        description: 'Manager-facing release description'
+        description: 'Release version already committed through a pull request, for example 1.4.95'
         required: true
         type: string
       release_notes:
         description: 'Human-readable GitHub Release notes: title, app/area, Changes, User impact'
         required: true
         type: string
-      markers:
-        description: 'Optional release-gate markers, one per line'
-        required: false
-        type: string
-      publish:
-        description: 'Commit, tag, push, and create GitHub release'
-        required: true
-        default: false
-        type: boolean
       confirm:
-        description: 'Type MORPHE_RELEASE when publish=true'
-        required: false
+        description: 'Type MORPHE_RELEASE_FROM_PROTECTED_MAIN'
+        required: true
         type: string
 
 concurrency:
@@ -35,108 +22,46 @@ concurrency:
 
 jobs:
   release:
-    name: Manual Morphe release
+    name: Publish merged Morphe release
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      packages: write
-      id-token: write
-      attestations: write
+      packages: read
     env:
       VERSION: ${{ inputs.version }}
-      CHANGELOG: ${{ inputs.changelog }}
       RELEASE_NOTES: ${{ inputs.release_notes }}
-      MARKERS: ${{ inputs.markers }}
-      PUBLISH: ${{ inputs.publish }}
       CONFIRM: ${{ inputs.confirm }}
+      RELEASE_COMMIT: ${{ github.sha }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-      - name: Validate dispatch input
+      - name: Validate protected-main dispatch
         shell: bash
         run: |
           set -euo pipefail
 
-          if [ "$GITHUB_REF_NAME" != "main" ]; then
-            echo "Release workflow must be dispatched from main. Current ref: $GITHUB_REF_NAME"
-            exit 1
-          fi
-
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Invalid version: $VERSION"
-            exit 1
-          fi
-
-          if [ -z "$CHANGELOG" ]; then
-            echo "changelog input is required"
-            exit 1
-          fi
-
-          if [ -z "$RELEASE_NOTES" ]; then
-            echo "release_notes input is required"
-            exit 1
-          fi
-
-          if [ "$PUBLISH" = "true" ] && [ "$CONFIRM" != "MORPHE_RELEASE" ]; then
-            echo "publish=true requires confirm=MORPHE_RELEASE"
-            exit 1
-          fi
+          test "$GITHUB_REF_NAME" = "main"
+          test "$CONFIRM" = "MORPHE_RELEASE_FROM_PROTECTED_MAIN"
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          test -n "$RELEASE_NOTES"
 
           TAG="morphe-patches-${VERSION##*.}"
-          ASSET="patches-${VERSION}.mpp"
+          NOTES_FILE="$RUNNER_TEMP/release-notes-$VERSION.md"
+          printf '%s\n' "$RELEASE_NOTES" > "$NOTES_FILE"
 
           echo "TAG=$TAG" >> "$GITHUB_ENV"
-          echo "ASSET=$ASSET" >> "$GITHUB_ENV"
-
+          echo "NOTES_FILE=$NOTES_FILE" >> "$GITHUB_ENV"
           echo "VERSION=$VERSION"
           echo "TAG=$TAG"
-          echo "ASSET=$ASSET"
-          echo "PUBLISH=$PUBLISH"
+          echo "RELEASE_COMMIT=$RELEASE_COMMIT"
 
-      - name: Checkout main
+      - name: Checkout exact main
         uses: actions/checkout@v6
         with:
           ref: main
           fetch-depth: 0
 
-      - name: Check existing release tag
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
-            echo "Release tag already exists: $TAG"
-            if [ "$PUBLISH" = "true" ]; then
-              exit 1
-            fi
-            echo "publish=false, continuing dry-run despite existing tag."
-          fi
-
-
-      - name: Validate release signing config
-        env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          GPG_FINGERPRINT: ${{ vars.GPG_FINGERPRINT }}
-        run: |
-          set -euo pipefail
-
-          missing=0
-          for name in GPG_PRIVATE_KEY GPG_PASSPHRASE GPG_FINGERPRINT; do
-            value="${!name:-}"
-            if [ -z "$value" ]; then
-              echo "::error::$name is missing or empty"
-              missing=1
-            fi
-          done
-
-          if [ "$missing" -ne 0 ]; then
-            echo "Release signing config is incomplete."
-            exit 1
-          fi
-
-          echo "Release signing config is present."
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
@@ -160,6 +85,18 @@ jobs:
         with:
           cache-provider: basic
 
+      - name: Validate release signing config
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          GPG_FINGERPRINT: ${{ vars.GPG_FINGERPRINT }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$GPG_PRIVATE_KEY"
+          test -n "$GPG_PASSPHRASE"
+          test -n "$GPG_FINGERPRINT"
+
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v7
         with:
@@ -167,190 +104,16 @@ jobs:
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
           fingerprint: ${{ vars.GPG_FINGERPRINT }}
 
-      - name: Prepare Morphe release
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          cmd=(
-            python3 scripts/prepare-release.py
-            --version "$VERSION"
-            --tag "$TAG"
-            --changelog "$CHANGELOG"
-            --stale "releases/download/v"
-            --stale "patches-1.4.1.mpp"
-          )
-
-          while IFS= read -r marker; do
-            if [ -n "$marker" ]; then
-              cmd+=(--marker "$marker")
-            fi
-          done <<< "$MARKERS"
-
-          printf '+ '
-          printf '%q ' "${cmd[@]}"
-          echo
-
-          "${cmd[@]}"
-
-      - name: Sign and verify asset
-        shell: bash
+      - name: Publish from protected main
         env:
           GPG_FINGERPRINT: ${{ vars.GPG_FINGERPRINT }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-        run: |
-          set -euo pipefail
-
-          ASSET_PATH="patches/build/libs/$ASSET"
-
-          test -s "$ASSET_PATH"
-
-          unzip -l "$ASSET_PATH" | grep -F 'classes.dex'
-          unzip -l "$ASSET_PATH" | grep -F 'extensions/boostforreddit.mpe'
-
-          gpg --batch --yes \
-            --pinentry-mode loopback \
-            --passphrase "$GPG_PASSPHRASE" \
-            --local-user "$GPG_FINGERPRINT" \
-            --armor \
-            --detach-sign "$ASSET_PATH"
-
-          gpg --batch --verify "$ASSET_PATH.asc" "$ASSET_PATH"
-
-          sha256sum "$ASSET_PATH"
-          ls -lh "$ASSET_PATH" "$ASSET_PATH.asc"
-
-
-      - name: Validate GitHub release notes
         shell: bash
         run: |
           set -euo pipefail
 
-          ASSET_PATH="patches/build/libs/$ASSET"
-          NOTES_FILE="release-notes-$VERSION.md"
-          LOCAL_SHA="$(sha256sum "$ASSET_PATH" | awk '{print $1}')"
-
-          printf '%s\n' "$RELEASE_NOTES" > "$NOTES_FILE"
-          {
-            echo
-            echo "### Validation"
-            echo
-            echo "- Final local release gate passed before publish."
-            echo "- README SHA is aligned to the published MPP."
-            echo "- Release tag: \`$TAG\`."
-            echo "- Release asset: \`$ASSET\`."
-            echo "- Signature asset: \`$ASSET.asc\`."
-            echo "- MPP SHA256: \`$LOCAL_SHA\`."
-          } >> "$NOTES_FILE"
-
-          python3 scripts/validate-release-notes.py \
-            --notes-file "$NOTES_FILE" \
+          python3 scripts/releasectl.py publish \
             --version "$VERSION" \
             --tag "$TAG" \
-            --asset "$ASSET" \
-            --sha256 "$LOCAL_SHA" \
-            --require-sha
-
-      - name: Show prepared release diff
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          git diff --check -- CHANGELOG.md README.md gradle.properties patches-bundle.json patches-list.json
-
-          UNEXPECTED="$(git diff --name-only | grep -Ev '^(CHANGELOG\.md|README\.md|gradle\.properties|patches-bundle\.json|patches-list\.json)$' || true)"
-          if [ -n "$UNEXPECTED" ]; then
-            echo "Unexpected prepared file changes:"
-            printf '%s\n' "$UNEXPECTED"
-            exit 1
-          fi
-
-          git --no-pager diff -- CHANGELOG.md README.md gradle.properties patches-bundle.json patches-list.json | sed -n '1,280p'
-          git --no-pager status -sb
-
-      - name: Stop before publish
-        if: ${{ inputs.publish != true }}
-        shell: bash
-        run: |
-          echo "publish=false, stopping after build/sign/gate/diff."
-          echo "No commit, tag, push, or GitHub release was created."
-
-      - name: Commit release metadata
-        if: ${{ inputs.publish == true }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add CHANGELOG.md README.md gradle.properties patches-bundle.json patches-list.json
-          git --no-pager diff --cached --name-only
-
-          git commit -m "Prepare Morphe patch bundle $VERSION [skip ci]"
-          git tag -a "$TAG" -m "$TAG"
-
-      - name: Push release commit and tag
-        if: ${{ inputs.publish == true }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          git push --atomic origin \
-            "HEAD:refs/heads/main" \
-            "HEAD:refs/heads/dev" \
-            "refs/tags/$TAG:refs/tags/$TAG"
-
-
-      - name: Create GitHub release
-        if: ${{ inputs.publish == true }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          ASSET_PATH="patches/build/libs/$ASSET"
-          NOTES_FILE="release-notes-$VERSION.md"
-          LOCAL_SHA="$(sha256sum "$ASSET_PATH" | awk '{print $1}')"
-
-          test -s "$NOTES_FILE"
-
-          python3 scripts/validate-release-notes.py \
-            --notes-file "$NOTES_FILE" \
-            --version "$VERSION" \
-            --tag "$TAG" \
-            --asset "$ASSET" \
-            --sha256 "$LOCAL_SHA" \
-            --require-sha
-
-          gh release create "$TAG" \
-            "$ASSET_PATH" "$ASSET_PATH.asc" \
-            --title "Morphe patch bundle $VERSION" \
-            --notes-file "$NOTES_FILE"
-
-      - name: Verify published release asset
-        if: ${{ inputs.publish == true }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          ASSET_PATH="patches/build/libs/$ASSET"
-          LOCAL_SHA="$(sha256sum "$ASSET_PATH" | awk '{print $1}')"
-
-          mkdir -p verify-release
-          gh release download "$TAG" --dir verify-release --pattern "$ASSET"
-          gh release download "$TAG" --dir verify-release --pattern "$ASSET.asc"
-
-          REMOTE_SHA="$(sha256sum "verify-release/$ASSET" | awk '{print $1}')"
-
-          echo "LOCAL_SHA=$LOCAL_SHA"
-          echo "REMOTE_SHA=$REMOTE_SHA"
-
-          test "$LOCAL_SHA" = "$REMOTE_SHA"
-          gpg --batch --verify "verify-release/$ASSET.asc" "verify-release/$ASSET"
-
-      - name: Attest release artifact
-        if: ${{ inputs.publish == true }}
-        uses: actions/attest-build-provenance@v3
-        with:
-          subject-name: 'Morphe ${{ env.TAG }}'
-          subject-path: 'patches/build/libs/${{ env.ASSET }}'
+            --release-notes-file "$NOTES_FILE" \
+            --protected-main-commit "$RELEASE_COMMIT" \
+            --signing-identity "$GPG_FINGERPRINT"

@@ -94,14 +94,17 @@ The gate is mandatory in these paths:
   DEV-clone decode or rewrite;
 - `tools/boost-dev-from-mpp.sh`, which passes the canonical base APK and the
   normal candidate's `patch-result.json` to the DEV-clone builder;
-- `scripts/releasectl.py finalize`, which requires both the PASS log and PASS JSON
-  report before creating the release commit or annotated tag;
+- the required pull-request bytecode fixture check, which must pass before
+  release metadata can merge to `main`;
+- protected-main publication in `scripts/releasectl.py`, which rebuilds and
+  validates the exact MPP digest committed through that pull request before
+  creating the annotated tag;
 - `.github/workflows/boost-bytecode-safety.yml`, which runs the regression fixture
   suite whenever Boost patch or bytecode-gate code changes.
 
 A failed gate prevents the normal candidate builder from returning `RESULT: PASS`.
-Consequently the supported DEV preparation and release-finalize paths cannot
-continue to installation, release commit or tag creation.
+Consequently the supported DEV preparation and release-publication paths cannot
+continue to installation or tag creation.
 
 ## Known limits and mandatory runtime coverage
 

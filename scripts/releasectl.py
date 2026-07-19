@@ -3654,6 +3654,87 @@ def _require_clean_main(repo_root: Path, runner: MutationRunner) -> None:
         raise RuntimeError("worktree or index is not clean")
 
 
+def _read_remote_branch_commit(
+    repo_root: Path,
+    remote_name: str,
+    branch: str,
+    runner: MutationRunner,
+) -> str | None:
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._/-]{0,199}", branch):
+        raise ValueError("remote branch contains unsupported characters")
+    ref = f"refs/heads/{branch}"
+    result = _run_mutation(
+        runner,
+        repo_root,
+        ("git", "ls-remote", "--heads", remote_name, ref),
+        label=f"remote {branch} lookup",
+    )
+    values: list[str] = []
+    for line in result.stdout.splitlines():
+        parts = line.split("\t")
+        if len(parts) != 2 or parts[1] != ref or not _SHA1_RE.fullmatch(parts[0]):
+            raise RuntimeError(f"remote {branch} lookup returned malformed output")
+        values.append(parts[0])
+    if len(values) > 1:
+        raise RuntimeError(f"remote {branch} lookup returned duplicate refs")
+    return values[0] if values else None
+
+
+def derive_protected_main_release_identity(
+    repo_path: str | Path,
+    repository: str,
+    *,
+    version: str,
+    tag: str,
+    release_commit: str,
+    remote_name: str = "origin",
+    signing_identity: str = DEFAULT_SIGNING_IDENTITY,
+    runner: MutationRunner | None = None,
+) -> ReleaseIdentity:
+    active_runner = runner or SubprocessMutationRunner()
+    repo_root = _resolve_mutation_repo_root(repo_path, active_runner)
+    if not _SHA1_RE.fullmatch(release_commit):
+        raise ValueError("protected main commit must be a full lowercase SHA-1")
+    _require_clean_main(repo_root, active_runner)
+    local_main = _read_exact_ref(repo_root, "refs/heads/main", active_runner)
+    head = _read_exact_ref(repo_root, "HEAD", active_runner)
+    remote_main = _read_remote_branch_commit(
+        repo_root,
+        remote_name,
+        "main",
+        active_runner,
+    )
+    if (head, local_main, remote_main) != (
+        release_commit,
+        release_commit,
+        release_commit,
+    ):
+        raise RuntimeError(
+            "dispatch commit, local main, and remote main must identify the same release commit"
+        )
+    digest = _read_sha_from_current_readme(repo_root, version, tag)
+    if digest is None or not _SHA256_RE.fullmatch(digest):
+        raise RuntimeError(
+            "could not derive the immutable MPP SHA256 from committed release metadata"
+        )
+    identity = ReleaseIdentity(
+        version=version,
+        tag=tag,
+        release_commit=release_commit,
+        mpp_asset_name=f"patches-{version}.mpp",
+        signature_asset_name=f"patches-{version}.mpp.asc",
+        mpp_sha256=digest,
+        signing_identity=signing_identity.replace(" ", "").upper(),
+    )
+    metadata = observe_local_metadata(repo_root, repository, identity)
+    if not metadata.observations_complete:
+        raise RuntimeError("committed release metadata could not be observed completely")
+    if metadata.local.metadata_matches_identity is not True:
+        detail = "; ".join(metadata.mismatches) or "unknown metadata mismatch"
+        raise RuntimeError(f"committed release metadata does not match: {detail}")
+    return identity
+
+
 def _canonical_mpp_path(repo_root: Path, version: str) -> Path:
     if not version or "/" in version or "\\" in version or version in {".", ".."}:
         raise ValueError("version contains unsupported path characters")
@@ -3827,6 +3908,176 @@ def _verify_signing_identity(
         )
 
 
+def _ensure_local_annotated_release_tag(
+    repo_root: Path,
+    identity: ReleaseIdentity,
+    remote_name: str,
+    runner: MutationRunner,
+) -> None:
+    tag_ref = f"refs/tags/{identity.tag}"
+    local_commit = _read_exact_ref(repo_root, f"{tag_ref}^{{commit}}", runner)
+    if local_commit is None:
+        result = _run_mutation(
+            runner,
+            repo_root,
+            (
+                "git", "ls-remote", "--tags", remote_name,
+                tag_ref, f"{tag_ref}^{{}}",
+            ),
+            label="remote release tag lookup",
+        )
+        refs: dict[str, str] = {}
+        for line in result.stdout.splitlines():
+            parts = line.split("\t")
+            if (
+                len(parts) != 2
+                or parts[1] not in {tag_ref, f"{tag_ref}^{{}}"}
+                or not _SHA1_RE.fullmatch(parts[0])
+                or parts[1] in refs
+            ):
+                raise RuntimeError("remote release tag lookup returned malformed output")
+            refs[parts[1]] = parts[0]
+        if refs:
+            if refs.get(f"{tag_ref}^{{}}") != identity.release_commit:
+                raise RuntimeError(
+                    "existing remote release tag is not annotated at the release commit"
+                )
+            _run_mutation(
+                runner,
+                repo_root,
+                ("git", "fetch", "--no-tags", remote_name, f"{tag_ref}:{tag_ref}"),
+                label="existing release tag fetch",
+            )
+        else:
+            _run_mutation(
+                runner,
+                repo_root,
+                (
+                    "git", "tag", "-a", identity.tag,
+                    "-m", f"Morphe patch bundle {identity.version}",
+                    identity.release_commit,
+                ),
+                label="annotated release tag creation",
+            )
+
+    verified_commit = _read_exact_ref(repo_root, f"{tag_ref}^{{commit}}", runner)
+    tag_type = _run_mutation(
+        runner,
+        repo_root,
+        ("git", "cat-file", "-t", tag_ref),
+        label="local release tag type lookup",
+    ).stdout.strip()
+    if verified_commit != identity.release_commit or tag_type != "tag":
+        raise RuntimeError("local release tag is not annotated at the release commit")
+
+
+def _prepare_protected_main_local_release(
+    repo_root: Path,
+    identity: ReleaseIdentity,
+    remote_name: str,
+    signing_identity: str,
+    log_path: Path,
+    command_name: str,
+    runner: MutationRunner,
+) -> None:
+    append_transaction_entry(
+        log_path,
+        command=command_name,
+        phase="BUILD_PROTECTED_MAIN_ARTIFACT",
+        status="STARTED",
+        version=identity.version,
+        tag=identity.tag,
+        release_commit=identity.release_commit,
+        mpp_sha256=identity.mpp_sha256,
+    )
+    _run_mutation(
+        runner,
+        repo_root,
+        ("./gradlew", ":patches:buildAndroid", "--no-daemon"),
+        label="protected main MPP build",
+    )
+    mpp_path = _canonical_mpp_path(repo_root, identity.version)
+    if not mpp_path.is_file() or mpp_path.is_symlink():
+        raise RuntimeError(f"canonical MPP is unavailable: {mpp_path}")
+    actual_sha = _sha256_file(mpp_path)
+    if actual_sha != identity.mpp_sha256:
+        raise RuntimeError(
+            "built MPP digest does not match the SHA committed through the release pull request"
+        )
+    _run_mutation(
+        runner,
+        repo_root,
+        (
+            "python3", "scripts/release-gate.py",
+            "--version", identity.version,
+            "--tag", identity.tag,
+            "--mpp", str(mpp_path),
+        ),
+        label="protected main release gate",
+    )
+    append_transaction_entry(
+        log_path,
+        command=command_name,
+        phase="BUILD_PROTECTED_MAIN_ARTIFACT",
+        status="COMPLETED",
+        version=identity.version,
+        tag=identity.tag,
+        release_commit=identity.release_commit,
+        mpp_sha256=identity.mpp_sha256,
+    )
+
+    signature_path = Path(str(mpp_path) + ".asc")
+    if signature_path.exists():
+        if signature_path.is_symlink() or not signature_path.is_file():
+            raise RuntimeError("canonical detached signature path is not a regular file")
+        signature_path.unlink()
+    append_transaction_entry(
+        log_path,
+        command=command_name,
+        phase="SIGN_PROTECTED_MAIN_ARTIFACT",
+        status="STARTED",
+        version=identity.version,
+        tag=identity.tag,
+        release_commit=identity.release_commit,
+        mpp_sha256=identity.mpp_sha256,
+    )
+    _run_mutation(
+        runner,
+        repo_root,
+        (
+            "gpg", "--batch", "--yes", "--armor", "--detach-sign",
+            "--local-user", signing_identity.replace(" ", "").upper(),
+            "--output", str(signature_path), str(mpp_path),
+        ),
+        label="protected main MPP signing",
+    )
+    _verify_signing_identity(
+        repo_root,
+        mpp_path,
+        signature_path,
+        signing_identity,
+        runner,
+    )
+    append_transaction_entry(
+        log_path,
+        command=command_name,
+        phase="SIGN_PROTECTED_MAIN_ARTIFACT",
+        status="COMPLETED",
+        version=identity.version,
+        tag=identity.tag,
+        release_commit=identity.release_commit,
+        mpp_sha256=identity.mpp_sha256,
+    )
+
+    _ensure_local_annotated_release_tag(
+        repo_root,
+        identity,
+        remote_name,
+        runner,
+    )
+    _align_local_dev(repo_root, identity, runner)
+
+
 def _align_local_dev(
     repo_root: Path,
     identity: ReleaseIdentity,
@@ -3884,16 +4135,26 @@ def _atomic_push_release_refs(
         identity.release_commit,
     ):
         raise RuntimeError("local main, dev and annotated tag must all identify the release commit")
+    remote_main = _read_remote_branch_commit(
+        repo_root,
+        remote_name,
+        "main",
+        runner,
+    )
+    if remote_main != identity.release_commit:
+        raise RuntimeError(
+            "remote main must already equal the release commit; "
+            "merge release metadata through a pull request before publication"
+        )
     _run_mutation(
         runner,
         repo_root,
         (
             "git", "push", "--atomic", remote_name,
-            "refs/heads/main:refs/heads/main",
             "refs/heads/dev:refs/heads/dev",
             f"refs/tags/{identity.tag}:refs/tags/{identity.tag}",
         ),
-        label="atomic release ref push",
+        label="atomic release mirror and tag push",
     )
 
 
@@ -4711,6 +4972,7 @@ def publish_release_workflow(
     remote_name: str = "origin",
     signing_identity: str = DEFAULT_SIGNING_IDENTITY,
     mpp_sha256: str | None = None,
+    protected_main_commit: str | None = None,
     command_name: str = "publish",
     runner: MutationRunner | None = None,
     inspect_fn=inspect_release,
@@ -4722,14 +4984,30 @@ def publish_release_workflow(
         notes_source = Path(release_notes_file).expanduser().resolve()
         if not notes_source.is_file() or notes_source.is_symlink():
             raise RuntimeError(f"release notes file is unavailable: {notes_source}")
-        identity = derive_existing_release_identity(
-            repo_root,
-            version=version,
-            tag=tag,
-            signing_identity=signing_identity,
-            mpp_sha256=mpp_sha256,
-            runner=active_runner,
-        )
+        if protected_main_commit is not None:
+            if mpp_sha256 is not None:
+                raise RuntimeError(
+                    "--mpp-sha256 cannot override SHA committed through protected main"
+                )
+            identity = derive_protected_main_release_identity(
+                repo_root,
+                repository,
+                version=version,
+                tag=tag,
+                release_commit=protected_main_commit,
+                remote_name=remote_name,
+                signing_identity=signing_identity,
+                runner=active_runner,
+            )
+        else:
+            identity = derive_existing_release_identity(
+                repo_root,
+                version=version,
+                tag=tag,
+                signing_identity=signing_identity,
+                mpp_sha256=mpp_sha256,
+                runner=active_runner,
+            )
         _require_clean_main(repo_root, active_runner)
         append_transaction_entry(
             log_path, command=command_name, phase="START", status="OBSERVED",
@@ -4749,6 +5027,13 @@ def publish_release_workflow(
             release_commit=identity.release_commit, mpp_sha256=identity.mpp_sha256,
         )
         initial = inspect_fn(repo_root, repository, identity, remote_name=remote_name)
+        if initial.state_result.state is ReleaseState.INCONSISTENT_ABORT:
+            raise RuntimeError(
+                "release state is inconsistent: "
+                + "; ".join(initial.state_result.reasons)
+            )
+        if not initial.state_result.observations_complete:
+            raise RuntimeError("one or more required release observations are incomplete")
         if initial.state_result.state is ReleaseState.PUBLISHED_AND_VERIFIED:
             token = "MORPHE_RELEASE_ALREADY_PUBLISHED_VERIFIED_OK"
             append_transaction_entry(
@@ -4766,6 +5051,20 @@ def publish_release_workflow(
                 transaction_log=str(log_path),
                 postcheck_result="OK",
                 already_satisfied=True,
+            )
+
+        if (
+            protected_main_commit is not None
+            and initial.state_result.state is not ReleaseState.PUBLISHED_NOT_VERIFIED
+        ):
+            _prepare_protected_main_local_release(
+                repo_root,
+                identity,
+                remote_name,
+                signing_identity,
+                log_path,
+                command_name,
+                active_runner,
             )
 
         mpp_path = _canonical_mpp_path(repo_root, version)
@@ -4975,6 +5274,13 @@ def _build_cli_parser() -> argparse.ArgumentParser:
             "--mpp-sha256",
             help="explicit immutable MPP SHA256 when no canonical local artifact exists",
         )
+        publication.add_argument(
+            "--protected-main-commit",
+            help=(
+                "exact workflow-dispatch commit already merged to remote main; "
+                "build, sign, tag, and publish without writing main"
+            ),
+        )
     return parser
 
 
@@ -5016,6 +5322,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     remote_name=args.remote,
                     signing_identity=args.signing_identity,
                     mpp_sha256=args.mpp_sha256,
+                    protected_main_commit=args.protected_main_commit,
                     command_name=args.command,
                 )
         except ValueError as exc:
@@ -5065,6 +5372,7 @@ __all__ = [
     "append_transaction_entry",
     "read_transaction_log",
     "derive_existing_release_identity",
+    "derive_protected_main_release_identity",
     "finalize_release_workflow",
     "publish_release_workflow",
     "GhBinaryCommandResult",

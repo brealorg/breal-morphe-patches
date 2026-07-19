@@ -66,22 +66,24 @@ list GitHub release metadata, and download release assets into an ephemeral
 temporary directory. They must not build, alter refs, push, upload, publish, or
 change the repository.
 
-## Idempotent transaction commands
+## Protected-main release preparation
 
-Finalize locally:
+Prepare release metadata and the deterministic MPP on a focused
+`work/release-*` branch:
 
 ```bash
-python3 scripts/releasectl.py finalize \
+python3 scripts/prepare-release.py \
   --version VERSION \
   --tag TAG \
   --changelog "CURRENT RELEASE DESCRIPTION"
 ```
 
-`finalize` validates all arguments before mutation, prepares metadata, builds
-the canonical MPP, creates and verifies the detached signature, builds the
-Boost candidate, commits the release metadata, creates an annotated local tag,
-and aligns local `main` and `dev` transactionally. Re-running the command for
-the same correct identity is a non-destructive success.
+Review and commit only the canonical metadata files, push the work branch, and
+merge it through a pull request after all required checks pass. No release tag,
+`dev` update, GitHub Release, or direct `main` write belongs to this phase. The
+MPP SHA committed in README is the immutable digest contract for publication.
+
+## Idempotent publication commands
 
 Publish or resume:
 
@@ -89,35 +91,42 @@ Publish or resume:
 python3 scripts/releasectl.py publish \
   --version VERSION \
   --tag TAG \
-  --release-notes-file PATH
+  --release-notes-file PATH \
+  --protected-main-commit FULL_MERGED_MAIN_SHA
 
 python3 scripts/releasectl.py resume \
   --version VERSION \
   --tag TAG \
-  --release-notes-file PATH
+  --release-notes-file PATH \
+  --protected-main-commit FULL_MERGED_MAIN_SHA
 ```
 
 `publish` and `resume` use the same reconciliation engine. They validate the
-release notes before refs are pushed, then perform only missing phases:
+dispatch commit, local `main`, remote `main`, committed metadata, rebuilt MPP,
+signature, and release notes before refs are pushed. They then perform only
+missing phases:
 
-1. local branch alignment;
-2. atomic publication of `main`, `dev`, and the annotated tag;
-3. draft GitHub release creation;
-4. upload of only the missing MPP or signature asset;
-5. remote digest, structure, and detached-signature verification;
-6. draft publication;
-7. final authoritative remote verification.
+1. deterministic artifact rebuild and signing from the merged commit;
+2. local annotated-tag and `dev` alignment;
+3. atomic publication of `dev` and the annotated tag, with remote `main` as an
+   exact immutable precondition rather than a push target;
+4. draft GitHub release creation;
+5. upload of only the missing MPP or signature asset;
+6. remote digest, structure, and detached-signature verification;
+7. draft publication;
+8. final authoritative remote verification.
 
 Existing matching state is a no-op. An existing tag at another commit,
 duplicate or mismatching assets, an unexpected digest, or divergent refs cause
 `INCONSISTENT_ABORT`. The controller never force-moves a tag and never uploads
-with `--clobber`.
+with `--clobber`. It never writes `main`; release metadata must already be
+present at the exact remote-main commit.
 
-The legacy shell entry points are thin compatibility wrappers:
+The remaining compatibility publication entry points are thin wrappers:
 
 ```text
-scripts/release-finalize-local.sh
 scripts/release-publish-existing.sh
+scripts/publish-release.py
 ```
 
 They forward exact documented arguments to `releasectl.py`; wrappers contain no
@@ -156,7 +165,7 @@ STATE=PUBLISHED_AND_VERIFIED
 
 The controller re-inspects actual state:
 
-1. before local finalization;
+1. before protected-main artifact reconstruction;
 2. before local branch or tag alignment;
 3. before the atomic release-ref push;
 4. before draft release creation;
@@ -190,8 +199,11 @@ Exit codes:
 
 ## Metadata repair separation
 
-`scripts/release-repair-metadata-only.sh` is an explicit metadata-only repair
-path. It is not called by `finalize`, `publish`, or `resume`. It may advance
-`main` and `dev` atomically after a metadata commit, but the immutable release
-tag is intentionally unchanged. Automatic force-retag and force-push are
-forbidden.
+The former direct metadata-repair publisher is retired. A metadata correction
+must use a focused work branch and the same pull-request checks as every other
+`main` change. The immutable release tag and published assets remain unchanged;
+automatic force-retag, force-push, and direct `main` repair are forbidden.
+
+The unused semantic-release configuration and Node-only release dependencies
+are removed. They are not a fallback publication path; `releasectl.py` remains
+the single mutating release core.
