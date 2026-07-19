@@ -57,7 +57,9 @@ public final class BoostSearchBottomNavigation {
     private static final String SEARCH_SCOPE_HINT_MARKER =
             "MORPHE_BOOST_SEARCH_SCOPE_HINT_ISSUE94_POST_ONCREATE_V2";
     private static final String SEARCH_INITIAL_FOCUS_MARKER =
-            "MORPHE_BOOST_SEARCH_INITIAL_FOCUS_V1";
+            "MORPHE_BOOST_SEARCH_INITIAL_FOCUS_PREFERENCE_ISSUE86_V2";
+    private static final String SEARCH_INITIAL_FOCUS_PREFERENCE_KEY =
+            "morphe_boost_search_open_keyboard_on_entry";
     private static final String SEARCH_FRESH_ENTRY_MARKER =
             "MORPHE_BOOST_SEARCH_FRESH_ACTIVITY_ISSUE86_V2";
     private static final String SEARCH_RESELECT_MARKER =
@@ -207,6 +209,31 @@ public final class BoostSearchBottomNavigation {
         }
     }
 
+    private static boolean shouldOpenKeyboardOnSearchEntry(
+            Activity activity
+    ) {
+        if (activity == null) {
+            return false;
+        }
+
+        try {
+            return android.preference.PreferenceManager
+                    .getDefaultSharedPreferences(activity)
+                    .getBoolean(
+                            SEARCH_INITIAL_FOCUS_PREFERENCE_KEY,
+                            false
+                    );
+        } catch (Throwable error) {
+            Log.w(
+                    TAG,
+                    "search initial focus preference failed marker="
+                            + SEARCH_INITIAL_FOCUS_MARKER,
+                    error
+            );
+            return false;
+        }
+    }
+
     private static void scheduleInitialSearchInputFocus(
             final Activity activity
     ) {
@@ -216,6 +243,16 @@ public final class BoostSearchBottomNavigation {
                                 activity.getClass().getName()
                         )
         ) {
+            return;
+        }
+
+        if (!shouldOpenKeyboardOnSearchEntry(activity)) {
+            Log.i(
+                    TAG,
+                    "search initial focus skipped marker="
+                            + SEARCH_INITIAL_FOCUS_MARKER
+                            + " enabled=false"
+            );
             return;
         }
 

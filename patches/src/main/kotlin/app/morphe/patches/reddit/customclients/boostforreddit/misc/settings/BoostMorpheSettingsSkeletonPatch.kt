@@ -7,7 +7,7 @@ import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 @Suppress("unused")
 val boostMorpheSettingsSkeletonPatch = resourcePatch(
     name = "Boost Morphe settings",
-    description = "Adds Boost Morphe settings for inline media previews, undelete toggles, adaptive refresh rate, source text visibility, and preview alignment.",
+    description = "Adds Boost Morphe settings for Search keyboard behavior, inline media previews, undelete toggles, adaptive refresh rate, source text visibility, and preview alignment.",
     default = false
 ) {
     compatibleWith(*BoostCompatible)
@@ -24,6 +24,12 @@ val boostMorpheSettingsSkeletonPatch = resourcePatch(
                             android:title="Prefer high refresh rate"
                             android:summary="Ask Android to use a high refresh rate for Boost windows on adaptive-refresh displays."
                             android:defaultValue="true" />
+
+                        <CheckBoxPreference
+                            android:key="morphe_boost_search_open_keyboard_on_entry"
+                            android:title="Open keyboard when entering Search"
+                            android:summary="Focus the search field and show the keyboard immediately. When disabled, tap Search again to start typing."
+                            android:defaultValue="false" />
 
                         <CheckBoxPreference
                             android:key="morphe_boost_inline_media_previews_enabled"
@@ -132,6 +138,12 @@ val boostMorpheSettingsSkeletonPatch = resourcePatch(
                             android:title="Prefer high refresh rate"
                             android:summary="Ask Android to use a high refresh rate for Boost windows on adaptive-refresh displays."
                             android:defaultValue="true" />
+
+                        <CheckBoxPreference
+                            android:key="morphe_boost_search_open_keyboard_on_entry"
+                            android:title="Open keyboard when entering Search"
+                            android:summary="Focus the search field and show the keyboard immediately. When disabled, tap Search again to start typing."
+                            android:defaultValue="false" />
 
                         <CheckBoxPreference
                             android:key="morphe_boost_inline_media_previews_enabled"
