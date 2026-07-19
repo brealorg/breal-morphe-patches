@@ -632,6 +632,32 @@
       "options": []
     },
     {
+      "name": "Fix Boost FAB nested scroll",
+      "description": "Synchronizes Boost FAB hide/show with collapsing-header and nested-scroll motion.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.rubenmayayo.reddit",
+          "name": "Boost for Reddit",
+          "description": null,
+          "apkFileType": "APK_REQUIRED",
+          "appIconColor": "#FF4500",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.12.12",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 21,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Fix Boost YouTube playback fallback",
       "description": "Opens the original YouTube link externally when Boost's legacy embedded YouTube player is unavailable.",
       "default": true,
@@ -2585,7 +2611,7 @@
     },
     {
       "name": "Standardize Boost bottom-navigation FAB clearance",
-      "description": "Keeps Home/Subreddit, Random, Inbox and Profile FABs 16 dp above the canonical bottom navigation.",
+      "description": "Keeps Home/Subreddit, Random, Inbox and Profile FABs 16 dp above native canonical navigation.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [
