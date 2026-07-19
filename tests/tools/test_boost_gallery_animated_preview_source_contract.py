@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
+import unittest
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -13,34 +14,42 @@ PATCH = ROOT / (
 )
 
 
-def test_gallery_preview_accepts_animated_video_sources():
-    source = SOURCE.read_text(encoding="utf-8")
+class GalleryAnimatedPreviewSourceContractTests(unittest.TestCase):
+    def test_gallery_preview_accepts_animated_video_sources(self):
+        source = SOURCE.read_text(encoding="utf-8")
 
-    assert "MORPHE_BOOST_GALLERY_ANIMATED_PREVIEW_V8_MEDIA_SOURCES" in source
-    assert 'callString(model, "getMp4")' in source
-    assert 'callBoolean(model, "isAnimated")' in source
-    assert "isSupportedMediaUrl(page.animatedUrl)" in source
-    assert "isDirectGif" not in source
+        self.assertIn(
+            "MORPHE_BOOST_GALLERY_ANIMATED_PREVIEW_V8_MEDIA_SOURCES",
+            source,
+        )
+        self.assertIn('callString(model, "getMp4")', source)
+        self.assertIn('callBoolean(model, "isAnimated")', source)
+        self.assertIn("isSupportedMediaUrl(page.animatedUrl)", source)
+        self.assertNotIn("isDirectGif", source)
 
+    def test_gallery_preview_selects_boost_media_source_types(self):
+        source = SOURCE.read_text(encoding="utf-8")
 
-def test_gallery_preview_selects_boost_media_source_types():
-    source = SOURCE.read_text(encoding="utf-8")
+        self.assertIn('path.endsWith(".mpd")', source)
+        self.assertIn('path.endsWith(".m3u8")', source)
+        self.assertIn(
+            "com.google.android.exoplayer2.source.dash."
+            "DashMediaSource$Factory",
+            source,
+        )
+        self.assertIn(
+            "com.google.android.exoplayer2.source.hls."
+            "HlsMediaSource$Factory",
+            source,
+        )
+        self.assertIn('Class.forName("s4.h0$b")', source)
+        self.assertIn("buildMediaSource(context, page.animatedUrl)", source)
 
-    assert 'path.endsWith(".mpd")' in source
-    assert 'path.endsWith(".m3u8")' in source
-    assert "com.google.android.exoplayer2.source.dash.DashMediaSource$Factory" in source
-    assert "com.google.android.exoplayer2.source.hls.HlsMediaSource$Factory" in source
-    assert 'Class.forName("s4.h0$b")' in source
-    assert "buildMediaSource(context, page.animatedUrl)" in source
+    def test_patch_description_covers_gif_and_video(self):
+        patch = PATCH.read_text(encoding="utf-8")
 
-
-def test_patch_description_covers_gif_and_video():
-    patch = PATCH.read_text(encoding="utf-8")
-
-    assert "gallery GIF and video media" in patch
+        self.assertIn("gallery GIF and video media", patch)
 
 
 if __name__ == "__main__":
-    test_gallery_preview_accepts_animated_video_sources()
-    test_gallery_preview_selects_boost_media_source_types()
-    test_patch_description_covers_gif_and_video()
+    unittest.main()

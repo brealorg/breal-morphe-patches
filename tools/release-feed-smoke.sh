@@ -10,6 +10,8 @@ PY
 
 echo "VERSION=$VERSION"
 
+./tools/check-project-contracts.sh
+
 ./tools/check-patches-list-feed.sh --write "$VERSION"
 git diff --exit-code -- patches-list.json
 
