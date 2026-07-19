@@ -4,7 +4,11 @@ Describe what changed and why.
 
 ## Related issue
 
-Closes #
+Addresses #
+
+For a user-visible Boost or Imgur issue, do not use GitHub auto-close keywords.
+Keep the issue open until the release and Manager/Normal verification requirements
+in `docs/release-validation-policy.md` are satisfied.
 
 ## Validation
 

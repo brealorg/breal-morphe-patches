@@ -23,6 +23,11 @@ snapshots:
 For user-visible Boost or Imgur bugs, do not close the issue at `source_fixed`,
 `local_candidate_verified`, `bundle_released`, or `remote_verified`.
 
+Pull requests for user-visible work must reference the issue with `Addresses #N`
+or equivalent non-closing text. Do not use GitHub auto-close keywords in the PR.
+Issue closure is a separate, manual closeout operation after the requirements
+below have been verified.
+
 Close only after all of the following are true:
 
 1. The fix is included in a published release.

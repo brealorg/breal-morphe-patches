@@ -100,9 +100,6 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Validate semantic-release contract
-        run: ./tools/check-semantic-release-contract.sh
-
       - name: Check existing release tag
         shell: bash
         run: |
@@ -155,14 +152,8 @@ jobs:
           fi
           rg --version
 
-      - name: Verify Boost Search dedup contract
-        run: ./tools/check-boost-search-dedup-contract.sh
-
-      - name: Verify Boost Search routing contract
-        run: ./tools/check-boost-search-route-contract.sh
-
-      - name: Verify Boost bottom navigation contract
-        run: ./tools/check-boost-bottom-navigation-contract.sh
+      - name: Verify project contracts
+        run: ./tools/check-project-contracts.sh
 
       - name: Cache Gradle
         uses: gradle/actions/setup-gradle@v6

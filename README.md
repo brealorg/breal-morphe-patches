@@ -8,21 +8,27 @@ Paste this value into Morphe Manager when adding a remote source:
 
 ```text
 github.com/brealorg/breal-morphe-patches
+```
 
 Alternative raw JSON URL:
 
+```text
 https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json
-Browser deep link
+```
+
+Browser deep link:
 
 Use this only from a browser/link handler, not inside the Morphe Manager source URL text field:
 
+```text
 https://morphe.software/add-source?github=brealorg/breal-morphe-patches
+```
 
 Manual fallback / repository page:
 
+```text
 https://github.com/brealorg/breal-morphe-patches
-
-1.4.47 adds Boost keyboard GIF insertion through Android receive-content / Gboard and restores manual GIF URL insertion.
+```
 
 Unofficial Morphe patch bundle for Boost for Reddit, Imgur, and related Android app fixes.
 
@@ -31,6 +37,7 @@ This repository publishes a Morphe-compatible `.mpp` bundle and a small JSON fee
 Release process notes:
 
 - [Release validation policy](docs/release-validation-policy.md)
+- [Branch policy](docs/branch-policy.md)
 - [Final snapshot template](docs/final-snapshot-template.md)
 
 ## Project page
@@ -57,7 +64,8 @@ Legacy source URL, kept working through GitHub redirect:
 https://raw.githubusercontent.com/brealorg/breal-boost-hotfixes/main/patches-bundle.json
 ```
 
-Preferred Morphe source setup is the deep link below. Raw `patches-bundle.json` links are kept only for release/debug verification, not as the primary user-facing Manager instruction.
+The repository shorthand shown at the top is the preferred Manager setup. Raw
+`patches-bundle.json` links are kept for release and debug verification.
 
 ## Current release
 
@@ -67,10 +75,10 @@ Preferred Morphe source setup is the deep link below. Raw `patches-bundle.json` 
 | Release tag | `morphe-patches-92` |
 | Asset | `patches-1.4.92.mpp` |
 | SHA256 | `a08bd7a43b765b44a81301ef709b8af64e82b3aedbc0e4cc76ee24309dc71b9f` |
-
-SHA256: `a08bd7a43b765b44a81301ef709b8af64e82b3aedbc0e4cc76ee24309dc71b9f`
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
 | Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-92/patches-1.4.92.mpp` |
+
+SHA256: `a08bd7a43b765b44a81301ef709b8af64e82b3aedbc0e4cc76ee24309dc71b9f`
 
 ## What this bundle does
 
@@ -548,7 +556,7 @@ This repository contains experimental and release-candidate work in local/work b
 
 ### Deferred work
 
-16K / WL04R builder and runtime work is intentionally **not included** in `1.4.43`.
+16K / WL04R builder and runtime work is intentionally **not included** in the current release.
 
 That work is preserved separately for a later scope.
 

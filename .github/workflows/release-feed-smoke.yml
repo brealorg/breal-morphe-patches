@@ -3,21 +3,8 @@ name: Release feed smoke
 on:
   push:
     branches: [main, dev]
-    paths:
-      - '.github/workflows/release-feed-smoke.yml'
-      - 'tools/release-feed-smoke.sh'
-      - 'tools/check-patches-list-feed.sh'
-      - 'tools/normalize-patches-list-*.py'
-      - 'patches-list.json'
-      - 'patches-bundle.json'
-      - 'patches/**'
-      - 'extensions/**'
-      - 'gradle/**'
-      - 'gradlew'
-      - 'settings.gradle.kts'
-      - 'build.gradle.kts'
   pull_request:
-    branches: [main, dev]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -44,12 +31,21 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: '17'
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
         with:
           cache-provider: basic
+
+      - name: Install ripgrep
+        shell: bash
+        run: |
+          if ! command -v rg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install --yes ripgrep
+          fi
+          rg --version
 
       - name: Run smoke
         run: ./tools/release-feed-smoke.sh
