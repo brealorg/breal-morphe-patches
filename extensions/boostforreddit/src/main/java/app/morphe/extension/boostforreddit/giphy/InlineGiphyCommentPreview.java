@@ -35,6 +35,8 @@ public final class InlineGiphyCommentPreview {
             "morphe_boost_inline_media_comment_text_inset_v1";
     private static final int FALLBACK_COMMENT_TEXT_HORIZONTAL_INSET_DP = 8;
     private static final String LOG_TAG = "InlineGiphy";
+    private static final String ADAPTIVE_PREVIEW_SIZE_MARKER =
+            "MORPHE_BOOST_INLINE_MEDIA_ADAPTIVE_SIZE_ISSUE70_V4";
     private static final String PRERENDER_SOURCE_POLICY_MARKER =
             "morphe_boost_inline_media_prerender_source_policy_v10";
     private static final String PREF_INLINE_MEDIA_PREVIEWS_ENABLED =
@@ -43,6 +45,8 @@ public final class InlineGiphyCommentPreview {
             "morphe_boost_inline_media_preview_show_source_text";
     private static final String PREF_INLINE_MEDIA_PREVIEW_ALIGNMENT =
             "morphe_boost_inline_media_preview_alignment";
+    private static final String PREF_INLINE_MEDIA_PREVIEW_SIZE =
+            "morphe_boost_inline_media_preview_size";
     private static final String PREF_DIRECT_REDDIT_GIF_TAP_ACTION =
             "morphe_boost_direct_reddit_gif_tap_action";
     private static final String COMMENT_DIRECT_GIF_ROUTE_MARKER =
@@ -62,9 +66,13 @@ public final class InlineGiphyCommentPreview {
     private static final String ALIGNMENT_LEFT = "left";
     private static final String ALIGNMENT_CENTER = "center";
     private static final String ALIGNMENT_RIGHT = "right";
+    private static final String PREVIEW_SIZE_COMPACT = "compact";
+    private static final String PREVIEW_SIZE_BALANCED = "balanced";
+    private static final String PREVIEW_SIZE_LARGE = "large";
     private static final boolean DEFAULT_INLINE_MEDIA_PREVIEWS_ENABLED = true;
     private static final boolean DEFAULT_INLINE_MEDIA_PREVIEW_SHOW_SOURCE_TEXT = false;
     private static final String DEFAULT_INLINE_MEDIA_PREVIEW_ALIGNMENT = ALIGNMENT_CENTER;
+    private static final String DEFAULT_INLINE_MEDIA_PREVIEW_SIZE = PREVIEW_SIZE_BALANCED;
     private static final String DEFAULT_DIRECT_REDDIT_GIF_TAP_ACTION = TAP_ACTION_IMAGE_VIEWER;
     private static final String DEFAULT_GIPHY_PREVIEW_TAP_ACTION = TAP_ACTION_VIDEO_VIEWER;
     private static final String DEFAULT_STATIC_PREVIEW_TAP_ACTION = TAP_ACTION_IMAGE_VIEWER;
@@ -620,6 +628,11 @@ public final class InlineGiphyCommentPreview {
             final String gifUrl = previewSource.gifUrl;
             final String sourceUrl = previewSource.sourceUrl;
             final String previewAlignment = getPreviewAlignment(context);
+            final String previewSize = getPreviewSize(context);
+            final int maxPreviewHeightPx =
+                    resolveMaxPreviewHeightPx(context, previewSize);
+            final int previewWidthPx =
+                    resolvePreviewWidthPx(context, itemView, previewSize);
 
             LinearLayout container = new LinearLayout(context);
             container.setTag(PREVIEW_TAG);
@@ -629,10 +642,22 @@ public final class InlineGiphyCommentPreview {
             ImageView imageView = new ImageView(context);
             imageView.setAdjustViewBounds(true);
             imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            imageView.setContentDescription("Inline media preview");
+            imageView.setMaxHeight(maxPreviewHeightPx);
+            imageView.setMaxWidth(previewWidthPx);
 
             LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(
-                    imageWidthForAlignment(previewAlignment),
-                    dp(context, 170)
+                    previewWidthPx,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+
+            Log.d(
+                    LOG_TAG,
+                    ADAPTIVE_PREVIEW_SIZE_MARKER
+                            + ": mode=" + previewSize
+                            + " windowHeightDp=" + resolveWindowHeightDp(context)
+                            + " targetWidthPx=" + previewWidthPx
+                            + " maxHeightPx=" + maxPreviewHeightPx
             );
 
             container.addView(imageView, imageParams);
@@ -654,10 +679,69 @@ public final class InlineGiphyCommentPreview {
             imageView.setOnClickListener(mediaClickListener);
 
             if (!insertBelowCommentText(holder, (ViewGroup) itemView, container)) return;
-            loadWithGlide(context, glideRequestManager, gifUrl, imageView);
+            loadWithGlide(
+                    context,
+                    glideRequestManager,
+                    gifUrl,
+                    imageView
+            );
+
+            schedulePreviewMeasurementLog(
+                    imageView,
+                    previewSize,
+                    previewWidthPx,
+                    maxPreviewHeightPx
+            );
+
             syncWithCommentState(holder);
-        } catch (Throwable ignored) {
+        } catch (Throwable throwable) {
+            Log.w(
+                    LOG_TAG,
+                    ADAPTIVE_PREVIEW_SIZE_MARKER + ": bind failed",
+                    throwable
+            );
         }
+    }
+
+    private static void schedulePreviewMeasurementLog(
+            final ImageView imageView,
+            final String previewSize,
+            final int targetPreviewWidthPx,
+            final int maxPreviewHeightPx
+    ) {
+        if (imageView == null) {
+            return;
+        }
+
+        imageView.postDelayed(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Log.d(
+                                    LOG_TAG,
+                                    ADAPTIVE_PREVIEW_SIZE_MARKER
+                                            + ": measured mode="
+                                            + normalizePreviewSize(previewSize)
+                                            + " widthPx=" + imageView.getWidth()
+                                            + " heightPx=" + imageView.getHeight()
+                                            + " targetWidthPx="
+                                            + targetPreviewWidthPx
+                                            + " maxHeightPx="
+                                            + maxPreviewHeightPx
+                            );
+                        } catch (Throwable throwable) {
+                            Log.w(
+                                    LOG_TAG,
+                                    ADAPTIVE_PREVIEW_SIZE_MARKER
+                                            + ": measurement failed",
+                                    throwable
+                            );
+                        }
+                    }
+                },
+                1500L
+        );
     }
 
     public static void syncWithCommentState(Object holder) {
@@ -738,6 +822,28 @@ public final class InlineGiphyCommentPreview {
             return normalizePreviewAlignment(value);
         } catch (Throwable ignored) {
             return DEFAULT_INLINE_MEDIA_PREVIEW_ALIGNMENT;
+        }
+    }
+
+    private static String getPreviewSize(Context context) {
+        if (context == null) {
+            return DEFAULT_INLINE_MEDIA_PREVIEW_SIZE;
+        }
+
+        try {
+            android.content.SharedPreferences preferences = context.getSharedPreferences(
+                    context.getPackageName() + "_preferences",
+                    Context.MODE_PRIVATE
+            );
+
+            String value = preferences.getString(
+                    PREF_INLINE_MEDIA_PREVIEW_SIZE,
+                    DEFAULT_INLINE_MEDIA_PREVIEW_SIZE
+            );
+
+            return normalizePreviewSize(value);
+        } catch (Throwable ignored) {
+            return DEFAULT_INLINE_MEDIA_PREVIEW_SIZE;
         }
     }
 
@@ -839,12 +945,148 @@ public final class InlineGiphyCommentPreview {
         return DEFAULT_INLINE_MEDIA_PREVIEW_ALIGNMENT;
     }
 
-    private static int imageWidthForAlignment(String alignment) {
-        if (ALIGNMENT_LEFT.equals(alignment) || ALIGNMENT_RIGHT.equals(alignment)) {
-            return ViewGroup.LayoutParams.WRAP_CONTENT;
+    private static String normalizePreviewSize(String value) {
+        if (value == null) {
+            return DEFAULT_INLINE_MEDIA_PREVIEW_SIZE;
         }
 
-        return ViewGroup.LayoutParams.MATCH_PARENT;
+        String normalized = value.trim().toLowerCase(java.util.Locale.US);
+        if (PREVIEW_SIZE_COMPACT.equals(normalized)
+                || PREVIEW_SIZE_BALANCED.equals(normalized)
+                || PREVIEW_SIZE_LARGE.equals(normalized)) {
+            return normalized;
+        }
+
+        return DEFAULT_INLINE_MEDIA_PREVIEW_SIZE;
+    }
+
+    private static int resolveMaxPreviewHeightPx(Context context, String previewSize) {
+        int windowHeightDp = resolveWindowHeightDp(context);
+        String normalizedSize = normalizePreviewSize(previewSize);
+
+        final int targetHeightDp;
+
+        if (PREVIEW_SIZE_COMPACT.equals(normalizedSize)) {
+            targetHeightDp = clamp(
+                    Math.round(windowHeightDp * 0.30f),
+                    140,
+                    260
+            );
+        } else if (PREVIEW_SIZE_LARGE.equals(normalizedSize)) {
+            targetHeightDp = clamp(
+                    Math.round(windowHeightDp * 0.70f),
+                    280,
+                    620
+            );
+        } else {
+            targetHeightDp = clamp(
+                    Math.round(windowHeightDp * 0.50f),
+                    200,
+                    420
+            );
+        }
+
+        return dp(context, targetHeightDp);
+    }
+
+    private static int resolveWindowHeightDp(Context context) {
+        if (context == null) {
+            return 800;
+        }
+
+        try {
+            android.content.res.Configuration configuration =
+                    context.getResources().getConfiguration();
+
+            if (configuration != null && configuration.screenHeightDp > 0) {
+                return configuration.screenHeightDp;
+            }
+        } catch (Throwable ignored) {
+        }
+
+        try {
+            android.util.DisplayMetrics metrics =
+                    context.getResources().getDisplayMetrics();
+
+            if (metrics != null && metrics.density > 0f && metrics.heightPixels > 0) {
+                return Math.round(metrics.heightPixels / metrics.density);
+            }
+        } catch (Throwable ignored) {
+        }
+
+        return 800;
+    }
+
+    private static int resolvePreviewWidthPx(
+            Context context,
+            View itemView,
+            String previewSize
+    ) {
+        int availableWidthPx =
+                resolveAvailablePreviewWidthPx(context, itemView);
+        String normalizedSize = normalizePreviewSize(previewSize);
+
+        final float widthFraction;
+
+        if (PREVIEW_SIZE_COMPACT.equals(normalizedSize)) {
+            widthFraction = 0.65f;
+        } else if (PREVIEW_SIZE_LARGE.equals(normalizedSize)) {
+            widthFraction = 1.00f;
+        } else {
+            widthFraction = 0.85f;
+        }
+
+        int targetWidthPx =
+                Math.round(availableWidthPx * widthFraction);
+        int minimumWidthPx =
+                Math.min(availableWidthPx, dp(context, 120));
+
+        return clamp(
+                targetWidthPx,
+                minimumWidthPx,
+                availableWidthPx
+        );
+    }
+
+    private static int resolveAvailablePreviewWidthPx(
+            Context context,
+            View itemView
+    ) {
+        int widthPx = itemView == null ? 0 : itemView.getWidth();
+
+        if (widthPx <= 0 && context != null) {
+            try {
+                int screenWidthDp =
+                        context.getResources()
+                                .getConfiguration()
+                                .screenWidthDp;
+
+                if (screenWidthDp > 0) {
+                    widthPx = dp(context, screenWidthDp);
+                }
+            } catch (Throwable ignored) {
+            }
+        }
+
+        if (widthPx <= 0 && context != null) {
+            try {
+                widthPx =
+                        context.getResources()
+                                .getDisplayMetrics()
+                                .widthPixels;
+            } catch (Throwable ignored) {
+            }
+        }
+
+        if (widthPx <= 0) {
+            widthPx = dp(context, 360);
+        }
+
+        return Math.max(dp(context, 120), widthPx);
+    }
+
+    private static int clamp(int value, int minimum, int maximum) {
+        return Math.max(minimum, Math.min(maximum, value));
     }
 
     private static void applyPreviewAlignment(LinearLayout container, String alignment) {
@@ -1577,7 +1819,12 @@ public final class InlineGiphyCommentPreview {
         return false;
     }
 
-    private static void loadWithGlide(Context context, Object glideRequestManager, String url, ImageView imageView) {
+    private static void loadWithGlide(
+            Context context,
+            Object glideRequestManager,
+            String url,
+            ImageView imageView
+    ) {
         try {
             Object requestManager = glideRequestManager;
 
@@ -1591,7 +1838,12 @@ public final class InlineGiphyCommentPreview {
             if (requestBuilder == null) return;
 
             invokeInto(requestBuilder, imageView);
-        } catch (Throwable ignored) {
+        } catch (Throwable throwable) {
+            Log.w(
+                    LOG_TAG,
+                    ADAPTIVE_PREVIEW_SIZE_MARKER + ": Glide load failed",
+                    throwable
+            );
         }
     }
 
