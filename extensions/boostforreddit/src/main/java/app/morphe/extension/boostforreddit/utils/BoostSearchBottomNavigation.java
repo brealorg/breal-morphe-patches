@@ -24,6 +24,7 @@ import android.widget.Toast;
 import android.widget.FrameLayout;
 import android.util.Log;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -52,11 +53,13 @@ public final class BoostSearchBottomNavigation {
     private static volatile String SEARCH_ROUTE_MARKER =
             "MORPHE_BOOST_SEARCH_BACK_STACK_V1_PRESERVE_CALLER";
     private static final String SEARCH_CONTEXT_MARKER =
-            "MORPHE_BOOST_SEARCH_CONTEXT_ISSUE94_SUBREDDIT_T1_V2";
+            "MORPHE_BOOST_SEARCH_CONTEXT_ISSUE94_SUBREDDIT_PARCELABLE_V3";
     private static final String SEARCH_SCOPE_HINT_MARKER =
             "MORPHE_BOOST_SEARCH_SCOPE_HINT_ISSUE94_POST_ONCREATE_V2";
     private static final String SEARCH_INITIAL_FOCUS_MARKER =
             "MORPHE_BOOST_SEARCH_INITIAL_FOCUS_V1";
+    private static final String SEARCH_FRESH_ENTRY_MARKER =
+            "MORPHE_BOOST_SEARCH_FRESH_ACTIVITY_ISSUE86_V2";
     private static final String SEARCH_RESELECT_MARKER =
             "MORPHE_BOOST_SEARCH_RESELECT_ISSUE86_V1";
     private static volatile String UNIFIED_MATERIAL_MARKER =
@@ -85,6 +88,10 @@ public final class BoostSearchBottomNavigation {
             "MORPHE_BOOST_NATIVE_COORDINATOR_BOTTOM_NAV_ISSUE97_V1";
     private static final String NATIVE_COORDINATOR_INSET_MARKER =
             "MORPHE_BOOST_NATIVE_COORDINATOR_SEARCH_GOTO_INSET_V2";
+    private static final String NATIVE_BOTTOM_NAV_HIDE_PREFERENCE_MARKER =
+            "MORPHE_BOOST_NATIVE_BOTTOM_NAV_HIDE_PREFERENCE_ACTIVE_PATH_ISSUE97_V7";
+    private static final String NATIVE_PROFILE_LONG_PRESS_MARKER =
+            "MORPHE_BOOST_NATIVE_PROFILE_LONGPRESS_ISSUE97_V2";
     private static final String NAVIGATION_VISIBILITY_STATE_MARKER =
             "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_VISIBILITY_STATE_V1";
     private static final String ACTIVITY_STACK_STATE_MARKER =
@@ -117,6 +124,8 @@ public final class BoostSearchBottomNavigation {
     private static volatile Integer SHARED_INBOX_BADGE_COUNT;
     private static final String ALL_ACTIVITY_SELECTION_GUARD_MARKER =
             "MORPHE_BOOST_BOTTOM_NAV_ALL_ACTIVITY_SELECTION_GUARD_V6";
+    private static final String SHOW_PREFERENCE_STABILITY_GUARD_MARKER =
+            "MORPHE_BOOST_BOTTOM_NAV_SHOW_PREFERENCE_STABILITY_GUARD_ISSUE97_V1";
     private static final String PERSISTED_INBOX_BADGE_MARKER =
             "MORPHE_BOOST_INBOX_BADGE_COLD_START_PERSISTENCE_V6";
     private static final String PERSISTED_INBOX_BADGE_PREFERENCES =
@@ -133,6 +142,9 @@ public final class BoostSearchBottomNavigation {
     private static final String TAG = "MorpheSearchNav";
     private static final int SEARCH_INITIAL_FOCUS_RETRY_LIMIT = 24;
     private static final long SEARCH_INITIAL_FOCUS_RETRY_DELAY_MS =
+            75L;
+    private static final int NATIVE_PROFILE_LONG_PRESS_RETRY_LIMIT = 24;
+    private static final long NATIVE_PROFILE_LONG_PRESS_RETRY_DELAY_MS =
             75L;
 
     private static final String SEARCH_ACTIVITY =
@@ -155,6 +167,8 @@ public final class BoostSearchBottomNavigation {
             "com.rubenmayayo.reddit.ui.activities.i";
     private static final String BASE_ACTIVITY =
             "com.rubenmayayo.reddit.ui.activities.b";
+    private static final String BOTTOM_NAV_BASE_ACTIVITY =
+            "com.rubenmayayo.reddit.ui.activities.e";
     private static final String ACCOUNT_MANAGER = "xb.l";
 
     private static final WeakHashMap<Activity, Boolean> INSTALLED =
@@ -2117,6 +2131,8 @@ public final class BoostSearchBottomNavigation {
                             appliedVisible
                     );
 
+            lockOwnedNavigationHost(navigation);
+
             if (appliedVisible) {
                 syncSystemNavigationBar(activity);
             } else {
@@ -2154,61 +2170,320 @@ public final class BoostSearchBottomNavigation {
         }
 
         try {
-            navigation.clearAnimation();
-            navigation.animate().cancel();
-            navigation.setTranslationY(0.0f);
-            navigation.setAlpha(1.0f);
+            ClassLoader loader = navigation
+                    .getContext()
+                    .getClassLoader();
 
+            Class<?> preferencesClass = Class.forName(
+                    "id.b",
+                    false,
+                    loader
+            );
+            Method singletonMethod = findMethod(
+                    preferencesClass,
+                    "v0"
+            );
+            Method hidePreferenceMethod = findMethod(
+                    preferencesClass,
+                    "z"
+            );
+
+            if (
+                    singletonMethod == null
+                            || hidePreferenceMethod == null
+            ) {
+                throw new NoSuchMethodException(
+                        "Boost bottom-navigation hide preference"
+                );
+            }
+
+            singletonMethod.setAccessible(true);
+            hidePreferenceMethod.setAccessible(true);
+            Object preferences = singletonMethod.invoke(null);
+            Object rawPreference =
+                    hidePreferenceMethod.invoke(preferences);
+
+            if (!(rawPreference instanceof Boolean)) {
+                throw new IllegalStateException(
+                        "Bottom-navigation hide preference is not Boolean"
+                );
+            }
+
+            boolean hideOnScroll = (Boolean) rawPreference;
             ViewGroup.LayoutParams params = navigation.getLayoutParams();
-            String behaviorBefore = "none";
 
-            if (params != null) {
-                for (Method method : params.getClass().getMethods()) {
+            if (params == null) {
+                throw new IllegalStateException(
+                        "Bottom-navigation LayoutParams unavailable"
+                );
+            }
+
+            Class<?> coordinatorBehaviorClass = Class.forName(
+                    "androidx.coordinatorlayout.widget.CoordinatorLayout$c",
+                    false,
+                    loader
+            );
+            Class<?> hideBehaviorClass = Class.forName(
+                    "com.google.android.material.behavior.HideBottomViewOnScrollBehavior",
+                    false,
+                    loader
+            );
+
+            Method getter = null;
+            Method setter = null;
+
+            for (
+                    Class<?> type = params.getClass();
+                    type != null && type != Object.class;
+                    type = type.getSuperclass()
+            ) {
+                for (Method method : type.getDeclaredMethods()) {
+                    Class<?>[] parameterTypes =
+                            method.getParameterTypes();
+
                     if (
-                            "getBehavior".equals(method.getName())
-                                    && method.getParameterTypes().length == 0
+                            getter == null
+                                    && parameterTypes.length == 0
+                                    && coordinatorBehaviorClass
+                                        .isAssignableFrom(
+                                                method.getReturnType()
+                                        )
                     ) {
-                        Object behavior = method.invoke(params);
-                        if (behavior != null) {
-                            behaviorBefore = behavior.getClass().getName();
-                        }
-                        break;
+                        getter = method;
                     }
-                }
 
-                for (Method method : params.getClass().getMethods()) {
                     if (
-                            "setBehavior".equals(method.getName())
-                                    && method.getParameterTypes().length == 1
+                            setter == null
+                                    && parameterTypes.length == 1
+                                    && parameterTypes[0].equals(
+                                            coordinatorBehaviorClass
+                                    )
                     ) {
-                        method.invoke(params, new Object[]{null});
-                        navigation.setLayoutParams(params);
-                        break;
+                        setter = method;
                     }
                 }
             }
 
-            navigation.setTranslationY(0.0f);
+            if (getter == null || setter == null) {
+                throw new NoSuchMethodException(
+                        "CoordinatorLayout behavior accessor"
+                );
+            }
+
+            getter.setAccessible(true);
+            setter.setAccessible(true);
+            Object behaviorBefore = getter.invoke(params);
+            Object behaviorAfter = behaviorBefore;
+
+            if (hideOnScroll) {
+                if (!hideBehaviorClass.isInstance(behaviorBefore)) {
+                    Constructor<?> constructor =
+                            hideBehaviorClass.getDeclaredConstructor();
+                    constructor.setAccessible(true);
+                    behaviorAfter = constructor.newInstance();
+                    setter.invoke(
+                            params,
+                            new Object[]{behaviorAfter}
+                    );
+                }
+            } else {
+                navigation.clearAnimation();
+                navigation.animate().cancel();
+                setter.invoke(params, new Object[]{null});
+                behaviorAfter = null;
+                navigation.setTranslationY(0.0f);
+            }
+
+            navigation.setLayoutParams(params);
+            navigation.setAlpha(1.0f);
             navigation.requestLayout();
             navigation.invalidate();
 
             Log.i(
                     TAG,
-                    "owned navigation host locked marker="
-                            + CANONICAL_NAV_MARKER
+                    "native bottom-navigation hide preference applied marker="
+                            + NATIVE_BOTTOM_NAV_HIDE_PREFERENCE_MARKER
+                            + " enabled="
+                            + hideOnScroll
                             + " behaviorBefore="
-                            + behaviorBefore
+                            + (
+                                behaviorBefore == null
+                                        ? "none"
+                                        : behaviorBefore
+                                            .getClass()
+                                            .getName()
+                            )
+                            + " behaviorAfter="
+                            + (
+                                behaviorAfter == null
+                                        ? "none"
+                                        : behaviorAfter
+                                            .getClass()
+                                            .getName()
+                            )
                             + " translationY="
                             + navigation.getTranslationY()
             );
         } catch (Throwable error) {
             Log.e(
                     TAG,
-                    "owned navigation host lock failed marker="
-                            + CANONICAL_NAV_MARKER,
+                    "native bottom-navigation behavior preservation failed marker="
+                            + NATIVE_BOTTOM_NAV_HIDE_PREFERENCE_MARKER,
                     error
             );
         }
+    }
+
+    private static void scheduleNativeProfileLongPress(
+            final Activity activity,
+            final View navigation
+    ) {
+        if (activity == null || navigation == null) {
+            return;
+        }
+
+        final int profileId = resourceId(
+                activity,
+                "item_profile",
+                "id"
+        );
+
+        if (profileId == 0) {
+            Log.e(
+                    TAG,
+                    "native Profile long-press ID unavailable marker="
+                            + NATIVE_PROFILE_LONG_PRESS_MARKER
+            );
+            return;
+        }
+
+        navigation.post(new Runnable() {
+            private int attempts;
+
+            @Override
+            public void run() {
+                attempts++;
+
+                if (activity.isFinishing() || activity.isDestroyed()) {
+                    return;
+                }
+
+                final View profileItem =
+                        navigation.findViewById(profileId);
+
+                if (profileItem == null) {
+                    if (
+                            attempts
+                                    < NATIVE_PROFILE_LONG_PRESS_RETRY_LIMIT
+                    ) {
+                        navigation.postDelayed(
+                                this,
+                                NATIVE_PROFILE_LONG_PRESS_RETRY_DELAY_MS
+                        );
+                    } else {
+                        Log.e(
+                                TAG,
+                                "native Profile long-press view exhausted marker="
+                                        + NATIVE_PROFILE_LONG_PRESS_MARKER
+                                        + " attempts="
+                                        + attempts
+                        );
+                    }
+                    return;
+                }
+
+                try {
+                    Class<?> baseActivityClass = Class.forName(
+                            BOTTOM_NAV_BASE_ACTIVITY,
+                            false,
+                            activity.getClassLoader()
+                    );
+
+                    if (!baseActivityClass.isInstance(activity)) {
+                        throw new IllegalStateException(
+                                "Activity is not Boost base activity: "
+                                        + activity.getClass().getName()
+                        );
+                    }
+
+                    Class<?> listenerClass = Class.forName(
+                            BOTTOM_NAV_BASE_ACTIVITY + "$y",
+                            false,
+                            activity.getClassLoader()
+                    );
+
+                    Constructor<?> constructor =
+                            listenerClass.getDeclaredConstructor(
+                                    baseActivityClass
+                            );
+                    constructor.setAccessible(true);
+
+                    Object rawListener =
+                            constructor.newInstance(activity);
+
+                    if (
+                            !(rawListener
+                                    instanceof View.OnLongClickListener)
+                    ) {
+                        throw new IllegalStateException(
+                                "Boost Profile listener has wrong type"
+                        );
+                    }
+
+                    final View.OnLongClickListener nativeListener =
+                            (View.OnLongClickListener) rawListener;
+
+                    profileItem.setOnLongClickListener(
+                            new View.OnLongClickListener() {
+                                @Override
+                                public boolean onLongClick(View view) {
+                                    try {
+                                        boolean handled =
+                                                nativeListener.onLongClick(
+                                                        view
+                                                );
+
+                                        Log.i(
+                                                TAG,
+                                                "native Profile long-press invoked marker="
+                                                        + NATIVE_PROFILE_LONG_PRESS_MARKER
+                                                        + " handled="
+                                                        + handled
+                                        );
+                                        return handled;
+                                    } catch (Throwable error) {
+                                        Log.e(
+                                                TAG,
+                                                "native Profile long-press invocation failed marker="
+                                                        + NATIVE_PROFILE_LONG_PRESS_MARKER,
+                                                error
+                                        );
+                                        return false;
+                                    }
+                                }
+                            }
+                    );
+                    profileItem.setLongClickable(true);
+
+                    Log.i(
+                            TAG,
+                            "native Profile long-press attached marker="
+                                    + NATIVE_PROFILE_LONG_PRESS_MARKER
+                                    + " listener="
+                                    + listenerClass.getName()
+                                    + " attempts="
+                                    + attempts
+                    );
+                } catch (Throwable error) {
+                    Log.e(
+                            TAG,
+                            "native Profile long-press attach failed marker="
+                                    + NATIVE_PROFILE_LONG_PRESS_MARKER,
+                            error
+                    );
+                }
+            }
+        });
     }
 
     private static void installOwnedCanonicalMenu(
@@ -2343,6 +2618,11 @@ public final class BoostSearchBottomNavigation {
                         activity,
                         navigation
                 );
+
+        scheduleNativeProfileLongPress(
+                activity,
+                navigation
+        );
 
         Log.i(
                 TAG,
@@ -2770,12 +3050,18 @@ public final class BoostSearchBottomNavigation {
                             return true;
                         }
 
-                        boolean navigationMismatch =
+                        boolean navigationStateMismatch =
                                 navigation.getVisibility()
                                         != View.VISIBLE
                                         || navigation.getAlpha()
                                             != 1.0f
                                         || !navigation.isEnabled();
+
+                        boolean navigationMismatch =
+                                navigationStateMismatch
+                                        && isBottomNavigationPreferenceEnabled(
+                                            activity
+                                        );
 
                         boolean selectionMismatch =
                                 !canonicalSelectionMatches(
@@ -2888,7 +3174,13 @@ public final class BoostSearchBottomNavigation {
             boolean tintMismatch
     ) {
         try {
-            if (navigationMismatch) {
+            boolean navigationRepairAllowed =
+                    navigationMismatch
+                            && isBottomNavigationPreferenceEnabled(
+                                activity
+                            );
+
+            if (navigationRepairAllowed) {
                 navigation.setVisibility(View.VISIBLE);
                 navigation.setAlpha(1.0f);
                 navigation.setEnabled(true);
@@ -2906,7 +3198,7 @@ public final class BoostSearchBottomNavigation {
             }
 
             if (
-                    navigationMismatch
+                    navigationRepairAllowed
                             || selectionMismatch
                             || tintMismatch
             ) {
@@ -2918,7 +3210,7 @@ public final class BoostSearchBottomNavigation {
                         "Home stability guard repaired marker="
                                 + CANONICAL_NAV_MARKER
                                 + " navigation="
-                                + navigationMismatch
+                                + navigationRepairAllowed
                                 + " selection="
                                 + selectionMismatch
                                 + " tint="
@@ -4186,6 +4478,77 @@ public final class BoostSearchBottomNavigation {
         return false;
     }
 
+    private static boolean attachSubredditSearchScope(
+            Activity activity,
+            Intent destination
+    ) {
+        if (
+                activity == null
+                        || destination == null
+                        || !SUBREDDIT_ACTIVITY.equals(
+                                activity.getClass().getName()
+                        )
+        ) {
+            return false;
+        }
+
+        try {
+            /*
+             * SubredditActivity inherits the current SubscriptionViewModel
+             * from SubmissionsActivity.u. It is the same Parcelable Boost
+             * saves under "subscription" during activity state handling.
+             */
+            Field subscriptionField = findField(
+                    activity.getClass(),
+                    "u"
+            );
+
+            if (subscriptionField == null) {
+                throw new NoSuchFieldException(
+                        "SubmissionsActivity.u"
+                );
+            }
+
+            subscriptionField.setAccessible(true);
+            Object subscription = subscriptionField.get(activity);
+
+            if (!(subscription instanceof android.os.Parcelable)) {
+                throw new IllegalStateException(
+                        "Current subreddit is not Parcelable: "
+                                + (
+                                    subscription == null
+                                            ? "null"
+                                            : subscription
+                                                .getClass()
+                                                .getName()
+                                )
+                );
+            }
+
+            destination.putExtra(
+                    "subscription",
+                    (android.os.Parcelable) subscription
+            );
+
+            Log.i(
+                    TAG,
+                    "subreddit Search scope attached marker="
+                            + SEARCH_CONTEXT_MARKER
+                            + " subscription="
+                            + subscription.getClass().getName()
+            );
+            return true;
+        } catch (Throwable error) {
+            Log.w(
+                    TAG,
+                    "subreddit Search scope unavailable marker="
+                            + SEARCH_CONTEXT_MARKER,
+                    error
+            );
+            return false;
+        }
+    }
+
     private static boolean openSearch(
             Activity activity
     ) {
@@ -4201,38 +4564,6 @@ public final class BoostSearchBottomNavigation {
             return focusSearchInput(activity);
         }
 
-        if (SUBREDDIT_ACTIVITY.equals(activity.getClass().getName())) {
-            try {
-                Method nativeSearch = findMethod(
-                        activity.getClass(),
-                        "T1"
-                );
-
-                if (nativeSearch != null) {
-                    nativeSearch.setAccessible(true);
-                    nativeSearch.invoke(activity);
-
-                    Log.i(
-                            TAG,
-                            "native search route marker="
-                                    + SEARCH_CONTEXT_MARKER
-                                    + " from="
-                                    + activity.getClass().getName()
-                    );
-                    return true;
-                }
-            } catch (Throwable error) {
-                Log.w(
-                        TAG,
-                        "native search route failed marker="
-                                + SEARCH_CONTEXT_MARKER
-                                + " from="
-                                + activity.getClass().getName(),
-                        error
-                );
-            }
-        }
-
         try {
             Class<?> destination = Class.forName(
                     SEARCH_ACTIVITY,
@@ -4244,19 +4575,24 @@ public final class BoostSearchBottomNavigation {
                     activity,
                     destination
             );
-            intent.addFlags(
-                    Intent.FLAG_ACTIVITY_CLEAR_TOP
-                            | Intent.FLAG_ACTIVITY_SINGLE_TOP
-            );
+            boolean subredditScopeAttached =
+                    attachSubredditSearchScope(
+                            activity,
+                            intent
+                    );
 
             Log.i(
                     TAG,
                     "search route marker="
                             + SEARCH_ROUTE_MARKER
+                            + " freshEntryMarker="
+                            + SEARCH_FRESH_ENTRY_MARKER
                             + " from="
                             + activity.getClass().getName()
                             + " to="
                             + SEARCH_ACTIVITY
+                            + " subredditScopeAttached="
+                            + subredditScopeAttached
             );
 
             activity.startActivity(intent);
