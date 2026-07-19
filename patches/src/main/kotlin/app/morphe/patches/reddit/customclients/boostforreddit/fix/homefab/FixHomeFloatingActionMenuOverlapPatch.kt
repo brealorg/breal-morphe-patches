@@ -18,10 +18,10 @@ private const val MATERIAL_FAB =
     "com.google.android.material.floatingactionbutton.FloatingActionButton"
 
 private const val INCLUDED_FAB_BOTTOM_MARGIN =
-    "56.0dp"
+    "0.0dp"
 
 private const val DIRECT_FAB_BOTTOM_MARGIN =
-    "72.0dp"
+    "@dimen/fab_margin"
 
 private const val FAB_SIDE_MARGIN =
     "@dimen/fab_margin"
@@ -71,9 +71,9 @@ private fun Document.raiseIncludedFabs(
 
         matches.single().apply {
             /*
-             * The Main host contributes one native 16dp FAB separation layer.
-             * A 56dp include margin therefore produces the same visual 16dp
-             * clearance as the direct 72dp Inbox/Profile geometry.
+             * Native CoordinatorLayout already reserves the navigation height.
+             * No extra include margin is needed for the native 16dp
+             * FAB separation.
              */
             setAttribute(
                 "android:layout_width",
@@ -130,8 +130,8 @@ private fun Document.raiseDirectFabs(
 
         /*
          * MarginLayoutParams gives the generic layout_margin precedence over
-         * the directional margins. Expand it before overriding the bottom
-         * margin so the 72dp navigation clearance survives inflation.
+         * directional margins. Expand it before restoring the native bottom
+         * margin without adding the removed decor-navigation height.
          */
         fab.removeAttribute(
             "android:layout_margin",
@@ -161,7 +161,7 @@ val fixBoostHomeFloatingActionMenuOverlapPatch = resourcePatch(
     name = "Standardize Boost bottom-navigation FAB clearance",
     description =
         "Keeps Home/Subreddit, Random, Inbox and Profile FABs " +
-            "16 dp above the canonical bottom navigation.",
+            "16 dp above native canonical navigation.",
     default = true,
 ) {
     compatibleWith(*BoostCompatible)

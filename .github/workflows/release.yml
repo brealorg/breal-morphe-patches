@@ -161,6 +161,9 @@ jobs:
       - name: Verify Boost Search routing contract
         run: ./tools/check-boost-search-route-contract.sh
 
+      - name: Verify Boost bottom navigation contract
+        run: ./tools/check-boost-bottom-navigation-contract.sh
+
       - name: Cache Gradle
         uses: gradle/actions/setup-gradle@v6
         with:
