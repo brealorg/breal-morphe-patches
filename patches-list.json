@@ -147,7 +147,7 @@
     },
     {
       "name": "Boost Morphe settings",
-      "description": "Adds Boost Morphe settings for inline media previews, undelete toggles, adaptive refresh rate, source text visibility, and preview alignment.",
+      "description": "Adds Boost Morphe settings for Search keyboard behavior, inline media previews, undelete toggles, adaptive refresh rate, source text visibility, and preview alignment.",
       "default": false,
       "dependencies": [],
       "compatiblePackages": [

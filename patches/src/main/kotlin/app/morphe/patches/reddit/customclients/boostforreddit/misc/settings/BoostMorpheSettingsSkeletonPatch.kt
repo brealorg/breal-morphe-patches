@@ -45,6 +45,14 @@ val boostMorpheSettingsSkeletonPatch = resourcePatch(
                             android:dialogTitle="Preview alignment"
                             android:defaultValue="center" />
 
+                        <app.morphe.extension.boostforreddit.giphy.PreviewSizePreference
+                            android:icon="@drawable/ic_photo_outline_24dp"
+                            android:key="morphe_boost_inline_media_preview_size"
+                            android:title="Preview size"
+                            android:summary="Balanced"
+                            android:dialogTitle="Preview size"
+                            android:defaultValue="balanced" />
+
                         <app.morphe.extension.boostforreddit.giphy.MediaTapActionPreference
                             android:icon="@drawable/ic_photo_outline_24dp"
                             android:key="morphe_boost_direct_reddit_gif_tap_action"
@@ -158,6 +166,14 @@ val boostMorpheSettingsSkeletonPatch = resourcePatch(
                             android:summary="Center"
                             android:dialogTitle="Preview alignment"
                             android:defaultValue="center" />
+
+                        <app.morphe.extension.boostforreddit.giphy.PreviewSizePreference
+                            android:icon="@drawable/ic_photo_outline_24dp"
+                            android:key="morphe_boost_inline_media_preview_size"
+                            android:title="Preview size"
+                            android:summary="Balanced"
+                            android:dialogTitle="Preview size"
+                            android:defaultValue="balanced" />
 
                         <app.morphe.extension.boostforreddit.giphy.MediaTapActionPreference
                             android:icon="@drawable/ic_photo_outline_24dp"
