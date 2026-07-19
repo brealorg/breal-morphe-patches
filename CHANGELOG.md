@@ -1,6 +1,14 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.92](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-91...morphe-patches-92) (2026-07-19)
+
+* **Boost for Reddit:** Bug Fixes
+
+- Stabilized Boost bottom-navigation visibility and hide-on-scroll.
+- Synchronized FAB motion across Home, Profile, Inbox and subreddits.
+- Restored Profile long-press and subreddit-aware Search.
+
 ## [1.4.91](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-90...morphe-patches-91) (2026-07-18)
 
 * **Boost for Reddit:** Bug Fixes

@@ -63,14 +63,14 @@ Preferred Morphe source setup is the deep link below. Raw `patches-bundle.json` 
 
 | Field | Value |
 |---|---|
-| Version | `1.4.91` |
-| Release tag | `morphe-patches-91` |
-| Asset | `patches-1.4.91.mpp` |
-| SHA256 | `01f259a46c95b376cf0f434ac34b0590e617b727763d1654638d15a1b508eb42` |
+| Version | `1.4.92` |
+| Release tag | `morphe-patches-92` |
+| Asset | `patches-1.4.92.mpp` |
+| SHA256 | `a08bd7a43b765b44a81301ef709b8af64e82b3aedbc0e4cc76ee24309dc71b9f` |
 
-SHA256: `01f259a46c95b376cf0f434ac34b0590e617b727763d1654638d15a1b508eb42`
+SHA256: `a08bd7a43b765b44a81301ef709b8af64e82b3aedbc0e4cc76ee24309dc71b9f`
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-91/patches-1.4.91.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-92/patches-1.4.92.mpp` |
 
 ## What this bundle does
 
@@ -118,10 +118,10 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.91` • `main` • 51 unique patches • 103 package entries
+> **Patch source version:** `1.4.92` • `main` • 52 unique patches • 104 package entries
 
 <details>
-<summary><strong>Boost for Reddit</strong> • 42 patches</summary>
+<summary><strong>Boost for Reddit</strong> • 43 patches</summary>
 
 
 
@@ -146,6 +146,7 @@ Included Imgur patches:
 | [Fix /s/ links](#fix-s-links) |  |  |
 | [Fix Boost code block rendering](#fix-boost-code-block-rendering) | Preserves Reddit code blocks by normalizing multiline <code> HTML and malformed fenced selftext to Boost's native <pre> renderer path. |  |
 | [Fix Boost comments Lemmy-style toolbar UI](#fix-boost-comments-lemmy-style-toolbar-ui) | Removes the duplicate native comments title by disabling the SlidrTheme window title/actionbar layer while preserving Boost's selected light/dark theme, toolbar title, and dynamic sort subtitle. |  |
+| [Fix Boost FAB nested scroll](#fix-boost-fab-nested-scroll) | Synchronizes Boost FAB hide/show with collapsing-header and nested-scroll motion. |  |
 | [Fix Boost image widget click target](#fix-boost-image-widget-click-target) | Prevents Boost's image widget from opening a stale post by making the CommentsActivity PendingIntent data unique per widget update. |  |
 | [Fix Boost native image upload](#fix-boost-native-image-upload) | Forces Boost's single-image submit flow to use Reddit's native image submission kind instead of creating external uploaded-media link posts. |  |
 | [Fix Boost navigation bar overlap](#fix-boost-navigation-bar-overlap) | Adds runtime system bar inset handling for Boost bottom controls and drawer content on Android 15+ target SDK builds. |  |
@@ -169,7 +170,7 @@ Included Imgur patches:
 | [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
 | [Stabilize Boost subreddit bottom navigation surface](#stabilize-boost-subreddit-bottom-navigation-surface) | Applies theme contrast and gesture-inset surface handling to SubredditActivity while preserving native selection and routes. |  |
 | [Standardize Boost bottom navigation](#standardize-boost-bottom-navigation) | Applies one destination, listener, selection, tint, and system-surface contract to Boost's Material bottom navigation. |  |
-| [Standardize Boost bottom-navigation FAB clearance](#standardize-boost-bottom-navigation-fab-clearance) | Keeps Home/Subreddit, Random, Inbox and Profile FABs 16 dp above the canonical bottom navigation. |  |
+| [Standardize Boost bottom-navigation FAB clearance](#standardize-boost-bottom-navigation-fab-clearance) | Keeps Home/Subreddit, Random, Inbox and Profile FABs 16 dp above native canonical navigation. |  |
 | [Standardize Boost Home bottom navigation](#standardize-boost-home-bottom-navigation) | Applies the canonical five-destination Material navigation and native Home tint when MainActivity resumes. |  |
 | [Standardize Boost Inbox and Profile bottom navigation](#standardize-boost-inbox-and-profile-bottom-navigation) | Applies the canonical five-destination Material bottom-navigation contract after Inbox and Profile complete lifecycle setup. |  |
 | [Support keyboard GIF insertion](#support-keyboard-gif-insertion) | Enables keyboard GIF/image rich content insertion through Android receive-content when a public URL is available. |  |
@@ -530,16 +531,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.91` is prepared and locally verified with:
+Release `1.4.92` is prepared and locally verified with:
 
-- Release tag `morphe-patches-91`.
+- Release tag `morphe-patches-92`.
 - Local built MPP SHA256 matching README.
-`01f259a46c95b376cf0f434ac34b0590e617b727763d1654638d15a1b508eb42`
-- `patches-bundle.json` returning version `1.4.91`.
-- `patches-bundle.json` pointing to the `morphe-patches-91` asset.
+`a08bd7a43b765b44a81301ef709b8af64e82b3aedbc0e4cc76ee24309dc71b9f`
+- `patches-bundle.json` returning version `1.4.92`.
+- `patches-bundle.json` pointing to the `morphe-patches-92` asset.
 - Expected release asset:
-`patches-1.4.91.mpp`
-- `01f259a46c95b376cf0f434ac34b0590e617b727763d1654638d15a1b508eb42  patches-1.4.91.mpp`
+`patches-1.4.92.mpp`
+- `a08bd7a43b765b44a81301ef709b8af64e82b3aedbc0e4cc76ee24309dc71b9f  patches-1.4.92.mpp`
 
 ## Development notes
 
