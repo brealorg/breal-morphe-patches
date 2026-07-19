@@ -38,5 +38,14 @@ jobs:
         with:
           cache-provider: basic
 
+      - name: Install ripgrep
+        shell: bash
+        run: |
+          if ! command -v rg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install --yes ripgrep
+          fi
+          rg --version
+
       - name: Run smoke
         run: ./tools/release-feed-smoke.sh

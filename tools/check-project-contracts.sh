@@ -4,6 +4,12 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+if ! command -v rg >/dev/null 2>&1; then
+  echo 'FAIL: project contracts require ripgrep (rg)' >&2
+  echo 'RESULT=MORPHE_PROJECT_CONTRACTS_FAIL'
+  exit 127
+fi
+
 mapfile -t SHELL_CONTRACTS < <(
   find tools \
     -maxdepth 1 \
