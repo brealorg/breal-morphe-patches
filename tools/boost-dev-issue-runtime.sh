@@ -74,7 +74,12 @@ echo "===== resolve adb ====="
 if [ -n "$SERIAL" ]; then
   export MORPHE_ADB_SERIAL="$SERIAL"
 fi
-SERIAL="$(tools/boost-adb-serial.sh)" || mark_fail "adb serial resolve failed"
+SERIAL="$(
+  tools/boost-adb-serial.sh \
+    --hint "${MORPHE_ADB_HINT:-192.168.1.248}" \
+    --expect-model "${MORPHE_ADB_EXPECT_MODEL:-Pixel_6}" \
+    --expect-device "${MORPHE_ADB_EXPECT_DEVICE:-oriole}"
+)" || mark_fail "adb serial resolve failed"
 echo "SERIAL=$SERIAL"
 adb -s "$SERIAL" get-state || mark_fail "adb target unavailable"
 

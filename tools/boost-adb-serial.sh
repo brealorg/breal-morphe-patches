@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 FORMAT="plain"
 HINT="${MORPHE_ADB_HINT:-}"
+EXPECTED_MODEL="${MORPHE_ADB_EXPECT_MODEL:-}"
+EXPECTED_DEVICE="${MORPHE_ADB_EXPECT_DEVICE:-}"
 
 usage() {
   cat <<'USAGE'
@@ -9,13 +11,17 @@ Usage:
 
 Options:
   --format plain|shell   Output serial only or shell assignment. Default: plain.
-  --hint TEXT            Stable device hint, e.g. IP/model/serial text.
+  --hint TEXT            Stable endpoint hint, normally the reserved device IP.
+  --expect-model MODEL   Require exact adb model metadata, e.g. Pixel_6.
+  --expect-device DEVICE Require exact adb device metadata, e.g. oriole.
   -h, --help             Show this help.
 
 Policy:
   - ANDROID_SERIAL is ignored because wireless-debugging ports rotate.
   - MORPHE_ADB_SERIAL is only a one-run override if already connected.
   - MORPHE_ADB_HINT is the preferred stable selector, e.g. 192.168.1.248.
+  - A supplied hint is strict; a non-matching device is never selected.
+  - MORPHE_ADB_EXPECT_MODEL and MORPHE_ADB_EXPECT_DEVICE fail closed.
   - mDNS _adb-tls-connect._tcp is used to discover/reconnect the current port.
   - TCP serials are preferred over adb-mdns aliases for runtime commands.
 USAGE
@@ -42,8 +48,26 @@ tcp_from_lines() {
   awk '$1 ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+/ {print $1}'
 }
 
+identity_from_lines() {
+  awk -v expected_model="$EXPECTED_MODEL" -v expected_device="$EXPECTED_DEVICE" '
+    {
+      model_ok = (expected_model == "")
+      device_ok = (expected_device == "")
+      for (i = 3; i <= NF; i++) {
+        if ($i == "model:" expected_model) model_ok = 1
+        if ($i == "device:" expected_device) device_ok = 1
+      }
+      if (model_ok && device_ok) print
+    }
+  '
+}
+
 pick_active() {
-  LINES="$(adb_lines)"
+  ALL_LINES="$(adb_lines)"
+
+  [ -n "$ALL_LINES" ] || return 1
+
+  LINES="$(printf '%s\n' "$ALL_LINES" | identity_from_lines)"
 
   [ -n "$LINES" ] || return 1
 
@@ -69,6 +93,11 @@ pick_active() {
       emit "$(printf '%s\n' "$MATCHES" | awk '{print $1}')"
       return 0
     fi
+
+    # A stable hint is a strict identity boundary. If it does not match the
+    # connected device rows, reconnect through mDNS instead of selecting an
+    # unrelated single TCP target such as Android TV.
+    return 1
   fi
 
   TCP_ALL="$(printf '%s\n' "$LINES" | tcp_from_lines || true)"
@@ -122,6 +151,8 @@ while [ "$#" -gt 0 ]; do
   case "$1" in
     --format) FORMAT="${2:-}"; shift 2 ;;
     --hint) HINT="${2:-}"; shift 2 ;;
+    --expect-model) EXPECTED_MODEL="${2:-}"; shift 2 ;;
+    --expect-device) EXPECTED_DEVICE="${2:-}"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "FAIL: unknown arg: $1"; exit 2 ;;
   esac
@@ -152,5 +183,5 @@ adb mdns services >&2 || true
 echo >&2
 echo "Hint examples:" >&2
 echo "  export MORPHE_ADB_HINT=192.168.1.248" >&2
-echo "  tools/boost-adb-serial.sh --hint 192.168.1.248" >&2
+echo "  tools/boost-adb-serial.sh --hint 192.168.1.248 --expect-model Pixel_6 --expect-device oriole" >&2
 die "could not resolve a unique current adb target"

@@ -46,27 +46,12 @@ fi
 echo
 echo "===== ADB DEVICE ====="
 
-env -u ANDROID_SERIAL adb start-server >/dev/null 2>&1 || true
-env -u ANDROID_SERIAL adb devices -l
-
 SERIAL="$(
-  env -u ANDROID_SERIAL adb devices -l |
-    awk '
-      NR > 1 &&
-      $1 ~ /^adb-.*\._adb-tls-connect\._tcp$/ &&
-      $2 == "device" {
-        print $1
-        exit
-      }
-    '
-)"
-
-if [ -z "$SERIAL" ]; then
-  SERIAL="$(
-    env -u ANDROID_SERIAL adb devices -l |
-      awk 'NR > 1 && $2 == "device" {print $1; exit}'
-  )"
-fi
+  tools/boost-adb-serial.sh \
+    --hint "${MORPHE_ADB_HINT:-192.168.1.248}" \
+    --expect-model "${MORPHE_ADB_EXPECT_MODEL:-Pixel_6}" \
+    --expect-device "${MORPHE_ADB_EXPECT_DEVICE:-oriole}"
+)" || mark_fail "Could not resolve expected Pixel ADB device"
 
 echo "SERIAL=$SERIAL"
 
