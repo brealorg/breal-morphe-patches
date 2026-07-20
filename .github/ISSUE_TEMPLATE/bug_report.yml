@@ -1,7 +1,7 @@
 name: 🐞 Bug report
 description: Report a bug or an issue.
 title: "bug: "
-labels: ["Bug report"]
+labels: ["bug"]
 body:
   - type: markdown
     attributes:
@@ -10,7 +10,7 @@ body:
 
         Before creating a new bug report, please keep the following in mind:
 
-        - **Do not submit a duplicate bug report**: Search for existing bug reports [here](https://github.com/brealorg/breal-morphe-patches/issues?q=label%3A%22Bug+report%22).
+        - **Do not submit a duplicate bug report**: Search for existing bug reports [here](https://github.com/brealorg/breal-morphe-patches/issues?q=label%3A%22bug%22).
         - **Review the contribution guidelines**: Make sure your bug report adheres to them. You can find the guidelines [here](https://github.com/brealorg/breal-morphe-patches/blob/main/CONTRIBUTING.md).
         - **Release verification policy**: User-visible fixes stay open until the fix is released and verified through Morphe Manager / the normal installation path when applicable.
   - type: dropdown

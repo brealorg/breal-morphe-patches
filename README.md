@@ -39,6 +39,7 @@ Release process notes:
 - [Release validation policy](docs/release-validation-policy.md)
 - [Branch policy](docs/branch-policy.md)
 - [Final snapshot template](docs/final-snapshot-template.md)
+- [Supported app catalog](docs/supported-app-catalog.md)
 
 ## Project page
 
@@ -145,7 +146,7 @@ Included Imgur patches:
 | [Animate media in Boost gallery previews](#animate-media-in-boost-gallery-previews) | Autoplays selected Reddit gallery GIF and video media while preserving Boost's poster, data preferences, and full-screen media route. |  |
 | [Automatically undelete Imgur images](#automatically-undelete-imgur-images) |  |  |
 | [Automatically undelete Reddit content](#automatically-undelete-reddit-content) |  |  |
-| [Boost Morphe settings](#boost-morphe-settings) | Adds Boost Morphe settings for inline media previews, undelete toggles, adaptive refresh rate, source text visibility, and preview alignment. |  |
+| [Boost Morphe settings](#boost-morphe-settings) | Adds Boost Morphe settings for Search keyboard behavior, inline media previews, undelete toggles, adaptive refresh rate, source text visibility, and preview alignment. |  |
 | [Boost search default discovery](#boost-search-default-discovery) | Starts Boost search on an instant cached active-subreddit landing with Reddit-native labels. |  |
 | [Custom Synccit URL](#custom-synccit-url) | Allows Boost to use a custom self-hosted Synccit API endpoint. | • Synccit API URL |
 | [Disable ads](#disable-ads) |  |  |

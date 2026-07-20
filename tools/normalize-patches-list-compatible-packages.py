@@ -3,21 +3,7 @@ import json
 import sys
 from pathlib import Path
 
-KNOWN_PACKAGE_LABELS = {
-    "com.rubenmayayo.reddit": "Boost for Reddit",
-    "com.rubenmayayo.reddit.dev": "Boost for Reddit Dev",
-    "com.rubenmayayo.lemmy": "Boost for Lemmy",
-    "com.imgur.mobile": "Imgur",
-    "com.google.android.youtube": "YouTube",
-    "app.morphe.android.youtube": "Morphe YouTube",
-    "com.laurencedawson.reddit_sync": "Sync for Reddit",
-    "com.laurencedawson.reddit_sync.dev": "Sync for Reddit Dev",
-    "com.laurencedawson.reddit_sync.pro": "Sync for Reddit Pro",
-    "o.o.joey": "Joey for Reddit",
-}
-
-def package_label(package_name: str, explicit: str = "") -> str:
-    return explicit or KNOWN_PACKAGE_LABELS.get(package_name, package_name or "Unknown package")
+from compatible_app_catalog import package_label
 
 def normalize_targets(value):
     if value is None:
