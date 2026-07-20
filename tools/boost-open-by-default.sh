@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -u
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 PKG=""
 USER_ID="${MORPHE_ANDROID_USER:-0}"
@@ -44,37 +45,12 @@ fail() {
   exit 1
 }
 
-adb_ok() {
-  adb -s "$1" get-state >/dev/null 2>&1
-}
-
-choose_serial() {
-  if [ -n "${ANDROID_SERIAL:-}" ] && adb_ok "$ANDROID_SERIAL"; then
-    printf '%s\n' "$ANDROID_SERIAL"
-    return 0
-  fi
-
-  local concrete
-  concrete="$(adb devices | awk 'NR > 1 && $2 == "device" && $1 ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+$/ { print $1; exit }')"
-  if [ -n "$concrete" ] && adb_ok "$concrete"; then
-    printf '%s\n' "$concrete"
-    return 0
-  fi
-
-  local mdns_addr
-  mdns_addr="$(adb mdns services 2>/dev/null | awk '$2 == "_adb-tls-connect._tcp" { print $3; exit }')"
-  if [ -n "$mdns_addr" ]; then
-    adb connect "$mdns_addr" >/dev/null 2>&1 || true
-    if adb_ok "$mdns_addr"; then
-      printf '%s\n' "$mdns_addr"
-      return 0
-    fi
-  fi
-
-  adb devices | awk 'NR > 1 && $2 == "device" { print $1; exit }'
-}
-
-SERIAL="$(choose_serial)"
+SERIAL="$(
+  "$ROOT/tools/boost-adb-serial.sh" \
+    --hint "${MORPHE_ADB_HINT:-192.168.1.248}" \
+    --expect-model "${MORPHE_ADB_EXPECT_MODEL:-Pixel_6}" \
+    --expect-device "${MORPHE_ADB_EXPECT_DEVICE:-oriole}"
+)" || fail "could not resolve expected Pixel adb target"
 [ -n "$SERIAL" ] || fail "no adb device found"
 
 if [ -z "$PKG" ]; then

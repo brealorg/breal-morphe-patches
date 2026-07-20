@@ -28,7 +28,7 @@ Usage:
 Options:
   --mpp PATH                 MPP to test. Default: canonical current-version Android MPP
   --serial SERIAL            adb serial to use
-  --adb-endpoint HOST:PORT   run adb connect HOST:PORT, then use resulting device
+  --adb-endpoint HOST:PORT   prefer a connected Pixel endpoint; stale ports are ignored
   --name NAME                artifact name suffix
   --dev-package PKG          DEV package. Default: com.rubenmayayo.reddit.dev
   --marker MARKER            required post-bind runtime marker
@@ -147,36 +147,19 @@ fi
 echo
 echo "===== adb selection ====="
 
-env -u ANDROID_SERIAL adb start-server >/dev/null 2>&1 || true
-
 if [ -n "$ADB_ENDPOINT" ]; then
   echo "ADB_ENDPOINT=$ADB_ENDPOINT"
-  env -u ANDROID_SERIAL adb connect "$ADB_ENDPOINT" || true
-  sleep 1
+  export MORPHE_ADB_SERIAL="$ADB_ENDPOINT"
+elif [ -n "$SERIAL" ]; then
+  export MORPHE_ADB_SERIAL="$SERIAL"
 fi
 
-env -u ANDROID_SERIAL adb devices -l
-
-if [ -z "$SERIAL" ]; then
-  SERIAL="$(
-    env -u ANDROID_SERIAL adb devices -l |
-      awk '
-        NR > 1 &&
-        $1 ~ /^adb-.*\._adb-tls-connect\._tcp$/ &&
-        $2 == "device" {
-          print $1
-          exit
-        }
-      '
-  )"
-fi
-
-if [ -z "$SERIAL" ]; then
-  SERIAL="$(
-    env -u ANDROID_SERIAL adb devices -l |
-      awk 'NR > 1 && $2 == "device" {print $1; exit}'
-  )"
-fi
+SERIAL="$(
+  tools/boost-adb-serial.sh \
+    --hint "${MORPHE_ADB_HINT:-192.168.1.248}" \
+    --expect-model "${MORPHE_ADB_EXPECT_MODEL:-Pixel_6}" \
+    --expect-device "${MORPHE_ADB_EXPECT_DEVICE:-oriole}"
+)" || mark_fail "could not resolve expected Pixel adb target"
 
 echo "SERIAL=$SERIAL"
 
