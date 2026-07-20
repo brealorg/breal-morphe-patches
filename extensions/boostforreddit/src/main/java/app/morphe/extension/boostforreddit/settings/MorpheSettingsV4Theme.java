@@ -4,15 +4,17 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.util.TypedValue;
 
 final class MorpheSettingsV4Theme {
+    private static final String KEY_DYNAMIC_COLORS = "pref_dynamic_colors";
+
     static final class Accent {
         final int color;
         final int container;
@@ -99,26 +101,18 @@ final class MorpheSettingsV4Theme {
                 & Configuration.UI_MODE_NIGHT_MASK)
                 == Configuration.UI_MODE_NIGHT_YES;
 
-        int fallbackBackground = themeColor(
-                context,
-                android.R.attr.colorBackground,
-                dark ? Color.rgb(28, 27, 30) : Color.rgb(255, 251, 254)
-        );
-        int fallbackTextPrimary = themeColor(
-                context,
-                android.R.attr.textColorPrimary,
-                dark ? Color.rgb(231, 225, 229) : Color.rgb(29, 27, 30)
-        );
-        int fallbackTextSecondary = themeColor(
-                context,
-                android.R.attr.textColorSecondary,
-                dark ? Color.rgb(202, 196, 208) : Color.rgb(73, 69, 79)
-        );
-        int fallbackPrimary = themeColor(
-                context,
-                android.R.attr.colorAccent,
-                dark ? Color.rgb(208, 188, 255) : Color.rgb(103, 80, 164)
-        );
+        int fallbackBackground = dark
+                ? Color.rgb(28, 27, 30)
+                : Color.rgb(255, 251, 254);
+        int fallbackTextPrimary = dark
+                ? Color.rgb(231, 225, 229)
+                : Color.rgb(29, 27, 30);
+        int fallbackTextSecondary = dark
+                ? Color.rgb(202, 196, 208)
+                : Color.rgb(73, 69, 79);
+        int fallbackPrimary = dark
+                ? Color.rgb(208, 188, 255)
+                : Color.rgb(103, 80, 164);
 
         int paletteBackground = paletteColor(
                 context,
@@ -314,21 +308,14 @@ final class MorpheSettingsV4Theme {
         );
     }
 
-    private static int themeColor(Context context, int attribute, int fallback) {
-        TypedArray values = context.obtainStyledAttributes(new int[]{attribute});
-        try {
-            return values.getColor(0, fallback);
-        } finally {
-            values.recycle();
-        }
-    }
-
     private static int paletteColor(
             Context context,
             String resourceName,
             int fallback
     ) {
-        if (Build.VERSION.SDK_INT < 31) {
+        if (Build.VERSION.SDK_INT < 31
+                || !PreferenceManager.getDefaultSharedPreferences(context)
+                .getBoolean(KEY_DYNAMIC_COLORS, false)) {
             return fallback;
         }
 

@@ -17,6 +17,8 @@ public final class MorpheSettingsV4 {
 
     private static final String LEGACY_V2_ENABLED_KEY =
             "morphe_boost_settings_layout_v2_enabled";
+    private static final String THEME_MODE_KEY = "pref_theme_mode_type";
+    private static final String SYSTEM_THEME_MODE = "system";
     private static final String EXTRA_SHOW_FRAGMENT =
             "extra_show_fragment";
     private static final String FRAGMENT_NAME =
@@ -53,7 +55,11 @@ public final class MorpheSettingsV4 {
                 PreferenceManager.getDefaultSharedPreferences(context);
 
         if (preferences.contains(ENABLED_KEY)) {
-            return preferences.getBoolean(ENABLED_KEY, false);
+            boolean enabled = preferences.getBoolean(ENABLED_KEY, false);
+            if (enabled) {
+                forceSystemThemeMode(preferences);
+            }
+            return enabled;
         }
 
         // Preserve and migrate the choice made by existing issue #106 preview
@@ -63,15 +69,32 @@ public final class MorpheSettingsV4 {
                 false
         );
         if (legacyEnabled) {
-            preferences.edit().putBoolean(ENABLED_KEY, true).apply();
+            preferences.edit()
+                    .putBoolean(ENABLED_KEY, true)
+                    .putString(THEME_MODE_KEY, SYSTEM_THEME_MODE)
+                    .apply();
         }
         return legacyEnabled;
     }
 
     public static void setEnabled(Context context, boolean enabled) {
-        PreferenceManager.getDefaultSharedPreferences(context)
-                .edit()
-                .putBoolean(ENABLED_KEY, enabled)
-                .apply();
+        SharedPreferences preferences =
+                PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor editor = preferences.edit()
+                .putBoolean(ENABLED_KEY, enabled);
+        if (enabled) {
+            editor.putString(THEME_MODE_KEY, SYSTEM_THEME_MODE);
+        }
+        editor.apply();
+    }
+
+    private static void forceSystemThemeMode(SharedPreferences preferences) {
+        if (!SYSTEM_THEME_MODE.equals(
+                preferences.getString(THEME_MODE_KEY, SYSTEM_THEME_MODE)
+        )) {
+            preferences.edit()
+                    .putString(THEME_MODE_KEY, SYSTEM_THEME_MODE)
+                    .apply();
+        }
     }
 }

@@ -18,6 +18,12 @@ final class MorpheSettingsV4Catalog {
             "app.morphe.extension.boostforreddit.settings.MorpheSettingsFragment";
     static final String BACKUP_ACTIVITY =
             "com.rubenmayayo.reddit.BackupActivity";
+    static final String V4_APPEARANCE_FRAGMENT =
+            "app.morphe.extension.boostforreddit.settings."
+                    + "MorpheSettingsV4AppearanceFragment";
+    static final String CLASSIC_APPEARANCE_FRAGMENT =
+            "com.rubenmayayo.reddit.ui.preferences.v2."
+                    + "PreferenceFragmentAppearanceCompat";
 
     private static final String ANDROID_NAMESPACE =
             "http://schemas.android.com/apk/res/android";
@@ -154,9 +160,9 @@ final class MorpheSettingsV4Catalog {
             new Category(
                     "appearance_layout",
                     "Appearance & layout",
-                    "Theme, post layout, and fonts",
+                    "Colors, post layout, and fonts",
                     "ic_color_lens_24dp",
-                    leaf("Theme & appearance", "Theme, dark mode, and app icon", "ic_color_lens_24dp", "PreferenceFragmentAppearanceCompat", "pref_appearance_v2"),
+                    Leaf.fragment("Appearance", "Dynamic color, app icon, and system bars", "ic_color_lens_24dp", V4_APPEARANCE_FRAGMENT, null),
                     leaf("Post views", "Cards, lists, thumbnails, and density", "ic_view_carousel_24dp", "PreferenceFragmentViewsCompat", "pref_views_v2"),
                     leaf("Fonts", "Font family, size, and style", "ic_format_size_24dp", "PreferenceFragmentFontsCompat", "pref_fonts_v2")
             ),
@@ -223,7 +229,8 @@ final class MorpheSettingsV4Catalog {
                     "General behavior and older features",
                     "ic_settings_24dp",
                     leaf("General", "General app behavior", "ic_settings_24dp", "PreferenceFragmentGeneralCompat", "pref_general_v2"),
-                    leaf("Legacy features", "Older Boost features and compatibility", "ic_restore_black_24dp", "PreferenceFragmentMiscCompat", "pref_misc_v2")
+                    leaf("Legacy features", "Older Boost features and compatibility", "ic_restore_black_24dp", "PreferenceFragmentMiscCompat", "pref_misc_v2"),
+                    Leaf.fragment("Classic theme editor", "Legacy Boost palettes and per-color customization", "ic_color_lens_24dp", CLASSIC_APPEARANCE_FRAGMENT, null)
             ),
             new Category(
                     "about",
@@ -264,7 +271,35 @@ final class MorpheSettingsV4Catalog {
                 addLeafAndXml(context, result, seen, category.title, leaf);
             }
         }
+        addV4AppearanceSearchItems(result, seen);
         return result;
+    }
+
+    private static void addV4AppearanceSearchItems(
+            List<SearchItem> result,
+            Set<String> seen
+    ) {
+        String[][] items = new String[][]{
+                {"Dynamic color", "Use the color palette selected by Android", "pref_dynamic_colors"},
+                {"App icon", "Choose the icon shown by your launcher", "pref_app_icon"},
+                {"Colored status bar", "Match the status bar to Boost's toolbar", "pref_colored_status_bar"},
+                {"Colored navigation bar", "Match the navigation area to Boost's toolbar", "pref_colored_nav_bar"},
+        };
+        for (String[] item : items) {
+            addSearchItem(
+                    result,
+                    seen,
+                    new SearchItem(
+                            item[0],
+                            item[1],
+                            "Appearance & layout · Appearance",
+                            "ic_color_lens_24dp",
+                            V4_APPEARANCE_FRAGMENT,
+                            null,
+                            item[2]
+                    )
+            );
+        }
     }
 
     private static void addLeafAndXml(

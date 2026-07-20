@@ -8,6 +8,7 @@ HUB="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostfor
 LAYOUT="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsLayout.java"
 V4="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4.java"
 V4_FRAGMENT="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4Fragment.java"
+V4_APPEARANCE="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4AppearanceFragment.java"
 V4_CATALOG="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4Catalog.java"
 V4_THEME="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4Theme.java"
 SYSTEM_BARS="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/utils/BoostSystemBarInsetsFix.java"
@@ -18,6 +19,7 @@ test -f "$HUB"
 test -f "$LAYOUT"
 test -f "$V4"
 test -f "$V4_FRAGMENT"
+test -f "$V4_APPEARANCE"
 test -f "$V4_CATALOG"
 test -f "$V4_THEME"
 test -f "$SYSTEM_BARS"
@@ -30,6 +32,8 @@ rg -q -F 'MORPHE_BOOST_SETTINGS_LAYOUT_ISSUE106_V2_1' "$LAYOUT"
 rg -q -F 'MORPHE_BOOST_SETTINGS_HUBS_ISSUE106_V2_1' "$HUB"
 rg -q -F 'MORPHE_BOOST_SETTINGS_V4_ISSUE106_V1' "$V4"
 rg -q -F 'MORPHE_BOOST_SETTINGS_V4_UI_ISSUE106_V1' "$V4_FRAGMENT"
+rg -q -F 'MORPHE_BOOST_SETTINGS_V4_APPEARANCE_ISSUE106_V1' "$V4_APPEARANCE"
+rg -q -F 'MORPHE_BOOST_SETTINGS_V4_COMPACT_GROUPS_ISSUE106_V1' "$V4_APPEARANCE"
 rg -q -F 'setPreferencesFromResource(resourceId, rootKey);' "$FRAGMENT" "$HUB"
 
 if rg -q -F 'get("res/xml/pref_advanced_v2.xml")' "$SETTINGS"; then
@@ -44,6 +48,7 @@ python3 - \
     "$HUB" \
     "$V4" \
     "$V4_FRAGMENT" \
+    "$V4_APPEARANCE" \
     "$V4_CATALOG" \
     "$V4_THEME" \
     "$SYSTEM_BARS" <<'PY_CHECK'
@@ -57,9 +62,10 @@ layout = Path(sys.argv[3]).read_text()
 hub = Path(sys.argv[4]).read_text()
 v4 = Path(sys.argv[5]).read_text()
 v4_fragment = Path(sys.argv[6]).read_text()
-v4_catalog = Path(sys.argv[7]).read_text()
-v4_theme = Path(sys.argv[8]).read_text()
-system_bars = Path(sys.argv[9]).read_text()
+v4_appearance = Path(sys.argv[7]).read_text()
+v4_catalog = Path(sys.argv[8]).read_text()
+v4_theme = Path(sys.argv[9]).read_text()
+system_bars = Path(sys.argv[10]).read_text()
 
 preference_keys = [
     "morphe_boost_inline_media_previews_enabled",
@@ -218,10 +224,14 @@ assert 'LEGACY_V2_ENABLED_KEY =\n            "morphe_boost_settings_layout_v2_en
 assert 'public static void prepareIntent(Activity activity)' in v4
 assert 'preferences.contains(ENABLED_KEY)' in v4
 assert 'preferences.getBoolean(\n                LEGACY_V2_ENABLED_KEY,' in v4
-assert 'preferences.edit().putBoolean(ENABLED_KEY, true).apply();' in v4
+assert '.putBoolean(ENABLED_KEY, true)' in v4
 assert 'intent.getStringExtra(EXTRA_SHOW_FRAGMENT)' in v4
 assert 'intent.putExtra(EXTRA_SHOW_FRAGMENT, FRAGMENT_NAME);' in v4
 assert 'MorpheSettingsV4Fragment' in v4
+assert 'THEME_MODE_KEY = "pref_theme_mode_type"' in v4
+assert 'SYSTEM_THEME_MODE = "system"' in v4
+assert 'forceSystemThemeMode(preferences);' in v4
+assert '.putString(THEME_MODE_KEY, SYSTEM_THEME_MODE)' in v4
 
 assert 'extends Fragment' in v4_fragment
 assert 'new ScrollView(context)' in v4_fragment
@@ -245,6 +255,47 @@ for forbidden_call in [
     assert forbidden_call not in v4_fragment, forbidden_call
 assert 'androidx.compose' not in v4_fragment
 assert 'ComposeView' not in v4_fragment
+
+assert 'extends Fragment' in v4_appearance
+assert 'MORPHE_BOOST_SETTINGS_V4_APPEARANCE_ISSUE106_V1' in v4_appearance
+assert 'MORPHE_BOOST_SETTINGS_V4_COMPACT_GROUPS_ISSUE106_V1' in v4_appearance
+assert 'MORPHE_BOOST_SETTINGS_V4_SYSTEM_THEME_ISSUE106_V1' in v4_appearance
+assert 'PreferenceManager.getDefaultSharedPreferences(context)' in v4_appearance
+assert 'KEY_DYNAMIC_COLORS = "pref_dynamic_colors"' in v4_appearance
+assert 'KEY_COLORED_STATUS_BAR' in v4_appearance
+assert 'KEY_COLORED_NAV_BAR' in v4_appearance
+assert 'Class.forName("id.b")' in v4_appearance
+assert 'BoostSystemBarInsetsFix.applyMorpheSettingsV4SystemBars(' in v4_appearance
+assert 'BoostSystemBarInsetsFix.clearMorpheSettingsV4SystemBars(activity);' in v4_appearance
+assert 'private LinearLayout addGroup(LinearLayout parent)' in v4_appearance
+assert 'private void addGroupedRow(LinearLayout group, LinearLayout row)' in v4_appearance
+assert 'private void addGroupDivider(LinearLayout group)' in v4_appearance
+assert 'row.setMinimumHeight(dp(68));' in v4_appearance
+assert 'addHeader(content);' not in v4_appearance
+assert 'createIconContainer(' not in v4_appearance
+assert 'addSectionLabel(content, "Appearance");' in v4_appearance
+assert 'addSectionLabel(content, "Personalization");' in v4_appearance
+assert 'addSectionLabel(content, "System bars");' in v4_appearance
+for removed_theme_ui in [
+    '"Theme mode"',
+    '"Customize colors"',
+    '"Dark starts"',
+    '"Light starts"',
+    'new AlertDialog.Builder',
+    'new TimePickerDialog',
+    'openClassicAppearance()',
+    'Open classic appearance settings',
+]:
+    assert removed_theme_ui not in v4_appearance, removed_theme_ui
+for forbidden_call in [
+    'getActivity()',
+    'getFragmentManager()',
+    'getParentFragmentManager()',
+    'setTargetFragment(',
+]:
+    assert forbidden_call not in v4_appearance, forbidden_call
+assert 'androidx.compose' not in v4_appearance
+assert 'ComposeView' not in v4_appearance
 
 category_ids = [
     "appearance_layout",
@@ -271,6 +322,15 @@ assert 'attributeText(resources, parser, "title")' in v4_catalog
 assert 'attributeText(resources, parser, "summary")' in v4_catalog
 assert 'attributeText(resources, parser, "key")' in v4_catalog
 assert 'BACKUP_ACTIVITY' in v4_catalog
+assert 'V4_APPEARANCE_FRAGMENT' in v4_catalog
+assert 'CLASSIC_APPEARANCE_FRAGMENT' in v4_catalog
+assert 'addV4AppearanceSearchItems(result, seen);' in v4_catalog
+assert 'Leaf.fragment("Appearance", "Dynamic color, app icon, and system bars"' in v4_catalog
+assert 'Leaf.fragment("Classic theme editor", "Legacy Boost palettes and per-color customization"' in v4_catalog
+assert '{"Theme mode",' not in v4_catalog
+assert '{"Customize colors",' not in v4_catalog
+assert 'pref_colored_status_bar' in v4_catalog
+assert 'pref_colored_nav_bar' in v4_catalog
 
 assert 'system_accent1_200' in v4_theme
 assert 'system_accent1_600' in v4_theme
@@ -280,6 +340,9 @@ assert 'system_accent3_200' in v4_theme
 assert 'system_accent3_600' in v4_theme
 assert 'system_neutral1_900' in v4_theme
 assert 'system_neutral2_700' in v4_theme
+assert 'KEY_DYNAMIC_COLORS = "pref_dynamic_colors"' in v4_theme
+assert '.getBoolean(KEY_DYNAMIC_COLORS, false)' in v4_theme
+assert 'TypedArray' not in v4_theme
 assert 'Accent navigationAccent()' in v4_theme
 assert 'hashCode()' not in v4_theme
 assert 'tokens.navigationAccent()' in v4_fragment
@@ -333,6 +396,9 @@ echo 'SETTINGS_V4_SUBTLE_DYNAMIC_COLOR=PASS'
 echo 'SETTINGS_V4_SYSTEM_BARS_MATCH=PASS'
 echo 'SETTINGS_V4_SYSTEM_BAR_OWNER=PASS'
 echo 'SETTINGS_V4_NAVIGATION_SURFACE=PASS'
+echo 'SETTINGS_V4_APPEARANCE_CONTROLS=PASS'
+echo 'SETTINGS_V4_COMPACT_GROUPS=PASS'
+echo 'SETTINGS_V4_SYSTEM_THEME=PASS'
 echo 'SETTINGS_V4_TASK_HUBS=PASS'
 echo 'SETTINGS_V4_SEARCH_INDEX=PASS'
 echo 'SETTINGS_V4_CLASSIC_FALLBACK=PASS'
