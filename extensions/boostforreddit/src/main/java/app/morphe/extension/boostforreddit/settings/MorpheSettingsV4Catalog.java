@@ -21,6 +21,18 @@ final class MorpheSettingsV4Catalog {
     static final String V4_APPEARANCE_FRAGMENT =
             "app.morphe.extension.boostforreddit.settings."
                     + "MorpheSettingsV4AppearanceFragment";
+    static final String V4_APP_ICON_FRAGMENT =
+            "app.morphe.extension.boostforreddit.settings."
+                    + "MorpheSettingsV4AppIconFragment";
+    static final String V4_POST_VIEWS_FRAGMENT =
+            "app.morphe.extension.boostforreddit.settings."
+                    + "MorpheSettingsV4PostViewsFragment";
+    static final String V4_SAVED_VIEWS_FRAGMENT =
+            "app.morphe.extension.boostforreddit.settings."
+                    + "MorpheSettingsV4SavedViewsFragment";
+    static final String V4_FONTS_FRAGMENT =
+            "app.morphe.extension.boostforreddit.settings."
+                    + "MorpheSettingsV4FontsFragment";
     static final String CLASSIC_APPEARANCE_FRAGMENT =
             "com.rubenmayayo.reddit.ui.preferences.v2."
                     + "PreferenceFragmentAppearanceCompat";
@@ -163,8 +175,8 @@ final class MorpheSettingsV4Catalog {
                     "Colors, post layout, and fonts",
                     "ic_color_lens_24dp",
                     Leaf.fragment("Appearance", "Dynamic color, app icon, and system bars", "ic_color_lens_24dp", V4_APPEARANCE_FRAGMENT, null),
-                    leaf("Post views", "Cards, lists, thumbnails, and density", "ic_view_carousel_24dp", "PreferenceFragmentViewsCompat", "pref_views_v2"),
-                    leaf("Fonts", "Font family, size, and style", "ic_format_size_24dp", "PreferenceFragmentFontsCompat", "pref_fonts_v2")
+                    Leaf.fragment("Post views", "Cards, lists, thumbnails, and density", "ic_view_carousel_24dp", V4_POST_VIEWS_FRAGMENT, null),
+                    Leaf.fragment("Fonts", "Font family, size, and style", "ic_format_size_24dp", V4_FONTS_FRAGMENT, null)
             ),
             new Category(
                     "posts_comments",
@@ -272,6 +284,8 @@ final class MorpheSettingsV4Catalog {
             }
         }
         addV4AppearanceSearchItems(result, seen);
+        addV4PostViewsSearchItems(result, seen);
+        addV4FontsSearchItems(result, seen);
         return result;
     }
 
@@ -295,6 +309,74 @@ final class MorpheSettingsV4Catalog {
                             "Appearance & layout · Appearance",
                             "ic_color_lens_24dp",
                             V4_APPEARANCE_FRAGMENT,
+                            null,
+                            item[2]
+                    )
+            );
+        }
+    }
+
+    private static void addV4PostViewsSearchItems(
+            List<SearchItem> result,
+            Set<String> seen
+    ) {
+        String[][] items = new String[][]{
+                {"Default view", "Choose cards, compact, columns, images, or swipe", "pref_view"},
+                {"Remember per community", "Use the last selected view for each community", "pref_view_per_subscription"},
+                {"Manage saved views", "Review community-specific views", "pref_view_per_sub"},
+                {"Thumbnails on left", "Place post thumbnails on the left side", "pref_left_handed"},
+                {"Communities start with r/", "Show Reddit's prefix before community names", "pref_show_subreddit_prefix"},
+                {"Rounded corners", "Round card image corners", "pref_cards_rounded_corners"},
+                {"Full height images", "Use full-height card images", "pref_cards_full_preview"},
+                {"Show community icon", "Show community icons on cards", "pref_cards_subreddit_icon"},
+                {"Carousel for multiple images", "Swipe through gallery images on cards", "pref_cards_gallery_carousel"},
+                {"Show thumbnails for link posts", "Use thumbnails instead of large previews", "pref_cards_links_as_thumbnails"},
+                {"Preview text from posts", "Show text previews on cards", "pref_cards_preview_self"},
+                {"Lines to preview", "Set the number of post-text preview lines", "pref_cards_preview_self_lines"},
+                {"Small-card rounded corners", "Round small-card image corners", "pref_mini_cards_rounded_corners"},
+                {"Truncate small-card titles", "Limit small-card titles to two lines", "pref_mini_cards_truncate_title"},
+                {"Small-card buttons", "Keep small-card buttons visible", "pref_mini_cards_buttons_visible"},
+                {"Dense-view buttons", "Keep dense-view buttons visible", "pref_dense_buttons_visible"},
+                {"Preview external links", "Load text previews for external links", "pref_load_readability"},
+                {"Lock sidebar", "Disable opening the sidebar with a swipe", "pref_lock_sidebar"},
+        };
+        for (String[] item : items) {
+            addSearchItem(
+                    result,
+                    seen,
+                    new SearchItem(
+                            item[0],
+                            item[1],
+                            "Appearance & layout · Post views",
+                            "ic_view_carousel_24dp",
+                            V4_POST_VIEWS_FRAGMENT,
+                            null,
+                            item[2]
+                    )
+            );
+        }
+    }
+
+    private static void addV4FontsSearchItems(
+            List<SearchItem> result,
+            Set<String> seen
+    ) {
+        String[][] items = new String[][]{
+                {"Title font", "Choose the font used for post titles", "pref_title_font"},
+                {"Title text size", "Choose the size used for post titles", "pref_font_size_title"},
+                {"Comments font", "Choose the font used for comments and messages", "pref_comments_font"},
+                {"Comments text size", "Choose the size used for comments and messages", "pref_font_size"},
+        };
+        for (String[] item : items) {
+            addSearchItem(
+                    result,
+                    seen,
+                    new SearchItem(
+                            item[0],
+                            item[1],
+                            "Appearance & layout · Fonts",
+                            "ic_format_size_24dp",
+                            V4_FONTS_FRAGMENT,
                             null,
                             item[2]
                     )

@@ -2,6 +2,7 @@ package app.morphe.extension.boostforreddit.settings;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Typeface;
@@ -26,7 +27,6 @@ import androidx.fragment.app.Fragment;
 import app.morphe.extension.boostforreddit.utils.BoostSystemBarInsetsFix;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 
 /** Morphe-owned appearance controls for the Settings v4 preview. */
 public final class MorpheSettingsV4AppearanceFragment extends Fragment {
@@ -42,6 +42,7 @@ public final class MorpheSettingsV4AppearanceFragment extends Fragment {
             "pref_colored_status_bar";
     private static final String KEY_COLORED_NAV_BAR =
             "pref_colored_nav_bar";
+    private static final String EXTRA_SHOW_FRAGMENT = "extra_show_fragment";
 
     private MorpheSettingsV4Theme.Tokens tokens;
     private SharedPreferences preferences;
@@ -101,7 +102,9 @@ public final class MorpheSettingsV4AppearanceFragment extends Fragment {
                 "App icon",
                 "Choose the icon shown by your launcher",
                 true,
-                view -> openBoostHelper("w")
+                view -> openMorpheFragment(
+                        MorpheSettingsV4Catalog.V4_APP_ICON_FRAGMENT
+                )
         );
 
         addSpace(content, 24);
@@ -336,19 +339,16 @@ public final class MorpheSettingsV4AppearanceFragment extends Fragment {
         }
     }
 
-    private void openBoostHelper(String methodName) {
+    private void openMorpheFragment(String fragmentName) {
         Activity activity = hostActivity();
         if (activity == null) {
             showUnavailable();
             return;
         }
         try {
-            Class<?> helper = Class.forName(
-                    "com.rubenmayayo.reddit.ui.activities.i"
-            );
-            Method method = helper.getDeclaredMethod(methodName, Context.class);
-            method.setAccessible(true);
-            method.invoke(null, activity);
+            Intent intent = new Intent(activity, activity.getClass());
+            intent.putExtra(EXTRA_SHOW_FRAGMENT, fragmentName);
+            activity.startActivity(intent);
         } catch (Throwable ignored) {
             showUnavailable();
         }

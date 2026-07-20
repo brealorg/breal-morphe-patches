@@ -9,6 +9,10 @@ LAYOUT="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boost
 V4="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4.java"
 V4_FRAGMENT="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4Fragment.java"
 V4_APPEARANCE="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4AppearanceFragment.java"
+V4_APP_ICON="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4AppIconFragment.java"
+V4_POST_VIEWS="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4PostViewsFragment.java"
+V4_SAVED_VIEWS="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4SavedViewsFragment.java"
+V4_FONTS="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4FontsFragment.java"
 V4_CATALOG="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4Catalog.java"
 V4_THEME="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4Theme.java"
 SYSTEM_BARS="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/utils/BoostSystemBarInsetsFix.java"
@@ -20,6 +24,10 @@ test -f "$LAYOUT"
 test -f "$V4"
 test -f "$V4_FRAGMENT"
 test -f "$V4_APPEARANCE"
+test -f "$V4_APP_ICON"
+test -f "$V4_POST_VIEWS"
+test -f "$V4_SAVED_VIEWS"
+test -f "$V4_FONTS"
 test -f "$V4_CATALOG"
 test -f "$V4_THEME"
 test -f "$SYSTEM_BARS"
@@ -33,7 +41,11 @@ rg -q -F 'MORPHE_BOOST_SETTINGS_HUBS_ISSUE106_V2_1' "$HUB"
 rg -q -F 'MORPHE_BOOST_SETTINGS_V4_ISSUE106_V1' "$V4"
 rg -q -F 'MORPHE_BOOST_SETTINGS_V4_UI_ISSUE106_V1' "$V4_FRAGMENT"
 rg -q -F 'MORPHE_BOOST_SETTINGS_V4_APPEARANCE_ISSUE106_V1' "$V4_APPEARANCE"
+rg -q -F 'MORPHE_BOOST_SETTINGS_V4_APP_ICON_ISSUE106_V1' "$V4_APP_ICON"
 rg -q -F 'MORPHE_BOOST_SETTINGS_V4_COMPACT_GROUPS_ISSUE106_V1' "$V4_APPEARANCE"
+rg -q -F 'MORPHE_BOOST_SETTINGS_V4_POST_VIEWS_ISSUE106_V1' "$V4_POST_VIEWS"
+rg -q -F 'MORPHE_BOOST_SETTINGS_V4_SAVED_VIEWS_ISSUE106_V1' "$V4_SAVED_VIEWS"
+rg -q -F 'MORPHE_BOOST_SETTINGS_V4_FONTS_ISSUE106_V1' "$V4_FONTS"
 rg -q -F 'setPreferencesFromResource(resourceId, rootKey);' "$FRAGMENT" "$HUB"
 
 if rg -q -F 'get("res/xml/pref_advanced_v2.xml")' "$SETTINGS"; then
@@ -49,6 +61,10 @@ python3 - \
     "$V4" \
     "$V4_FRAGMENT" \
     "$V4_APPEARANCE" \
+    "$V4_APP_ICON" \
+    "$V4_POST_VIEWS" \
+    "$V4_SAVED_VIEWS" \
+    "$V4_FONTS" \
     "$V4_CATALOG" \
     "$V4_THEME" \
     "$SYSTEM_BARS" <<'PY_CHECK'
@@ -63,9 +79,13 @@ hub = Path(sys.argv[4]).read_text()
 v4 = Path(sys.argv[5]).read_text()
 v4_fragment = Path(sys.argv[6]).read_text()
 v4_appearance = Path(sys.argv[7]).read_text()
-v4_catalog = Path(sys.argv[8]).read_text()
-v4_theme = Path(sys.argv[9]).read_text()
-system_bars = Path(sys.argv[10]).read_text()
+v4_app_icon = Path(sys.argv[8]).read_text()
+v4_post_views = Path(sys.argv[9]).read_text()
+v4_saved_views = Path(sys.argv[10]).read_text()
+v4_fonts = Path(sys.argv[11]).read_text()
+v4_catalog = Path(sys.argv[12]).read_text()
+v4_theme = Path(sys.argv[13]).read_text()
+system_bars = Path(sys.argv[14]).read_text()
 
 preference_keys = [
     "morphe_boost_inline_media_previews_enabled",
@@ -296,6 +316,154 @@ for forbidden_call in [
     assert forbidden_call not in v4_appearance, forbidden_call
 assert 'androidx.compose' not in v4_appearance
 assert 'ComposeView' not in v4_appearance
+assert 'openBoostHelper("w")' not in v4_appearance
+assert 'V4_APP_ICON_FRAGMENT' in v4_appearance
+
+assert 'extends Fragment' in v4_app_icon
+assert 'MORPHE_BOOST_SETTINGS_V4_APP_ICON_ISSUE106_V1' in v4_app_icon
+assert 'PackageManager.COMPONENT_ENABLED_STATE_ENABLED' in v4_app_icon
+assert 'PackageManager.COMPONENT_ENABLED_STATE_DISABLED' in v4_app_icon
+assert 'PackageManager.DONT_KILL_APP' in v4_app_icon
+assert 'packageManager.setComponentEnabledSetting(' in v4_app_icon
+for alias in ['"grey"', '"vivid"', '"metal"', '"yellow"']:
+    assert alias in v4_app_icon, alias
+for resource_name in [
+    '"ic_launcher"',
+    '"ic_launcher_grey"',
+    '"ic_launcher_vivid"',
+    '"ic_launcher_metal"',
+    '"ic_launcher_yellow"',
+]:
+    assert resource_name in v4_app_icon, resource_name
+for forbidden_call in [
+    'getActivity()',
+    'getFragmentManager()',
+    'getParentFragmentManager()',
+    'setTargetFragment(',
+]:
+    assert forbidden_call not in v4_app_icon, forbidden_call
+assert 'androidx.compose' not in v4_app_icon
+assert 'ComposeView' not in v4_app_icon
+
+assert 'extends Fragment' in v4_post_views
+assert 'MORPHE_BOOST_SETTINGS_V4_POST_VIEWS_ISSUE106_V1' in v4_post_views
+assert 'PreferenceManager.getDefaultSharedPreferences(context)' in v4_post_views
+for key in [
+    'pref_view',
+    'pref_view_per_subscription',
+    'pref_left_handed',
+    'pref_show_subreddit_prefix',
+    'pref_cards_rounded_corners',
+    'pref_cards_full_preview',
+    'pref_cards_subreddit_icon',
+    'pref_cards_gallery_carousel',
+    'pref_cards_links_as_thumbnails',
+    'pref_cards_preview_self',
+    'pref_cards_preview_self_lines',
+    'pref_mini_cards_rounded_corners',
+    'pref_mini_cards_truncate_title',
+    'pref_mini_cards_buttons_visible',
+    'pref_dense_buttons_visible',
+    'pref_load_readability',
+    'pref_lock_sidebar',
+]:
+    assert key in v4_post_views, key
+for view_value in ['"0"', '"7"', '"1"', '"4"', '"5"', '"2"', '"6"', '"3"']:
+    assert view_value in v4_post_views, view_value
+assert 'MorpheSettingsV4Catalog.V4_SAVED_VIEWS_FRAGMENT' in v4_post_views
+assert 'openMorpheFragment(' in v4_post_views
+assert 'openBoostHelper("h1")' not in v4_post_views
+assert 'setBoostStaticBoolean("g")' in v4_post_views
+assert 'setBoostStaticBoolean("i")' in v4_post_views
+assert 'setBoostStaticString("c", enabled ? "r/" : "")' in v4_post_views
+assert 'private void showDefaultViewDialog()' in v4_post_views
+assert 'previewLinesSeekBar.setMax(100);' in v4_post_views
+assert 'BoostSystemBarInsetsFix.applyMorpheSettingsV4SystemBars(' in v4_post_views
+assert 'BoostSystemBarInsetsFix.clearMorpheSettingsV4SystemBars(activity);' in v4_post_views
+for forbidden_call in [
+    'getActivity()',
+    'getFragmentManager()',
+    'getParentFragmentManager()',
+    'setTargetFragment(',
+]:
+    assert forbidden_call not in v4_post_views, forbidden_call
+assert 'androidx.compose' not in v4_post_views
+assert 'ComposeView' not in v4_post_views
+
+assert 'MORPHE_BOOST_SETTINGS_V4_SAVED_VIEWS_ISSUE106_V1' in v4_saved_views
+assert 'com.rubenmayayo.reddit.VIEW_PER_SUBSCRIPTION' in v4_saved_views
+assert 'savedViews.getAll()' in v4_saved_views
+assert 'savedViews.edit().remove(entry.key).apply();' in v4_saved_views
+assert 'savedViews.edit().clear().apply();' in v4_saved_views
+assert '.putInt(entry.key, VIEW_VALUES[choice])' in v4_saved_views
+assert 'No saved views yet' in v4_saved_views
+assert 'showViewTypeDialog(entry)' in v4_saved_views
+assert 'addAddSavedViewCard(entriesHost);' in v4_saved_views
+assert 'private void showAddSavedViewDialog()' in v4_saved_views
+assert 'private String normalizeSavedViewKey(' in v4_saved_views
+assert '"Add saved view"' in v4_saved_views
+assert '"Custom feed"' in v4_saved_views
+assert 'SavedViewsActivity' not in v4_saved_views
+for forbidden_call in [
+    'getActivity()',
+    'getFragmentManager()',
+    'getParentFragmentManager()',
+    'setTargetFragment(',
+]:
+    assert forbidden_call not in v4_saved_views, forbidden_call
+assert 'androidx.compose' not in v4_saved_views
+assert 'ComposeView' not in v4_saved_views
+
+assert 'extends Fragment' in v4_fonts
+assert 'MORPHE_BOOST_SETTINGS_V4_FONTS_ISSUE106_V1' in v4_fonts
+assert 'MORPHE_BOOST_SETTINGS_V4_FONT_PREVIEWS_ISSUE106_V2' in v4_fonts
+assert 'MORPHE_BOOST_SETTINGS_V4_FONT_SPECIMEN_ISSUE106_V3' in v4_fonts
+assert 'PreferenceManager.getDefaultSharedPreferences(context)' in v4_fonts
+for key in [
+    'pref_title_font',
+    'pref_font_size_title',
+    'pref_comments_font',
+    'pref_font_size',
+]:
+    assert key in v4_fonts, key
+for font_value in [
+    'sans-serif-thin',
+    'sans-serif-condensed-light',
+    'sans-serif-condensed',
+    'serif-monospace',
+    'sans-serif-smallcaps',
+    'RobotoSlab-Regular.ttf',
+]:
+    assert font_value in v4_fonts, font_value
+for size_value in ['XSmall', 'Small', 'Medium', 'Large', 'XLarge', 'XXLarge']:
+    assert f'"{size_value}"' in v4_fonts, size_value
+assert 'private void showFontDialog(' in v4_fonts
+assert 'private void showSizeDialog(' in v4_fonts
+assert 'private void updatePreviewAndSummaries()' in v4_fonts
+assert 'addSectionLabel(content, "Live preview")' in v4_fonts
+assert 'private void addPreviewDivider(LinearLayout parent)' in v4_fonts
+assert 'previewCanvas.setBackground(MorpheSettingsV4Theme.rounded(' in v4_fonts
+assert '"Updates as you choose"' not in v4_fonts
+assert '"LIVE PREVIEW"' not in v4_fonts
+assert '"POST PREVIEW"' not in v4_fonts
+assert '"COMMENT PREVIEW"' not in v4_fonts
+assert 'previewExampleCard' not in v4_fonts
+assert 'previewDrawable' not in v4_fonts
+assert 'previewComment.setTypeface(typefaceFor(commentsFontValue));' in v4_fonts
+assert 'private void markNativeFontCacheDirty(String key)' in v4_fonts
+assert 'Class.forName("id.b")' in v4_fonts
+assert '.remove(KEY_TITLE_FONT)' in v4_fonts
+assert 'BoostSystemBarInsetsFix.applyMorpheSettingsV4SystemBars(' in v4_fonts
+assert 'BoostSystemBarInsetsFix.clearMorpheSettingsV4SystemBars(activity);' in v4_fonts
+for forbidden_call in [
+    'getActivity()',
+    'getFragmentManager()',
+    'getParentFragmentManager()',
+    'setTargetFragment(',
+]:
+    assert forbidden_call not in v4_fonts, forbidden_call
+assert 'androidx.compose' not in v4_fonts
+assert 'ComposeView' not in v4_fonts
 
 category_ids = [
     "appearance_layout",
@@ -313,6 +481,11 @@ for category_id in category_ids:
     assert f'"{category_id}"' in v4_catalog, category_id
 
 for name in v2_leaf_fragments:
+    if name in {
+        "PreferenceFragmentViewsCompat",
+        "PreferenceFragmentFontsCompat",
+    }:
+        continue
     assert name in v4_catalog, name
 
 assert 'morphe_boost_settings_skeleton' in v4_catalog
@@ -323,9 +496,20 @@ assert 'attributeText(resources, parser, "summary")' in v4_catalog
 assert 'attributeText(resources, parser, "key")' in v4_catalog
 assert 'BACKUP_ACTIVITY' in v4_catalog
 assert 'V4_APPEARANCE_FRAGMENT' in v4_catalog
+assert 'V4_APP_ICON_FRAGMENT' in v4_catalog
+assert 'V4_POST_VIEWS_FRAGMENT' in v4_catalog
+assert 'V4_SAVED_VIEWS_FRAGMENT' in v4_catalog
+assert 'V4_FONTS_FRAGMENT' in v4_catalog
 assert 'CLASSIC_APPEARANCE_FRAGMENT' in v4_catalog
 assert 'addV4AppearanceSearchItems(result, seen);' in v4_catalog
+assert 'addV4PostViewsSearchItems(result, seen);' in v4_catalog
+assert 'addV4FontsSearchItems(result, seen);' in v4_catalog
 assert 'Leaf.fragment("Appearance", "Dynamic color, app icon, and system bars"' in v4_catalog
+assert 'Leaf.fragment("Post views", "Cards, lists, thumbnails, and density"' in v4_catalog
+assert 'Leaf.fragment("Fonts", "Font family, size, and style"' in v4_catalog
+assert '"Appearance & layout · Fonts"' in v4_catalog
+assert 'PreferenceFragmentFontsCompat' not in v4_catalog
+assert 'PreferenceFragmentViewsCompat' not in v4_catalog
 assert 'Leaf.fragment("Classic theme editor", "Legacy Boost palettes and per-color customization"' in v4_catalog
 assert '{"Theme mode",' not in v4_catalog
 assert '{"Customize colors",' not in v4_catalog
@@ -399,6 +583,13 @@ echo 'SETTINGS_V4_NAVIGATION_SURFACE=PASS'
 echo 'SETTINGS_V4_APPEARANCE_CONTROLS=PASS'
 echo 'SETTINGS_V4_COMPACT_GROUPS=PASS'
 echo 'SETTINGS_V4_SYSTEM_THEME=PASS'
+echo 'SETTINGS_V4_APP_ICON_M3=PASS'
+echo 'SETTINGS_V4_POST_VIEWS_CONTROLS=PASS'
+echo 'SETTINGS_V4_SAVED_VIEWS_M3=PASS'
+echo 'SETTINGS_V4_SAVED_VIEWS_ADD=PASS'
+echo 'SETTINGS_V4_FONTS_M3=PASS'
+echo 'SETTINGS_V4_FONT_PREVIEWS=PASS'
+echo 'SETTINGS_V4_FONT_SPECIMEN=PASS'
 echo 'SETTINGS_V4_TASK_HUBS=PASS'
 echo 'SETTINGS_V4_SEARCH_INDEX=PASS'
 echo 'SETTINGS_V4_CLASSIC_FALLBACK=PASS'
