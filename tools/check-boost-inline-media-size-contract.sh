@@ -89,17 +89,29 @@ if rg -q -F 'no Glide override method found' "$SOURCE"; then
   exit 1
 fi
 
-test "$(
+INLINE_MEDIA_PREVIEW_SIZE_KEY_COUNT="$(
   rg -c -F \
     'android:key="morphe_boost_inline_media_preview_size"' \
-    "$SETTINGS"
-)" -eq 2
+    "$SETTINGS" ||
+    true
+)"
 
-test "$(
+if test "$INLINE_MEDIA_PREVIEW_SIZE_KEY_COUNT" -ne 1; then
+  echo "FAIL: expected one canonical inline media preview size preference, found $INLINE_MEDIA_PREVIEW_SIZE_KEY_COUNT" >&2
+  exit 1
+fi
+
+INLINE_MEDIA_BALANCED_DEFAULT_COUNT="$(
   rg -c -F \
     'android:defaultValue="balanced"' \
-    "$SETTINGS"
-)" -eq 2
+    "$SETTINGS" ||
+    true
+)"
+
+if test "$INLINE_MEDIA_BALANCED_DEFAULT_COUNT" -ne 1; then
+  echo "FAIL: expected one canonical balanced inline media default, found $INLINE_MEDIA_BALANCED_DEFAULT_COUNT" >&2
+  exit 1
+fi
 
 rg -q -F '"Compact"' "$PREFERENCE"
 rg -q -F '"Balanced"' "$PREFERENCE"

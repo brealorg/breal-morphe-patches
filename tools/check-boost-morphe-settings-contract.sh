@@ -4,28 +4,62 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SETTINGS="$ROOT/patches/src/main/kotlin/app/morphe/patches/reddit/customclients/boostforreddit/misc/settings/BoostMorpheSettingsSkeletonPatch.kt"
 FRAGMENT="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsFragment.java"
+HUB="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsHubFragment.java"
+LAYOUT="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsLayout.java"
+V4="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4.java"
+V4_FRAGMENT="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4Fragment.java"
+V4_CATALOG="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4Catalog.java"
+V4_THEME="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4Theme.java"
+SYSTEM_BARS="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/utils/BoostSystemBarInsetsFix.java"
 
 test -f "$SETTINGS"
 test -f "$FRAGMENT"
+test -f "$HUB"
+test -f "$LAYOUT"
+test -f "$V4"
+test -f "$V4_FRAGMENT"
+test -f "$V4_CATALOG"
+test -f "$V4_THEME"
+test -f "$SYSTEM_BARS"
 
 rg -q -F 'get("res/xml/pref_headers_v2.xml")' "$SETTINGS"
 rg -q -F 'morphe_boost_settings_entry' "$SETTINGS"
 rg -q -F 'app.morphe.extension.boostforreddit.settings.MorpheSettingsFragment' "$SETTINGS"
 rg -q -F 'MORPHE_BOOST_TOP_LEVEL_SETTINGS_ISSUE106_V1' "$FRAGMENT"
-rg -q -F 'setPreferencesFromResource(resourceId, rootKey);' "$FRAGMENT"
+rg -q -F 'MORPHE_BOOST_SETTINGS_LAYOUT_ISSUE106_V2_1' "$LAYOUT"
+rg -q -F 'MORPHE_BOOST_SETTINGS_HUBS_ISSUE106_V2_1' "$HUB"
+rg -q -F 'MORPHE_BOOST_SETTINGS_V4_ISSUE106_V1' "$V4"
+rg -q -F 'MORPHE_BOOST_SETTINGS_V4_UI_ISSUE106_V1' "$V4_FRAGMENT"
+rg -q -F 'setPreferencesFromResource(resourceId, rootKey);' "$FRAGMENT" "$HUB"
 
 if rg -q -F 'get("res/xml/pref_advanced_v2.xml")' "$SETTINGS"; then
     echo 'FAIL: Morphe settings are still written into Advanced' >&2
     exit 1
 fi
 
-python3 - "$SETTINGS" "$FRAGMENT" <<'PY_CHECK'
+python3 - \
+    "$SETTINGS" \
+    "$FRAGMENT" \
+    "$LAYOUT" \
+    "$HUB" \
+    "$V4" \
+    "$V4_FRAGMENT" \
+    "$V4_CATALOG" \
+    "$V4_THEME" \
+    "$SYSTEM_BARS" <<'PY_CHECK'
 import re
 import sys
 from pathlib import Path
 
 settings = Path(sys.argv[1]).read_text()
 fragment = Path(sys.argv[2]).read_text()
+layout = Path(sys.argv[3]).read_text()
+hub = Path(sys.argv[4]).read_text()
+v4 = Path(sys.argv[5]).read_text()
+v4_fragment = Path(sys.argv[6]).read_text()
+v4_catalog = Path(sys.argv[7]).read_text()
+v4_theme = Path(sys.argv[8]).read_text()
+system_bars = Path(sys.argv[9]).read_text()
 
 preference_keys = [
     "morphe_boost_inline_media_previews_enabled",
@@ -44,37 +78,27 @@ preference_keys = [
 for key in preference_keys:
     assert settings.count(f'android:key="{key}"') == 1, key
 
-assert settings.count('android:key="morphe_boost_settings_entry"') == 1
-assert settings.count('android:title="Morphe"') == 1
+toggle_key = "morphe_boost_settings_v4_enabled"
+assert settings.count(f'android:key="{toggle_key}"') == 1
 assert settings.count(
-    'android:summary="Features added by Morphe patches"'
-) == 1
-assert settings.index(
-    'android:key="morphe_boost_settings_entry"'
-) < settings.index("PreferenceFragmentGeneralCompat")
-
-morphe_entry = re.search(
-    r'<Preference\s+[^>]*android:key="morphe_boost_settings_entry"[^>]*/>',
+    'android:key="morphe_boost_settings_layout_v2_enabled"'
+) == 0
+toggle = re.search(
+    rf'<CheckBoxPreference\s+[^>]*android:key="{toggle_key}"[^>]*/>',
     settings,
     re.S,
 )
-assert morphe_entry is not None
-assert 'app:allowDividerBelow="true"' in morphe_entry.group(0)
-
-general_entry = re.search(
-    r'<Preference\s+[^>]*PreferenceFragmentGeneralCompat[^>]*/>',
-    settings,
-    re.S,
-)
-assert general_entry is not None
-assert 'app:allowDividerAbove="true"' in general_entry.group(0)
+assert toggle is not None
+assert 'android:title="Settings v4 (preview)"' in toggle.group(0)
+assert 'android:defaultValue="false"' in toggle.group(0)
+assert 'Close and reopen Settings to apply.' in toggle.group(0)
 
 categories = re.findall(
     r'<PreferenceCategory android:title="([^"]+)">',
     settings,
 )
-
 assert categories == [
+    "Settings",
     "Media previews",
     "Open behavior",
     "Search",
@@ -82,32 +106,239 @@ assert categories == [
     "Recovery &amp; archives",
 ]
 
-root_fragments = [
-    "PreferenceFragmentGeneralCompat",
+legacy_start = settings.index('get("res/xml/pref_headers_v2.xml")')
+v2_start = settings.index('"morphe_boost_settings_layout_v2" to')
+first_hub_start = settings.index(
+    '"morphe_boost_settings_hub_appearance_layout" to'
+)
+legacy_root = settings[legacy_start:v2_start]
+v2_root = settings[v2_start:first_hub_start]
+v2_resources = settings[v2_start:]
+
+for root in (legacy_root, v2_root):
+    assert root.count('android:key="morphe_boost_settings_entry"') == 1
+    assert root.count('android:title="Morphe"') == 1
+    assert root.count(
+        'android:summary="Features added by Morphe patches"'
+    ) == 1
+
+    morphe_entry = re.search(
+        r'<Preference\s+[^>]*android:key="morphe_boost_settings_entry"[^>]*/>',
+        root,
+        re.S,
+    )
+    assert morphe_entry is not None
+    assert 'app:allowDividerBelow="true"' in morphe_entry.group(0)
+
+assert legacy_root.index(
+    'android:key="morphe_boost_settings_entry"'
+) < legacy_root.index("PreferenceFragmentGeneralCompat")
+assert v2_root.index(
+    'android:key="morphe_boost_settings_entry"'
+) < v2_root.index("morphe_boost_settings_v2_appearance_layout")
+assert 'app:allowDividerAbove="true"' in v2_root.split(
+    'morphe_boost_settings_v2_appearance_layout', 1
+)[1].split('</Preference>', 1)[0]
+
+hub_names = [
+    "appearance_layout",
+    "posts_comments",
+    "navigation",
+    "media_links",
+    "search_filters",
+    "data_storage",
+    "account_privacy",
+    "app_legacy",
+]
+
+for name in hub_names:
+    resource_name = f"morphe_boost_settings_hub_{name}"
+    assert settings.count(f'"{resource_name}" to') == 1, resource_name
+    assert v2_root.count(f'android:value="{resource_name}"') == 1, name
+
+assert v2_root.count("MorpheSettingsHubFragment") == len(hub_names)
+assert "PreferenceFragmentAdvancedCompat" not in v2_resources
+assert 'android:key="remove_ads"' not in v2_resources
+assert 'android:key="buy_pro"' not in v2_resources
+assert 'android:key="support_launch"' not in v2_resources
+assert 'android:key="privacy_policy"' not in v2_resources
+
+v2_leaf_fragments = [
     "PreferenceFragmentAppearanceCompat",
-    "PreferenceFragmentMessagesCompat",
+    "PreferenceFragmentViewsCompat",
+    "PreferenceFragmentFontsCompat",
+    "PreferenceFragmentPostsCompat",
+    "PreferenceFragmentCommentsCompat",
+    "PreferenceFragmentToolbarCompat",
+    "PreferenceFragmentBottomNavigationCompat",
+    "PreferenceFragmentDrawerCompat",
+    "PreferenceFragmentMediaCompat",
+    "PreferenceFragmentLinksCompat",
+    "PreferenceFragmentSearchCompat",
     "PreferenceFragmentFiltersCompat",
+    "PreferenceFragmentMessagesCompat",
     "PreferenceFragmentDataSavingCompat",
+    "PreferenceFragmentAccountCompat",
     "PreferenceFragmentPrivacyCompat",
-    "MorpheSettingsFragment",
-    "PreferenceFragmentAdvancedCompat",
+    "PreferenceFragmentGeneralCompat",
+    "PreferenceFragmentMiscCompat",
     "PreferenceFragmentAboutCompat",
 ]
 
-for name in root_fragments:
-    assert settings.count(name) == 1, name
+for name in v2_leaf_fragments:
+    assert v2_resources.count(name) == 1, name
 
+assert 'get("res/xml/$resourceName.xml")' in settings
+assert 'get("res/xml/\\$resourceName.xml")' not in settings
 assert 'RESOURCE_NAME = "morphe_boost_settings_skeleton"' in fragment
 assert 'context.getPackageName()' in fragment
 assert 'BOOST_PACKAGE = "com.rubenmayayo.reddit"' in fragment
 assert fragment.count("resources.getIdentifier(") == 2
-assert "if (resourceId == 0)" in fragment
 assert "throw new IllegalStateException(" in fragment
+
+assert 'ENABLED_KEY =\n            "morphe_boost_settings_layout_v2_enabled"' in layout
+assert f'V4_ENABLED_KEY =\n            "{toggle_key}"' in layout
+assert 'RESOURCE_NAME =\n            "morphe_boost_settings_layout_v2"' in layout
+assert "import android.preference.PreferenceManager;" in layout
+assert "import androidx.preference.PreferenceManager;" not in layout
+assert 'preferences.contains(V4_ENABLED_KEY)' in layout
+assert 'preferences.getBoolean(ENABLED_KEY, false)' in layout
+assert 'return originalResourceId;' in layout
+assert 'return resourceId == 0 ? originalResourceId : resourceId;' in layout
+assert layout.count("resources.getIdentifier(") == 2
+
+assert 'RESOURCE_ARGUMENT =\n            "morphe_boost_settings_hub_resource"' in hub
+assert 'resourceName.startsWith(RESOURCE_PREFIX)' in hub
+assert 'Preference backup = findPreference(BACKUP_KEY);' in hub
+assert 'intent.setClassName(context.getPackageName(), BACKUP_ACTIVITY);' in hub
+assert 'startActivity(intent);' in hub
+
+assert f'ENABLED_KEY =\n            "{toggle_key}"' in v4
+assert 'LEGACY_V2_ENABLED_KEY =\n            "morphe_boost_settings_layout_v2_enabled"' in v4
+assert 'public static void prepareIntent(Activity activity)' in v4
+assert 'preferences.contains(ENABLED_KEY)' in v4
+assert 'preferences.getBoolean(\n                LEGACY_V2_ENABLED_KEY,' in v4
+assert 'preferences.edit().putBoolean(ENABLED_KEY, true).apply();' in v4
+assert 'intent.getStringExtra(EXTRA_SHOW_FRAGMENT)' in v4
+assert 'intent.putExtra(EXTRA_SHOW_FRAGMENT, FRAGMENT_NAME);' in v4
+assert 'MorpheSettingsV4Fragment' in v4
+
+assert 'extends Fragment' in v4_fragment
+assert 'new ScrollView(context)' in v4_fragment
+assert 'new EditText(context)' in v4_fragment
+assert 'renderSearchResults' in v4_fragment
+assert 'hideMenuItem(menu, "action_generic_search")' in v4_fragment
+assert 'openClassicSettings' in v4_fragment
+assert 'MorpheSettingsV4Fragment.class.getName()' in v4_fragment
+assert 'intent.putExtra(ARGUMENT_PAGE, category.id);' in v4_fragment
+assert 'intent.putExtra(EXTRA_SHOW_FRAGMENT, fragmentName);' in v4_fragment
+assert 'activity.startActivity(intent);' in v4_fragment
+assert 'private Activity hostActivity()' in v4_fragment
+for forbidden_call in [
+    'getActivity()',
+    'getFragmentManager()',
+    'fragment.setTargetFragment',
+    'fragmentManager.beginTransaction()',
+    'navigateFragment(',
+    'fragment_container',
+]:
+    assert forbidden_call not in v4_fragment, forbidden_call
+assert 'androidx.compose' not in v4_fragment
+assert 'ComposeView' not in v4_fragment
+
+category_ids = [
+    "appearance_layout",
+    "posts_comments",
+    "navigation",
+    "media_links",
+    "search_filters",
+    "notifications",
+    "data_storage",
+    "account_privacy",
+    "app_legacy",
+    "about",
+]
+for category_id in category_ids:
+    assert f'"{category_id}"' in v4_catalog, category_id
+
+for name in v2_leaf_fragments:
+    assert name in v4_catalog, name
+
+assert 'morphe_boost_settings_skeleton' in v4_catalog
+assert 'buildSearchIndex(Context context)' in v4_catalog
+assert 'resources.getXml(resourceId)' in v4_catalog
+assert 'attributeText(resources, parser, "title")' in v4_catalog
+assert 'attributeText(resources, parser, "summary")' in v4_catalog
+assert 'attributeText(resources, parser, "key")' in v4_catalog
+assert 'BACKUP_ACTIVITY' in v4_catalog
+
+assert 'system_accent1_200' in v4_theme
+assert 'system_accent1_600' in v4_theme
+assert 'system_accent2_200' in v4_theme
+assert 'system_accent2_600' in v4_theme
+assert 'system_accent3_200' in v4_theme
+assert 'system_accent3_600' in v4_theme
+assert 'system_neutral1_900' in v4_theme
+assert 'system_neutral2_700' in v4_theme
+assert 'Accent navigationAccent()' in v4_theme
+assert 'hashCode()' not in v4_theme
+assert 'tokens.navigationAccent()' in v4_fragment
+assert 'tokens.accentFor(' not in v4_fragment
+assert 'MORPHE_BOOST_SETTINGS_V4_SUBTLE_COLOR_ISSUE106_V1' in v4_fragment
+assert 'MORPHE_BOOST_SETTINGS_V4_SYSTEM_BARS_ISSUE106_V1' in v4_fragment
+assert 'MORPHE_BOOST_SETTINGS_V4_SYSTEM_BAR_OWNER_ISSUE106_V2' in v4_fragment
+assert 'tokens.dark ? 0.06f : 0.05f' in v4_fragment
+assert 'tokens.dark ? 0.06f : 0.08f' in v4_fragment
+assert 'styleSystemBars(activity);' in v4_fragment
+assert 'BoostSystemBarInsetsFix.applyMorpheSettingsV4SystemBars(' in v4_fragment
+assert 'BoostSystemBarInsetsFix.clearMorpheSettingsV4SystemBars(activity);' in v4_fragment
+assert 'window.setStatusBarColor(tokens.background);' not in v4_fragment
+assert 'MORPHE_BOOST_SETTINGS_V4_SYSTEM_BAR_OWNER_ISSUE106_V2' in system_bars
+assert 'MORPHE_BOOST_SETTINGS_V4_NAVIGATION_SURFACE_ISSUE106_V3' in system_bars
+assert 'MORPHE_SETTINGS_V4_SYSTEM_BARS.get(activity)' in system_bars
+assert 'applyMorpheSettingsV4SystemBarsNow(activity, v4State);' in system_bars
+assert 'installStatusBarSurface(decor, statusHeight, state.color);' in system_bars
+assert 'installMorpheSettingsV4NavigationBarSurface(' in system_bars
+assert 'surface.setTag(MORPHE_SETTINGS_V4_NAVIGATION_SURFACE_MARKER);' in system_bars
+assert 'window.setNavigationBarColor(state.color);' in system_bars
+assert 'removeMorpheSettingsV4NavigationBarSurface(decor);' in system_bars
+assert 'window.setNavigationBarColor(Color.TRANSPARENT);' in system_bars
+assert 'window.setNavigationBarContrastEnforced(false);' in system_bars
+assert 'RippleDrawable' in v4_theme
+assert 'primaryContainer' in v4_theme
+
+assert "settingsHeaderOnCreatePreferencesFingerprint" in settings
+assert "settingsActivityOnCreateFingerprint" in settings
+assert "SettingsActivityCompat\\$HeaderFragment" in settings
+assert 'SettingsActivityCompat;"' in settings
+assert "SET_PREFERENCES_FROM_RESOURCE_REFERENCE" in settings
+assert "GET_INTENT_REFERENCE" in settings
+assert "val loadPreferencesIndex = indexOfFirstInstructionOrThrow" in settings
+assert "val getIntentIndex = indexOfFirstInstructionOrThrow" in settings
+assert "addInstructions(\n                loadPreferencesIndex," in settings
+assert "addInstructions(\n                getIntentIndex," in settings
+assert "$SETTINGS_LAYOUT_EXTENSION_DESCRIPTOR->resolveRootResource" in settings
+assert "$SETTINGS_V4_EXTENSION_DESCRIPTOR->prepareIntent" in settings
+assert "dependsOn(sharedExtensionPatch, boostMorpheSettingsResourcesPatch)" in settings
 PY_CHECK
 
 echo 'TOP_LEVEL_MORPHE_ENTRY=PASS'
-echo 'MORPHE_ENTRY_FIRST_WITH_DIVIDER=PASS'
+echo 'ORIGINAL_LAYOUT_DEFAULT=PASS'
+echo 'SETTINGS_V4_TOGGLE_DEFAULT_OFF=PASS'
+echo 'SETTINGS_V4_V2_MIGRATION=PASS'
+echo 'SETTINGS_V4_ACTIVITY_ROUTE=PASS'
+echo 'SETTINGS_V4_MATERIAL3_VIEW_SHELL=PASS'
+echo 'SETTINGS_V4_FULL_DYNAMIC_COLOR=PASS'
+echo 'SETTINGS_V4_SUBTLE_DYNAMIC_COLOR=PASS'
+echo 'SETTINGS_V4_SYSTEM_BARS_MATCH=PASS'
+echo 'SETTINGS_V4_SYSTEM_BAR_OWNER=PASS'
+echo 'SETTINGS_V4_NAVIGATION_SURFACE=PASS'
+echo 'SETTINGS_V4_TASK_HUBS=PASS'
+echo 'SETTINGS_V4_SEARCH_INDEX=PASS'
+echo 'SETTINGS_V4_CLASSIC_FALLBACK=PASS'
+echo 'SETTINGS_V4_MINIFIED_ANDROIDX_COMPAT=PASS'
+echo 'SETTINGS_V4_NO_COMPOSE=PASS'
+echo 'SETTINGS_V2_RESOURCE_FALLBACK=PASS'
 echo 'CANONICAL_MORPHE_KEYS=PASS'
 echo 'ADVANCED_DUPLICATE_REMOVED=PASS'
-echo 'MORPHE_FRAGMENT_RESOURCE_FALLBACK=PASS'
 echo 'RESULT=MORPHE_ISSUE106_SETTINGS_CONTRACT_OK'
