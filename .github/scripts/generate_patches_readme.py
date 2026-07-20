@@ -18,14 +18,11 @@ import sys
 from pathlib import Path
 
 AUTO_EXPAND_THRESHOLD = 20
-KNOWN_PACKAGE_LABELS = {
-    "com.rubenmayayo.reddit": "Boost for Reddit",
-    "com.rubenmayayo.reddit.dev": "Boost for Reddit Dev",
-    "com.rubenmayayo.lemmy": "Boost for Lemmy",
-    "com.imgur.mobile": "Imgur",
-    "com.google.android.youtube": "YouTube",
-    "app.morphe.android.youtube": "Morphe YouTube",
-}
+
+TOOLS_DIR = Path(__file__).resolve().parents[2] / "tools"
+sys.path.insert(0, str(TOOLS_DIR))
+
+from compatible_app_catalog import package_label
 
 START_PATTERN = r"<!--\s*PATCHES_START(?:_EXPANDED)?\s*-->"
 END_MARKER = "<!-- PATCHES_END -->"
@@ -60,9 +57,6 @@ def safe_text(value) -> str:
     if value is None:
         return ""
     return str(value).replace("\n", "<br>")
-
-def package_label(package_name: str, explicit: str = "") -> str:
-    return explicit or KNOWN_PACKAGE_LABELS.get(package_name, package_name or "Unknown package")
 
 def normalize_targets(value):
     if value is None:

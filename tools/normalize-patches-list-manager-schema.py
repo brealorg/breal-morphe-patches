@@ -6,40 +6,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-APP_META: dict[str, dict[str, Any]] = {
-    "com.rubenmayayo.reddit": {
-        "name": "Boost for Reddit",
-        "description": None,
-        "apkFileType": "APK_REQUIRED",
-        "appIconColor": "#FF4500",
-        "signatures": None,
-        "minSdk": 21,
-    },
-    "com.rubenmayayo.reddit.dev": {
-        "name": "Boost for Reddit Dev",
-        "description": None,
-        "apkFileType": "APK_REQUIRED",
-        "appIconColor": "#FF4500",
-        "signatures": None,
-        "minSdk": 21,
-    },
-    "com.rubenmayayo.lemmy": {
-        "name": "Boost for Lemmy",
-        "description": None,
-        "apkFileType": "APK_REQUIRED",
-        "appIconColor": "#00AEEF",
-        "signatures": None,
-        "minSdk": 21,
-    },
-    "com.imgur.mobile": {
-        "name": "Imgur",
-        "description": None,
-        "apkFileType": "APK_REQUIRED",
-        "appIconColor": "#1BB76E",
-        "signatures": None,
-        "minSdk": 21,
-    },
-}
+from compatible_app_catalog import APP_META
 
 PATCH_ORDER = ["name", "description", "default", "dependencies", "compatiblePackages", "options"]
 PACKAGE_ORDER = [
