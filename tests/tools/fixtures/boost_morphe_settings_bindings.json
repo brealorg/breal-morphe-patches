@@ -1,0 +1,77 @@
+{
+  "schema": 2,
+  "scope": "appearance-layout",
+  "harness_version": 56,
+  "safety": {
+    "classification": "reversible_dev_only",
+    "network": false,
+    "destructive": false,
+    "secrets": false
+  },
+  "render_probes": [
+    {"name": "title_typography", "keys": ["pref_title_font", "pref_font_size_title"]},
+    {"name": "comment_typography", "keys": ["pref_comments_font", "pref_font_size"]},
+    {"name": "saved_views_enabled", "keys": ["pref_view_per_subscription"]},
+    {"name": "preview_lines_enabled", "keys": ["pref_cards_preview_self"]},
+    {"name": "default_view_summary", "keys": ["pref_view"]},
+    {"name": "settings_shell_system_bars", "keys": []}
+  ],
+  "provenance": {
+    "preferences": [
+      "res/xml/pref_appearance_v2.xml",
+      "res/xml/pref_appearance_advanced_v2.xml",
+      "res/xml/pref_views_v2.xml",
+      "res/xml/pref_fonts_v2.xml"
+    ],
+    "native_listeners": [
+      "PreferenceFragmentAppearanceCompat",
+      "PreferenceFragmentViewsCompat",
+      "PreferenceFragmentFontsCompat"
+    ]
+  },
+  "appearance": [
+    {"constant": "KEY_DYNAMIC_COLORS", "key": "pref_dynamic_colors", "type": "boolean", "default": false, "writer": "dynamic", "consumer": "m2", "side_effects": ["i", "activity_recreate"]},
+    {"constant": "KEY_COLORED_STATUS_BAR", "key": "pref_colored_status_bar", "type": "boolean", "default": true, "writer": "system_bar", "consumer": "r1", "side_effects": ["h", "system_bars_apply"]},
+    {"constant": "KEY_COLORED_NAV_BAR", "key": "pref_colored_nav_bar", "type": "boolean", "default": false, "writer": "system_bar", "consumer": "m1", "side_effects": ["h", "system_bars_apply"]}
+  ],
+  "post_views": [
+    {"constant": "KEY_DEFAULT_VIEW", "key": "pref_view", "type": "string", "default": "0", "writer": "view", "consumer": "Y3", "domain": ["0", "7", "1", "4", "5", "2", "6", "3"], "side_effects": []},
+    {"constant": "KEY_REMEMBER_PER_COMMUNITY", "key": "pref_view_per_subscription", "type": "boolean", "default": false, "writer": "boolean", "consumer": "L2", "side_effects": []},
+    {"constant": "KEY_LEFT_HANDED", "key": "pref_left_handed", "type": "boolean", "default": false, "writer": "boolean", "consumer": "s2", "side_effects": ["h"]},
+    {"constant": "KEY_SUBREDDIT_PREFIX", "key": "pref_show_subreddit_prefix", "type": "boolean", "default": false, "writer": "subreddit_prefix", "consumer": "S7", "side_effects": ["c", "i"]},
+    {"constant": "KEY_CARDS_ROUNDED", "key": "pref_cards_rounded_corners", "type": "boolean", "default": false, "writer": "boolean", "consumer": "Y0", "side_effects": ["g"]},
+    {"constant": "KEY_CARDS_FULL_PREVIEW", "key": "pref_cards_full_preview", "type": "boolean", "default": false, "writer": "boolean", "consumer": "V0", "side_effects": ["g"]},
+    {"constant": "KEY_CARDS_SUBREDDIT_ICON", "key": "pref_cards_subreddit_icon", "type": "boolean", "default": true, "writer": "boolean", "consumer": "e3", "side_effects": ["g"]},
+    {"constant": "KEY_CARDS_GALLERY_CAROUSEL", "key": "pref_cards_gallery_carousel", "type": "boolean", "default": true, "writer": "boolean", "consumer": "L3", "side_effects": ["g"]},
+    {"constant": "KEY_CARDS_LINK_THUMBNAILS", "key": "pref_cards_links_as_thumbnails", "type": "boolean", "default": true, "writer": "boolean", "consumer": "Q", "side_effects": ["g"]},
+    {"constant": "KEY_CARDS_PREVIEW_TEXT", "key": "pref_cards_preview_self", "type": "boolean", "default": true, "writer": "boolean", "consumer": "f4", "side_effects": ["g"]},
+    {"constant": "KEY_CARDS_PREVIEW_LINES", "key": "pref_cards_preview_self_lines", "type": "integer", "default": 5, "writer": "preview_lines", "consumer": "g4", "domain": {"minimum": 0, "maximum": 100}, "side_effects": ["g"]},
+    {"constant": "KEY_MINI_ROUNDED", "key": "pref_mini_cards_rounded_corners", "type": "boolean", "default": true, "writer": "boolean", "consumer": "D2", "side_effects": ["g"]},
+    {"constant": "KEY_MINI_TRUNCATE_TITLE", "key": "pref_mini_cards_truncate_title", "type": "boolean", "default": true, "writer": "boolean", "consumer": "Y7", "side_effects": ["g"]},
+    {"constant": "KEY_MINI_BUTTONS", "key": "pref_mini_cards_buttons_visible", "type": "boolean", "default": false, "writer": "boolean", "consumer": "B2", "side_effects": ["g"]},
+    {"constant": "KEY_DENSE_BUTTONS", "key": "pref_dense_buttons_visible", "type": "boolean", "default": false, "writer": "boolean", "consumer": "h2", "side_effects": ["h"]},
+    {"constant": "KEY_PREVIEW_EXTERNAL_LINKS", "key": "pref_load_readability", "type": "boolean", "default": false, "writer": "boolean", "consumer": "I0", "side_effects": []},
+    {"constant": "KEY_LOCK_SIDEBAR", "key": "pref_lock_sidebar", "type": "boolean", "default": false, "writer": "boolean", "consumer": "w2", "side_effects": ["i"]}
+  ],
+  "fonts": [
+    {"constant": "KEY_TITLE_FONT", "key": "pref_title_font", "type": "string", "default": "", "writer": "font", "consumer": "m4", "side_effects": ["h"]},
+    {"constant": "KEY_TITLE_SIZE", "key": "pref_font_size_title", "type": "string", "default": "Medium", "writer": "size", "consumer": "q0", "side_effects": ["d"]},
+    {"constant": "KEY_COMMENTS_FONT", "key": "pref_comments_font", "type": "string", "default": "", "writer": "font", "consumer": "W", "side_effects": []},
+    {"constant": "KEY_COMMENTS_SIZE", "key": "pref_font_size", "type": "string", "default": "Medium", "writer": "size", "consumer": "p0", "side_effects": ["d"]}
+  ],
+  "font_domain": ["", "sans-serif-thin", "sans-serif-light", "sans-serif", "sans-serif-medium", "sans-serif-black", "sans-serif-condensed-light", "sans-serif-condensed", "serif", "monospace", "serif-monospace", "sans-serif-smallcaps", "RobotoSlab-Regular.ttf"],
+  "font_size_domain": ["XSmall", "Small", "Medium", "Large", "XLarge", "XXLarge"],
+  "app_icons": [
+    {"title": "Default", "resource": "ic_launcher", "alias": null},
+    {"title": "Grey", "resource": "ic_launcher_grey", "alias": "grey"},
+    {"title": "Vivid", "resource": "ic_launcher_vivid", "alias": "vivid"},
+    {"title": "Metal", "resource": "ic_launcher_metal", "alias": "metal"},
+    {"title": "Yellow", "resource": "ic_launcher_yellow", "alias": "yellow"}
+  ],
+  "saved_views": {
+    "preferences": "com.rubenmayayo.reddit.VIEW_PER_SUBSCRIPTION",
+    "domain": [0, 7, 1, 4, 5, 2, 6, 3],
+    "special_keys": ["_load_front_page_this_is_not_a_subreddit", "_load_saved_this_is_not_a_subreddit", "_load_history_this_is_not_a_subreddit"],
+    "custom_feed_suffix": ".multi"
+  }
+}

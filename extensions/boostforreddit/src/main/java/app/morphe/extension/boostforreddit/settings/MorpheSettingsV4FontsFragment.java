@@ -413,9 +413,17 @@ public final class MorpheSettingsV4FontsFragment extends Fragment {
     }
 
     private void saveFontPreference(String key, String value) {
+        applyFontPreference(preferences, key, value);
+        updatePreviewAndSummaries();
+    }
+
+    static void applyFontPreference(
+            SharedPreferences preferences,
+            String key,
+            String value
+    ) {
         preferences.edit().putString(key, value).apply();
         markNativeFontCacheDirty(key);
-        updatePreviewAndSummaries();
     }
 
     private void showResetConfirmation() {
@@ -440,14 +448,7 @@ public final class MorpheSettingsV4FontsFragment extends Fragment {
         actions.addView(cancel);
         TextView reset = dialogAction("Restore");
         reset.setOnClickListener(view -> {
-            preferences.edit()
-                    .remove(KEY_TITLE_FONT)
-                    .remove(KEY_TITLE_SIZE)
-                    .remove(KEY_COMMENTS_FONT)
-                    .remove(KEY_COMMENTS_SIZE)
-                    .apply();
-            markNativeFontCacheDirty(KEY_TITLE_SIZE);
-            markNativeFontCacheDirty(KEY_TITLE_FONT);
+            resetFontPreferences(preferences);
             dialog.dismiss();
             updatePreviewAndSummaries();
         });
@@ -474,20 +475,32 @@ public final class MorpheSettingsV4FontsFragment extends Fragment {
         setText(titleSizeSummary, sizeTitle(titleSizeValue));
         setText(commentsFontSummary, fontTitle(commentsFontValue));
         setText(commentsSizeSummary, sizeTitle(commentsSizeValue));
-        if (previewTitle != null) {
-            previewTitle.setTypeface(typefaceFor(titleFontValue));
-            previewTitle.setTextSize(previewSizeSp(titleSizeValue, true));
-        }
-        if (previewComment != null) {
-            previewComment.setTypeface(typefaceFor(commentsFontValue));
-            previewComment.setTextSize(previewSizeSp(
-                    commentsSizeValue,
-                    false
-            ));
-        }
+        applyPreviewTypography(
+                previewTitle,
+                titleFontValue,
+                titleSizeValue,
+                true
+        );
+        applyPreviewTypography(
+                previewComment,
+                commentsFontValue,
+                commentsSizeValue,
+                false
+        );
     }
 
-    private void markNativeFontCacheDirty(String key) {
+    static void resetFontPreferences(SharedPreferences preferences) {
+        preferences.edit()
+                .remove(KEY_TITLE_FONT)
+                .remove(KEY_TITLE_SIZE)
+                .remove(KEY_COMMENTS_FONT)
+                .remove(KEY_COMMENTS_SIZE)
+                .apply();
+        markNativeFontCacheDirty(KEY_TITLE_SIZE);
+        markNativeFontCacheDirty(KEY_TITLE_FONT);
+    }
+
+    private static void markNativeFontCacheDirty(String key) {
         String fieldName = null;
         if (KEY_TITLE_SIZE.equals(key) || KEY_COMMENTS_SIZE.equals(key)) {
             fieldName = "d";
@@ -505,7 +518,20 @@ public final class MorpheSettingsV4FontsFragment extends Fragment {
         }
     }
 
-    private Typeface typefaceFor(String value) {
+    static void applyPreviewTypography(
+            TextView preview,
+            String fontValue,
+            String sizeValue,
+            boolean title
+    ) {
+        if (preview == null) {
+            return;
+        }
+        preview.setTypeface(typefaceFor(fontValue));
+        preview.setTextSize(previewSizeSp(sizeValue, title));
+    }
+
+    static Typeface typefaceFor(String value) {
         if (TextUtils.isEmpty(value)) {
             return Typeface.DEFAULT;
         }
@@ -516,7 +542,7 @@ public final class MorpheSettingsV4FontsFragment extends Fragment {
         return result == null ? Typeface.DEFAULT : result;
     }
 
-    private int previewSizeSp(String value, boolean title) {
+    static int previewSizeSp(String value, boolean title) {
         int index = indexOf(SIZE_VALUES, value);
         if (index < 0) {
             index = 2;
@@ -536,7 +562,7 @@ public final class MorpheSettingsV4FontsFragment extends Fragment {
         return index < 0 ? "Medium" : SIZE_TITLES[index];
     }
 
-    private int indexOf(String[] values, String target) {
+    private static int indexOf(String[] values, String target) {
         for (int index = 0; index < values.length; index++) {
             if (TextUtils.equals(values[index], target)) {
                 return index;

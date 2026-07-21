@@ -163,7 +163,7 @@ public final class MorpheSettingsV4SavedViewsFragment extends Fragment {
                 "This removes the saved view for every community.",
                 "Clear all",
                 () -> {
-                    savedViews.edit().clear().apply();
+                    clearSavedViews(savedViews);
                     rebuildEntries();
                 }
         ));
@@ -450,7 +450,7 @@ public final class MorpheSettingsV4SavedViewsFragment extends Fragment {
                 entry.title + " will use the default view again.",
                 "Remove",
                 () -> {
-                    savedViews.edit().remove(entry.key).apply();
+                    removeSavedView(savedViews, entry.key);
                     rebuildEntries();
                 }
         ));
@@ -484,9 +484,11 @@ public final class MorpheSettingsV4SavedViewsFragment extends Fragment {
             TextView label = textView(VIEW_TITLES[index], 16, tokens.textPrimary);
             row.addView(label, labelsParams());
             row.setOnClickListener(view -> {
-                savedViews.edit()
-                        .putInt(entry.key, VIEW_VALUES[choice])
-                        .apply();
+                applySavedView(
+                        savedViews,
+                        entry.key,
+                        VIEW_VALUES[choice]
+                );
                 dialog.dismiss();
                 rebuildEntries();
             });
@@ -498,6 +500,37 @@ public final class MorpheSettingsV4SavedViewsFragment extends Fragment {
 
         addDialogAction(content, "Cancel", () -> dialog.dismiss());
         showDialog(dialog, content);
+    }
+
+    static void applySavedView(
+            SharedPreferences savedViews,
+            String key,
+            int viewType
+    ) {
+        if (TextUtils.isEmpty(key) || indexOfViewType(viewType) < 0) {
+            throw new IllegalArgumentException("invalid saved view");
+        }
+        savedViews.edit().putInt(key, viewType).apply();
+    }
+
+    static void removeSavedView(
+            SharedPreferences savedViews,
+            String key
+    ) {
+        savedViews.edit().remove(key).apply();
+    }
+
+    static void clearSavedViews(SharedPreferences savedViews) {
+        savedViews.edit().clear().apply();
+    }
+
+    private static int indexOfViewType(int viewType) {
+        for (int index = 0; index < VIEW_VALUES.length; index++) {
+            if (VIEW_VALUES[index] == viewType) {
+                return index;
+            }
+        }
+        return -1;
     }
 
     private void showConfirmation(

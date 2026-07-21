@@ -384,10 +384,7 @@ public final class MorpheSettingsV4PostViewsFragment extends Fragment {
                     ) {
                         value.setText(linesSummary(current));
                         if (fromUser) {
-                            preferences.edit()
-                                    .putInt(KEY_CARDS_PREVIEW_LINES, current)
-                                    .apply();
-                            setBoostStaticBoolean("g");
+                            applyPreviewLinesPreference(preferences, current);
                         }
                     }
 
@@ -463,9 +460,10 @@ public final class MorpheSettingsV4PostViewsFragment extends Fragment {
             TextView label = textView(VIEW_TITLES[index], 16, tokens.textPrimary);
             row.addView(label, labelsParams());
             row.setOnClickListener(view -> {
-                preferences.edit()
-                        .putString(KEY_DEFAULT_VIEW, VIEW_VALUES[choice])
-                        .apply();
+                applyDefaultViewPreference(
+                        preferences,
+                        VIEW_VALUES[choice]
+                );
                 if (defaultViewSummary != null) {
                     defaultViewSummary.setText(VIEW_TITLES[choice]);
                 }
@@ -503,6 +501,15 @@ public final class MorpheSettingsV4PostViewsFragment extends Fragment {
     }
 
     private void putBoolean(String key, boolean value, String refreshFlag) {
+        applyBooleanPreference(preferences, key, value, refreshFlag);
+    }
+
+    static void applyBooleanPreference(
+            SharedPreferences preferences,
+            String key,
+            boolean value,
+            String refreshFlag
+    ) {
         preferences.edit().putBoolean(key, value).apply();
         if (refreshFlag != null) {
             setBoostStaticBoolean(refreshFlag);
@@ -510,12 +517,49 @@ public final class MorpheSettingsV4PostViewsFragment extends Fragment {
     }
 
     private void updateSubredditPrefix(boolean enabled) {
+        applySubredditPrefix(preferences, enabled);
+    }
+
+    static void applySubredditPrefix(
+            SharedPreferences preferences,
+            boolean enabled
+    ) {
         preferences.edit().putBoolean(KEY_SUBREDDIT_PREFIX, enabled).apply();
         setBoostStaticString("c", enabled ? "r/" : "");
         setBoostStaticBoolean("i");
     }
 
-    private void setBoostStaticBoolean(String fieldName) {
+    static void applyDefaultViewPreference(
+            SharedPreferences preferences,
+            String value
+    ) {
+        if (indexOf(VIEW_VALUES, value) < 0) {
+            throw new IllegalArgumentException("unsupported view " + value);
+        }
+        preferences.edit().putString(KEY_DEFAULT_VIEW, value).apply();
+    }
+
+    static void applyPreviewLinesPreference(
+            SharedPreferences preferences,
+            int value
+    ) {
+        if (value < 0 || value > 100) {
+            throw new IllegalArgumentException("preview lines outside 0..100");
+        }
+        preferences.edit().putInt(KEY_CARDS_PREVIEW_LINES, value).apply();
+        setBoostStaticBoolean("g");
+    }
+
+    private static int indexOf(String[] values, String target) {
+        for (int index = 0; index < values.length; index++) {
+            if (values[index].equals(target)) {
+                return index;
+            }
+        }
+        return -1;
+    }
+
+    private static void setBoostStaticBoolean(String fieldName) {
         try {
             Class<?> settings = Class.forName("id.b");
             Field field = settings.getDeclaredField(fieldName);
@@ -525,7 +569,7 @@ public final class MorpheSettingsV4PostViewsFragment extends Fragment {
         }
     }
 
-    private void setBoostStaticString(String fieldName, String value) {
+    private static void setBoostStaticString(String fieldName, String value) {
         try {
             Class<?> settings = Class.forName("id.b");
             Field field = settings.getDeclaredField(fieldName);
@@ -662,19 +706,30 @@ public final class MorpheSettingsV4PostViewsFragment extends Fragment {
     }
 
     private void setRowEnabled(View row, boolean enabled) {
-        if (row == null) {
-            return;
-        }
-        row.setEnabled(enabled);
-        row.setClickable(enabled);
-        row.setFocusable(enabled);
-        row.setAlpha(enabled ? 1.0f : 0.44f);
+        applyDependentRowState(row, null, enabled);
     }
 
     private void setPreviewLinesEnabled(boolean enabled) {
-        setRowEnabled(previewLinesRow, enabled);
-        if (previewLinesSeekBar != null) {
-            previewLinesSeekBar.setEnabled(enabled);
+        applyDependentRowState(
+                previewLinesRow,
+                previewLinesSeekBar,
+                enabled
+        );
+    }
+
+    static void applyDependentRowState(
+            View row,
+            View control,
+            boolean enabled
+    ) {
+        if (row != null) {
+            row.setEnabled(enabled);
+            row.setClickable(enabled);
+            row.setFocusable(enabled);
+            row.setAlpha(enabled ? 1.0f : 0.44f);
+        }
+        if (control != null) {
+            control.setEnabled(enabled);
         }
     }
 
@@ -706,7 +761,7 @@ public final class MorpheSettingsV4PostViewsFragment extends Fragment {
         ));
     }
 
-    private String viewTitle(String value) {
+    static String viewTitle(String value) {
         for (int index = 0; index < VIEW_VALUES.length; index++) {
             if (VIEW_VALUES[index].equals(value)) {
                 return VIEW_TITLES[index];

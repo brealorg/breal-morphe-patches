@@ -318,18 +318,37 @@ public final class MorpheSettingsV4AppearanceFragment extends Fragment {
     }
 
     private void updateDynamicColors(boolean enabled) {
+        applyDynamicColors(preferences, enabled);
+        recreateHost();
+    }
+
+    static void applyDynamicColors(
+            SharedPreferences preferences,
+            boolean enabled
+    ) {
         preferences.edit().putBoolean(KEY_DYNAMIC_COLORS, enabled).apply();
         setBoostStaticBoolean("i");
-        recreateHost();
     }
 
     private void updateSystemBarPreference(String key, boolean enabled) {
-        preferences.edit().putBoolean(key, enabled).apply();
-        setBoostStaticBoolean("h");
+        applySystemBarPreference(preferences, key, enabled);
         recreateHost();
     }
 
-    private void setBoostStaticBoolean(String fieldName) {
+    static void applySystemBarPreference(
+            SharedPreferences preferences,
+            String key,
+            boolean enabled
+    ) {
+        if (!KEY_COLORED_STATUS_BAR.equals(key)
+                && !KEY_COLORED_NAV_BAR.equals(key)) {
+            throw new IllegalArgumentException("unsupported system bar key " + key);
+        }
+        preferences.edit().putBoolean(key, enabled).apply();
+        setBoostStaticBoolean("h");
+    }
+
+    private static void setBoostStaticBoolean(String fieldName) {
         try {
             Class<?> settings = Class.forName("id.b");
             Field field = settings.getDeclaredField(fieldName);

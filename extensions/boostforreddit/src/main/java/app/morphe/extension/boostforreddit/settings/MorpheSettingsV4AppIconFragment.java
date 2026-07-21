@@ -224,21 +224,7 @@ public final class MorpheSettingsV4AppIconFragment extends Fragment {
     private void select(IconOption option) {
         Context context = requireContext();
         try {
-            PackageManager packageManager = context.getPackageManager();
-            for (IconOption candidate : ICONS) {
-                if (candidate.alias == null) {
-                    continue;
-                }
-                ComponentName component = aliasComponent(context, candidate.alias);
-                int state = candidate.alias.equals(option.alias)
-                        ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-                        : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
-                packageManager.setComponentEnabledSetting(
-                        component,
-                        state,
-                        PackageManager.DONT_KILL_APP
-                );
-            }
+            applyIconSelection(context, option.alias);
             selectedAlias = option.alias;
             rebuildOptions();
             Toast.makeText(
@@ -257,7 +243,25 @@ public final class MorpheSettingsV4AppIconFragment extends Fragment {
         }
     }
 
-    private String selectedAlias(Context context) {
+    static void applyIconSelection(Context context, String selectedAlias) {
+        PackageManager packageManager = context.getPackageManager();
+        for (IconOption candidate : ICONS) {
+            if (candidate.alias == null) {
+                continue;
+            }
+            ComponentName component = aliasComponent(context, candidate.alias);
+            int state = candidate.alias.equals(selectedAlias)
+                    ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                    : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+            packageManager.setComponentEnabledSetting(
+                    component,
+                    state,
+                    PackageManager.DONT_KILL_APP
+            );
+        }
+    }
+
+    static String selectedAlias(Context context) {
         PackageManager packageManager = context.getPackageManager();
         for (IconOption option : ICONS) {
             if (option.alias == null) {
@@ -273,7 +277,7 @@ public final class MorpheSettingsV4AppIconFragment extends Fragment {
         return null;
     }
 
-    private ComponentName aliasComponent(Context context, String alias) {
+    private static ComponentName aliasComponent(Context context, String alias) {
         return new ComponentName(
                 context.getPackageName(),
                 ALIAS_PREFIX + alias

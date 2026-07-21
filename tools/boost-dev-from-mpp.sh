@@ -15,6 +15,10 @@ SERIAL=""
 MARKERS=()
 INSTALL=0
 NO_VERIFY_WITH_SDK=1
+DEBUGGABLE_DEV=0
+AUDIT_SETTINGS_ACTIVITY="com.rubenmayayo.reddit.ui.preferences.v2.SettingsActivityCompat"
+AUDIT_GATEWAY_PERMISSION="android.permission.DUMP"
+AUDIT_GATEWAY_CHECKER="tools/check_boost_settings_audit_gateway.py"
 
 usage() {
   cat <<'EOF'
@@ -30,6 +34,10 @@ Options:
   --serial SERIAL            adb serial. Required when --install is used.
   --marker TEXT              Marker string required in normal and DEV APK. Repeatable.
   --install                  Install DEV APK to the selected device.
+  --debuggable-dev           Make only the DEV clone debuggable and enable its
+                             DUMP-protected settings audit gateway.
+                             The patched normal candidate remains non-debuggable
+                             and does not expose the audit gateway.
   --verify-with-sdk          Pass SDK verifier to Morphe CLI. Default is --no-verify-with-sdk.
   --no-verify-with-sdk       Do not pass SDK verifier to Morphe CLI. Default.
   --dev-package PACKAGE      DEV package. Default: com.rubenmayayo.reddit.dev.
@@ -81,6 +89,10 @@ while [ "$#" -gt 0 ]; do
       INSTALL=1
       shift
       ;;
+    --debuggable-dev)
+      DEBUGGABLE_DEV=1
+      shift
+      ;;
     --verify-with-sdk)
       NO_VERIFY_WITH_SDK=0
       shift
@@ -129,6 +141,11 @@ if [ -z "$NAME" ]; then
   exit 2
 fi
 
+if [ ! -f "$AUDIT_GATEWAY_CHECKER" ]; then
+  echo "Audit gateway checker missing: $AUDIT_GATEWAY_CHECKER" >&2
+  exit 2
+fi
+
 if [ "$INSTALL" -eq 1 ] && [ -z "$SERIAL" ]; then
   echo "Missing --serial when --install is used" >&2
   usage >&2
@@ -154,6 +171,7 @@ echo "EXPECTED_TARGET_SDK=$EXPECTED_TARGET_SDK"
 echo "INSTALL=$INSTALL"
 echo "SERIAL=$SERIAL"
 echo "NO_VERIFY_WITH_SDK=$NO_VERIFY_WITH_SDK"
+echo "DEBUGGABLE_DEV=$DEBUGGABLE_DEV"
 printf 'MARKERS=%s\n' "${MARKERS[*]:-}"
 
 echo
@@ -238,6 +256,21 @@ if [ "$FAIL" -eq 0 ]; then
   [ "$NORMAL_CANDIDATE_PACKAGE" = "$NORMAL_PACKAGE" ] || mark_fail "normal candidate package mismatch"
   [ "$NORMAL_TARGET_SDK" = "$EXPECTED_TARGET_SDK" ] || mark_fail "normal candidate targetSdk mismatch"
 
+  NORMAL_MANIFEST_XMLTREE="$OUT_DIR/normal-manifest-xmltree.txt"
+  if ! aapt dump xmltree "$NORMAL_APK" AndroidManifest.xml > "$NORMAL_MANIFEST_XMLTREE"; then
+    mark_fail "could not inspect normal candidate debuggable state"
+  elif grep -Eq 'android:debuggable.*0xffffffff' "$NORMAL_MANIFEST_XMLTREE"; then
+    mark_fail "normal candidate must remain non-debuggable"
+  elif ! python3 "$AUDIT_GATEWAY_CHECKER" \
+      --manifest "$NORMAL_MANIFEST_XMLTREE" \
+      --expect absent \
+      --activity "$AUDIT_SETTINGS_ACTIVITY" \
+      --permission "$AUDIT_GATEWAY_PERMISSION"; then
+    mark_fail "normal candidate must not expose the settings audit gateway"
+  else
+    echo "OK: normal candidate is non-debuggable and has no settings audit gateway"
+  fi
+
   for marker in "${MARKERS[@]}"; do
     if unzip -p "$NORMAL_APK" '*.dex' 2>/dev/null | strings | grep -F "$marker" >/dev/null; then
       echo "OK: normal marker present: $marker"
@@ -253,15 +286,20 @@ DEV_APK=""
 DEV_DIR=""
 if [ "$FAIL" -eq 0 ]; then
   DEV_NAME="${NAME}-devclone"
-  tools/build-boost-devclone-candidate.sh \
-    --source-apk "$NORMAL_APK" \
-    --base-apk "$BASE_APK" \
-    --patch-result "$NORMAL_DIR/patch-result.json" \
-    --name "$DEV_NAME" \
-    --dev-package "$DEV_PACKAGE" \
-    --normal-package "$NORMAL_PACKAGE" \
-    --label "$LABEL" \
-    2>&1 | tee "$OUT_DIR/build-devclone.log"
+  DEVCLONE_ARGS=(
+    tools/build-boost-devclone-candidate.sh
+    --source-apk "$NORMAL_APK"
+    --base-apk "$BASE_APK"
+    --patch-result "$NORMAL_DIR/patch-result.json"
+    --name "$DEV_NAME"
+    --dev-package "$DEV_PACKAGE"
+    --normal-package "$NORMAL_PACKAGE"
+    --label "$LABEL"
+  )
+  if [ "$DEBUGGABLE_DEV" -eq 1 ]; then
+    DEVCLONE_ARGS+=(--debuggable)
+  fi
+  "${DEVCLONE_ARGS[@]}" 2>&1 | tee "$OUT_DIR/build-devclone.log"
 
   RC=${PIPESTATUS[0]}
   [ "$RC" -eq 0 ] || mark_fail "DEV clone build failed rc=$RC"
@@ -288,6 +326,32 @@ if [ "$FAIL" -eq 0 ]; then
 
   [ "$DEV_CANDIDATE_PACKAGE" = "$DEV_PACKAGE" ] || mark_fail "DEV package mismatch: expected $DEV_PACKAGE got $DEV_CANDIDATE_PACKAGE"
   [ "$DEV_TARGET_SDK" = "$EXPECTED_TARGET_SDK" ] || mark_fail "DEV targetSdk mismatch"
+
+  DEV_MANIFEST_XMLTREE="$OUT_DIR/dev-manifest-xmltree.txt"
+  if ! aapt dump xmltree "$DEV_APK" AndroidManifest.xml > "$DEV_MANIFEST_XMLTREE"; then
+    mark_fail "could not inspect DEV debuggable state"
+    DEV_IS_DEBUGGABLE=-1
+  elif grep -Eq 'android:debuggable.*0xffffffff' "$DEV_MANIFEST_XMLTREE"; then
+    DEV_IS_DEBUGGABLE=1
+  else
+    DEV_IS_DEBUGGABLE=0
+  fi
+  if [ "$DEV_IS_DEBUGGABLE" -eq "$DEBUGGABLE_DEV" ]; then
+    echo "OK: DEV debuggable state matches request: $DEBUGGABLE_DEV"
+  else
+    mark_fail "DEV debuggable state mismatch: requested $DEBUGGABLE_DEV got $DEV_IS_DEBUGGABLE"
+  fi
+  if [ "$DEBUGGABLE_DEV" -eq 1 ]; then
+    EXPECTED_AUDIT_GATEWAY=present
+  else
+    EXPECTED_AUDIT_GATEWAY=absent
+  fi
+  python3 "$AUDIT_GATEWAY_CHECKER" \
+    --manifest "$DEV_MANIFEST_XMLTREE" \
+    --expect "$EXPECTED_AUDIT_GATEWAY" \
+    --activity "$AUDIT_SETTINGS_ACTIVITY" \
+    --permission "$AUDIT_GATEWAY_PERMISSION" \
+    || mark_fail "DEV settings audit gateway state mismatch: expected $EXPECTED_AUDIT_GATEWAY"
 
   apksigner verify --print-certs "$DEV_APK" > "$OUT_DIR/dev-apksigner.txt" 2>&1 \
     || mark_fail "DEV APK signature verification failed"

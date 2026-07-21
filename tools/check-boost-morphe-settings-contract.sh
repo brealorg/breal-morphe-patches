@@ -285,6 +285,8 @@ assert 'KEY_DYNAMIC_COLORS = "pref_dynamic_colors"' in v4_appearance
 assert 'KEY_COLORED_STATUS_BAR' in v4_appearance
 assert 'KEY_COLORED_NAV_BAR' in v4_appearance
 assert 'Class.forName("id.b")' in v4_appearance
+assert 'applyDynamicColors(preferences, enabled);' in v4_appearance
+assert 'applySystemBarPreference(preferences, key, enabled);' in v4_appearance
 assert 'BoostSystemBarInsetsFix.applyMorpheSettingsV4SystemBars(' in v4_appearance
 assert 'BoostSystemBarInsetsFix.clearMorpheSettingsV4SystemBars(activity);' in v4_appearance
 assert 'private LinearLayout addGroup(LinearLayout parent)' in v4_appearance
@@ -325,6 +327,7 @@ assert 'PackageManager.COMPONENT_ENABLED_STATE_ENABLED' in v4_app_icon
 assert 'PackageManager.COMPONENT_ENABLED_STATE_DISABLED' in v4_app_icon
 assert 'PackageManager.DONT_KILL_APP' in v4_app_icon
 assert 'packageManager.setComponentEnabledSetting(' in v4_app_icon
+assert 'applyIconSelection(context, option.alias);' in v4_app_icon
 for alias in ['"grey"', '"vivid"', '"metal"', '"yellow"']:
     assert alias in v4_app_icon, alias
 for resource_name in [
@@ -376,6 +379,9 @@ assert 'openBoostHelper("h1")' not in v4_post_views
 assert 'setBoostStaticBoolean("g")' in v4_post_views
 assert 'setBoostStaticBoolean("i")' in v4_post_views
 assert 'setBoostStaticString("c", enabled ? "r/" : "")' in v4_post_views
+assert 'applyBooleanPreference(preferences, key, value, refreshFlag);' in v4_post_views
+assert 'applyDefaultViewPreference(' in v4_post_views
+assert 'applyPreviewLinesPreference(preferences, current);' in v4_post_views
 assert 'private void showDefaultViewDialog()' in v4_post_views
 assert 'previewLinesSeekBar.setMax(100);' in v4_post_views
 assert 'BoostSystemBarInsetsFix.applyMorpheSettingsV4SystemBars(' in v4_post_views
@@ -393,9 +399,12 @@ assert 'ComposeView' not in v4_post_views
 assert 'MORPHE_BOOST_SETTINGS_V4_SAVED_VIEWS_ISSUE106_V1' in v4_saved_views
 assert 'com.rubenmayayo.reddit.VIEW_PER_SUBSCRIPTION' in v4_saved_views
 assert 'savedViews.getAll()' in v4_saved_views
-assert 'savedViews.edit().remove(entry.key).apply();' in v4_saved_views
+assert 'applySavedView(' in v4_saved_views
+assert 'removeSavedView(savedViews, entry.key);' in v4_saved_views
+assert 'clearSavedViews(savedViews);' in v4_saved_views
+assert 'savedViews.edit().putInt(key, viewType).apply();' in v4_saved_views
+assert 'savedViews.edit().remove(key).apply();' in v4_saved_views
 assert 'savedViews.edit().clear().apply();' in v4_saved_views
-assert '.putInt(entry.key, VIEW_VALUES[choice])' in v4_saved_views
 assert 'No saved views yet' in v4_saved_views
 assert 'showViewTypeDialog(entry)' in v4_saved_views
 assert 'addAddSavedViewCard(entriesHost);' in v4_saved_views
@@ -449,12 +458,17 @@ assert '"POST PREVIEW"' not in v4_fonts
 assert '"COMMENT PREVIEW"' not in v4_fonts
 assert 'previewExampleCard' not in v4_fonts
 assert 'previewDrawable' not in v4_fonts
-assert 'previewComment.setTypeface(typefaceFor(commentsFontValue));' in v4_fonts
-assert 'private void markNativeFontCacheDirty(String key)' in v4_fonts
+assert 'applyPreviewTypography(' in v4_fonts
+assert 'preview.setTypeface(typefaceFor(fontValue));' in v4_fonts
+assert 'preview.setTextSize(previewSizeSp(sizeValue, title));' in v4_fonts
+assert 'applyFontPreference(preferences, key, value);' in v4_fonts
+assert 'private static void markNativeFontCacheDirty(String key)' in v4_fonts
 assert 'Class.forName("id.b")' in v4_fonts
 assert '.remove(KEY_TITLE_FONT)' in v4_fonts
 assert 'BoostSystemBarInsetsFix.applyMorpheSettingsV4SystemBars(' in v4_fonts
 assert 'BoostSystemBarInsetsFix.clearMorpheSettingsV4SystemBars(activity);' in v4_fonts
+assert 'applyDependentRowState(' in v4_post_views
+assert 'row.setAlpha(enabled ? 1.0f : 0.44f);' in v4_post_views
 for forbidden_call in [
     'getActivity()',
     'getFragmentManager()',
