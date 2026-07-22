@@ -1,6 +1,13 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.93](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-92...morphe-patches-93) (2026-07-22)
+
+* **Boost for Reddit:** Features
+
+- Add optional keyboard opening when entering Search.
+- Add Compact, Balanced, and Large inline media preview sizes.
+
 ## [1.4.92](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-91...morphe-patches-92) (2026-07-19)
 
 * **Boost for Reddit:** Bug Fixes
