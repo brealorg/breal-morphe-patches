@@ -71,3 +71,11 @@ publishing {
         }
     }
 }
+
+// MORPHE_DETERMINISTIC_MPP_MANIFEST_TIMESTAMP_V1
+// The upstream patch Gradle plugin injects System.currentTimeMillis(), which
+// makes identical source trees produce different MPP digests. Morphe Manager
+// does not consume this attribute, so retain it as a deterministic sentinel.
+tasks.withType<org.gradle.jvm.tasks.Jar>().configureEach {
+    manifest.attributes["Timestamp"] = "0"
+}
