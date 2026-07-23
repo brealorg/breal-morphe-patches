@@ -1,6 +1,12 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.94](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-93...morphe-patches-94) (2026-07-23)
+
+* **Boost for Reddit:** Features
+
+- Modernize Boost Morphe settings with a Material-style, task-based interface and retain the classic fallback.
+
 ## [1.4.93](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-92...morphe-patches-93) (2026-07-22)
 
 * **Boost for Reddit:** Features
