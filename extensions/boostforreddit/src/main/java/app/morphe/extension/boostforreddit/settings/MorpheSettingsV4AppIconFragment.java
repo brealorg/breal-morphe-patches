@@ -4,10 +4,7 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
-import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -18,7 +15,6 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RadioButton;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -67,7 +63,7 @@ public final class MorpheSettingsV4AppIconFragment extends Fragment {
 
         LinearLayout content = new LinearLayout(context);
         content.setOrientation(LinearLayout.VERTICAL);
-        content.setPadding(dp(18), dp(12), dp(18), dp(32));
+        content.setPadding(dp(16), dp(10), dp(16), dp(32));
         scrollView.addView(
                 content,
                 new ScrollView.LayoutParams(
@@ -130,59 +126,24 @@ public final class MorpheSettingsV4AppIconFragment extends Fragment {
 
     private void addIconRow(LinearLayout group, IconOption option) {
         Context context = requireContext();
-        MorpheSettingsV4Theme.Accent accent = tokens.navigationAccent();
-        LinearLayout row = new LinearLayout(context);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setMinimumHeight(dp(84));
-        row.setPadding(dp(14), dp(10), dp(10), dp(10));
-        row.setClickable(true);
-        row.setFocusable(true);
-        row.setBackground(MorpheSettingsV4Theme.interactive(
+        MorpheSettingsV14Ui.ChoiceRow row =
+                MorpheSettingsV14Ui.choiceRow(
                 context,
-                0x00000000,
-                0,
-                accent.color
-        ));
+                tokens,
+                option.title,
+                "",
+                sameAlias(selectedAlias, option.alias)
+        );
+        row.setMinimumHeight(dp(84));
         row.setOnClickListener(view -> select(option));
 
-        row.addView(iconContainer(option), new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
                 dp(56),
                 dp(56)
-        ));
-
-        TextView title = textView(option.title, 17, tokens.textPrimary);
-        title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(
-                0,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                1.0f
         );
-        titleParams.setMarginStart(dp(16));
-        row.addView(title, titleParams);
-
-        RadioButton selected = new RadioButton(context);
-        selected.setClickable(false);
-        selected.setFocusable(false);
-        selected.setChecked(sameAlias(selectedAlias, option.alias));
-        if (Build.VERSION.SDK_INT >= 21) {
-            selected.setButtonTintList(new ColorStateList(
-                    new int[][]{
-                            new int[]{android.R.attr.state_checked},
-                            new int[]{-android.R.attr.state_checked}
-                    },
-                    new int[]{accent.color, tokens.textSecondary}
-            ));
-        }
-        row.addView(selected, new LinearLayout.LayoutParams(dp(48), dp(48)));
-
-        if (group.getChildCount() > 0) {
-            addDivider(group);
-        }
-        group.addView(row, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        ));
+        iconParams.setMarginEnd(dp(14));
+        row.addView(iconContainer(option), 0, iconParams);
+        MorpheSettingsV14Ui.addSegmentedRow(group, row, tokens);
     }
 
     private FrameLayout iconContainer(IconOption option) {
@@ -289,21 +250,7 @@ public final class MorpheSettingsV4AppIconFragment extends Fragment {
     }
 
     private LinearLayout addGroup(LinearLayout parent) {
-        Context context = requireContext();
-        MorpheSettingsV4Theme.Accent accent = tokens.navigationAccent();
-        int groupColor = MorpheSettingsV4Theme.blend(
-                tokens.surfaceContainer,
-                accent.container,
-                tokens.dark ? 0.035f : 0.025f
-        );
-        LinearLayout group = new LinearLayout(context);
-        group.setOrientation(LinearLayout.VERTICAL);
-        group.setBackground(MorpheSettingsV4Theme.rounded(
-                context,
-                groupColor,
-                24
-        ));
-        group.setClipToOutline(true);
+        LinearLayout group = MorpheSettingsV14Ui.group(requireContext());
         parent.addView(group, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -371,10 +318,11 @@ public final class MorpheSettingsV4AppIconFragment extends Fragment {
     }
 
     private void addSectionLabel(LinearLayout parent, String value) {
-        TextView label = textView(value, 14, tokens.primary);
-        label.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-        label.setLetterSpacing(0.02f);
-        parent.addView(label);
+        parent.addView(MorpheSettingsV14Ui.sectionLabel(
+                requireContext(),
+                tokens,
+                value
+        ));
     }
 
     private TextView textView(String value, int sizeSp, int color) {

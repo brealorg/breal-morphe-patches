@@ -11,6 +11,8 @@ import android.text.TextUtils;
 public final class MorpheSettingsV4 {
     public static final String CONTRACT_MARKER =
             "MORPHE_BOOST_SETTINGS_V4_ISSUE106_V1";
+    public static final String DEFAULT_ON_MARKER =
+            "MORPHE_BOOST_SETTINGS_V14_DEFAULT_ON_CLASSIC_FALLBACK_V1";
 
     public static final String ENABLED_KEY =
             "morphe_boost_settings_v4_enabled";
@@ -55,26 +57,35 @@ public final class MorpheSettingsV4 {
                 PreferenceManager.getDefaultSharedPreferences(context);
 
         if (preferences.contains(ENABLED_KEY)) {
-            boolean enabled = preferences.getBoolean(ENABLED_KEY, false);
+            boolean enabled = preferences.getBoolean(ENABLED_KEY, true);
             if (enabled) {
                 forceSystemThemeMode(preferences);
             }
             return enabled;
         }
 
-        // Preserve and migrate the choice made by existing issue #106 preview
-        // testers so the new toggle accurately reflects the active UI.
-        boolean legacyEnabled = preferences.getBoolean(
-                LEGACY_V2_ENABLED_KEY,
-                false
-        );
-        if (legacyEnabled) {
-            preferences.edit()
-                    .putBoolean(ENABLED_KEY, true)
-                    .putString(THEME_MODE_KEY, SYSTEM_THEME_MODE)
-                    .apply();
+        // Preserve the explicit choice made by issue #106 preview testers.
+        if (preferences.contains(LEGACY_V2_ENABLED_KEY)) {
+            boolean legacyEnabled = preferences.getBoolean(
+                    LEGACY_V2_ENABLED_KEY,
+                    false
+            );
+            SharedPreferences.Editor editor = preferences.edit()
+                    .putBoolean(ENABLED_KEY, legacyEnabled);
+            if (legacyEnabled) {
+                editor.putString(THEME_MODE_KEY, SYSTEM_THEME_MODE);
+            }
+            editor.apply();
+            return legacyEnabled;
         }
-        return legacyEnabled;
+
+        // Material settings is the shipping default. Classic Boost settings
+        // remains available as the final action on the Material home page.
+        preferences.edit()
+                .putBoolean(ENABLED_KEY, true)
+                .putString(THEME_MODE_KEY, SYSTEM_THEME_MODE)
+                .apply();
+        return true;
     }
 
     public static void setEnabled(Context context, boolean enabled) {

@@ -14,8 +14,6 @@ import java.util.Set;
 
 final class MorpheSettingsV4Catalog {
     static final String BOOST_PACKAGE = "com.rubenmayayo.reddit";
-    static final String MORPHE_FRAGMENT =
-            "app.morphe.extension.boostforreddit.settings.MorpheSettingsFragment";
     static final String BACKUP_ACTIVITY =
             "com.rubenmayayo.reddit.BackupActivity";
     static final String V4_APPEARANCE_FRAGMENT =
@@ -33,6 +31,18 @@ final class MorpheSettingsV4Catalog {
     static final String V4_FONTS_FRAGMENT =
             "app.morphe.extension.boostforreddit.settings."
                     + "MorpheSettingsV4FontsFragment";
+    static final String V4_TOOLBAR_FRAGMENT =
+            "app.morphe.extension.boostforreddit.settings."
+                    + "MorpheSettingsV4ToolbarFragment";
+    static final String V4_DATA_STORAGE_FRAGMENT =
+            "app.morphe.extension.boostforreddit.settings."
+                    + "MorpheSettingsV4DataStorageFragment";
+    static final String V4_DOWNLOADS_FRAGMENT =
+            "app.morphe.extension.boostforreddit.settings."
+                    + "MorpheSettingsV4DownloadsFragment";
+    private static final String V4_NATIVE_PAGES =
+            "app.morphe.extension.boostforreddit.settings."
+                    + "MorpheSettingsV4NativePages$";
     static final String CLASSIC_APPEARANCE_FRAGMENT =
             "com.rubenmayayo.reddit.ui.preferences.v2."
                     + "PreferenceFragmentAppearanceCompat";
@@ -164,7 +174,7 @@ final class MorpheSettingsV4Catalog {
             "Morphe",
             "Features added by Morphe patches",
             "ic_puzzle_24dp",
-            MORPHE_FRAGMENT,
+            V4_NATIVE_PAGES + "Morphe",
             "morphe_boost_settings_skeleton"
     );
 
@@ -183,48 +193,47 @@ final class MorpheSettingsV4Catalog {
                     "Posts & comments",
                     "Post and comment behavior",
                     "ic_post_24dp",
-                    leaf("Posts", "Post display and interaction behavior", "ic_post_24dp", "PreferenceFragmentPostsCompat", "pref_posts_v2"),
-                    leaf("Comments", "Comment display and interaction behavior", "ic_comment_outline_white_24dp", "PreferenceFragmentCommentsCompat", "pref_comments_v2")
+                    nativeLeaf("Posts", "Post display and interaction behavior", "ic_post_24dp", "Posts", "pref_posts_v2"),
+                    nativeLeaf("Comments", "Comment display and interaction behavior", "ic_comment_outline_white_24dp", "Comments", "pref_comments_v2")
             ),
             new Category(
                     "navigation",
                     "Navigation",
                     "Toolbar, bottom navigation, and drawer",
                     "ic_toolbar_24dp",
-                    leaf("Toolbar", "Toolbar buttons and behavior", "ic_toolbar_24dp", "PreferenceFragmentToolbarCompat", "pref_toolbar_v2"),
-                    leaf("Bottom navigation", "Tabs and bottom navigation behavior", "ic_bottomnav_24dp", "PreferenceFragmentBottomNavigationCompat", "pref_bottom_navigation_v2"),
-                    leaf("Navigation drawer", "Drawer items and ordering", "ic_dock_left_24dp", "PreferenceFragmentDrawerCompat", "pref_drawer_v2")
+                    Leaf.fragment("Toolbar", "Toolbar buttons and behavior", "ic_toolbar_24dp", V4_TOOLBAR_FRAGMENT, "pref_toolbar_v2"),
+                    nativeLeaf("Bottom navigation", "Tabs and bottom navigation behavior", "ic_bottomnav_24dp", "BottomNavigation", "pref_bottom_navigation_v2"),
+                    nativeLeaf("Navigation drawer", "Drawer items and ordering", "ic_dock_left_24dp", "Drawer", "pref_drawer_v2")
             ),
             new Category(
                     "media_links",
                     "Media & links",
                     "Viewers, players, and link handling",
                     "ic_photo_outline_24dp",
-                    leaf("Media viewer", "Images, GIFs, video, and viewer behavior", "ic_photo_outline_24dp", "PreferenceFragmentMediaCompat", "pref_media_v2"),
-                    leaf("Link handling", "Browser and in-app link behavior", "ic_link_24dp", "PreferenceFragmentLinksCompat", "pref_links_v2")
+                    nativeLeaf("Media viewer", "Images, GIFs, video, and viewer behavior", "ic_photo_outline_24dp", "Media", "pref_media_v2"),
+                    nativeLeaf("Link handling", "Browser and in-app link behavior", "ic_link_24dp", "Links", "pref_links_v2")
             ),
             new Category(
                     "search_filters",
                     "Search & filters",
                     "Search behavior and content filters",
                     "ic_search_color_24dp",
-                    leaf("Search", "Search behavior and defaults", "ic_search_color_24dp", "PreferenceFragmentSearchCompat", "pref_search_v2"),
-                    leaf("Content filters", "Keywords, domains, and content rules", "ic_filter_list_24dp", "PreferenceFragmentFiltersCompat", "pref_filters_v2")
+                    nativeLeaf("Search", "Search behavior and defaults", "ic_search_color_24dp", "Search", "pref_search_v2"),
+                    nativeLeaf("Content filters", "Keywords, domains, and content rules", "ic_filter_list_24dp", "Filters", "pref_filters_v2")
             ),
             new Category(
                     "notifications",
                     "Notifications",
                     "Check interval, notification tone, and inbox",
                     "ic_notifications_black_24dp",
-                    leaf("Notifications", "Messages and notification behavior", "ic_notifications_black_24dp", "PreferenceFragmentMessagesCompat", "pref_messages_v2")
+                    nativeLeaf("Notifications", "Messages and notification behavior", "ic_notifications_black_24dp", "Messages", "pref_messages_v2")
             ),
             new Category(
                     "data_storage",
-                    "Data & storage",
-                    "Bandwidth, cache, downloads, and backup",
-                    "outline_data_usage_24",
-                    leaf("Data usage", "Bandwidth, cache, and data-saving behavior", "outline_data_usage_24", "PreferenceFragmentDataSavingCompat", "pref_data_v2"),
-                    leaf("Downloads", "Download folder and file behavior", "ic_file_download_24dp", "PreferenceFragmentDownloadsCompat", "pref_downloads_v2"),
+                    "Backup",
+                    "Data storage, export, and import",
+                    "ic_save_24dp",
+                    Leaf.fragment("Data storage", "Bandwidth, media quality, downloads, and cache", "outline_data_usage_24", V4_DATA_STORAGE_FRAGMENT, "pref_data_v2"),
                     Leaf.activity("Backup", "Export or import Boost settings", "ic_save_24dp", BACKUP_ACTIVITY)
             ),
             new Category(
@@ -233,23 +242,21 @@ final class MorpheSettingsV4Catalog {
                     "Reddit preferences, history, and privacy",
                     "ic_person_24dp",
                     Leaf.fragment("Reddit preferences", "Website and account preferences", "ic_subreddit_24dp", FRAGMENT_PREFIX + "PreferenceFragmentAccountCompat", null),
-                    leaf("History & privacy", "History, recent items, and privacy controls", "ic_restore_black_24dp", "PreferenceFragmentPrivacyCompat", "pref_privacy_v2")
+                    nativeLeaf("History & privacy", "History, recent items, and privacy controls", "ic_restore_black_24dp", "Privacy", "pref_privacy_v2")
             ),
             new Category(
                     "app_legacy",
-                    "App behavior & legacy",
-                    "General behavior and older features",
+                    "App behavior",
+                    "Composing, subscriptions, and exit behavior",
                     "ic_settings_24dp",
-                    leaf("General", "General app behavior", "ic_settings_24dp", "PreferenceFragmentGeneralCompat", "pref_general_v2"),
-                    leaf("Legacy features", "Older Boost features and compatibility", "ic_restore_black_24dp", "PreferenceFragmentMiscCompat", "pref_misc_v2"),
-                    Leaf.fragment("Classic theme editor", "Legacy Boost palettes and per-color customization", "ic_color_lens_24dp", CLASSIC_APPEARANCE_FRAGMENT, null)
+                    nativeLeaf("General", "Unique app behavior and composing options", "ic_settings_24dp", "General", "pref_general_v2")
             ),
             new Category(
                     "about",
                     "About",
                     "Support, privacy, licenses, and app information",
                     "ic_help_24dp",
-                    leaf("About Boost", "Support, licenses, privacy, and version", "ic_help_24dp", "PreferenceFragmentAboutCompat", "pref_about_v2")
+                    nativeLeaf("About Boost", "Support, licenses, privacy, and version", "ic_help_24dp", "About", "pref_about_v2")
             )
     };
 
@@ -443,7 +450,9 @@ final class MorpheSettingsV4Catalog {
                 );
                 String destination = TextUtils.isEmpty(nestedFragment)
                         ? leaf.fragmentName
-                        : nestedFragment;
+                        : MorpheSettingsV4NativePages.nativeDestination(
+                                nestedFragment
+                        );
 
                 addSearchItem(
                         result,
@@ -533,6 +542,22 @@ final class MorpheSettingsV4Catalog {
                 summary,
                 iconName,
                 FRAGMENT_PREFIX + fragmentClass,
+                resourceName
+        );
+    }
+
+    private static Leaf nativeLeaf(
+            String title,
+            String summary,
+            String iconName,
+            String pageClass,
+            String resourceName
+    ) {
+        return Leaf.fragment(
+                title,
+                summary,
+                iconName,
+                V4_NATIVE_PAGES + pageClass,
                 resourceName
         );
     }

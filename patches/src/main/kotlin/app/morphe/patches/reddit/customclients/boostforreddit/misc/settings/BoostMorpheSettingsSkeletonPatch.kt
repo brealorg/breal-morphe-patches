@@ -57,14 +57,6 @@ private val boostMorpheSettingsResourcesPatch = resourcePatch(
                 """
                 <?xml version="1.0" encoding="utf-8"?>
                 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-                    <PreferenceCategory android:title="Settings">
-                        <CheckBoxPreference
-                            android:key="morphe_boost_settings_v4_enabled"
-                            android:title="Settings v4 (preview)"
-                            android:summary="Use Morphe's modern task-based settings. Close and reopen Settings to apply."
-                            android:defaultValue="false" />
-                    </PreferenceCategory>
-
                     <PreferenceCategory android:title="Media previews">
                         <CheckBoxPreference
                             android:key="morphe_boost_inline_media_previews_enabled"
@@ -149,6 +141,13 @@ private val boostMorpheSettingsResourcesPatch = resourcePatch(
                             android:title="Automatically undelete Imgur images"
                             android:summary="Try to restore supported missing Imgur media from archive sources. Disabled by default."
                             android:defaultValue="false" />
+                    </PreferenceCategory>
+                    <PreferenceCategory android:title="Settings">
+                        <CheckBoxPreference
+                            android:key="morphe_boost_settings_v4_enabled"
+                            android:title="Material settings"
+                            android:summary="Use Morphe's modern task-based settings. Reopen Settings to apply."
+                            android:defaultValue="true" />
                     </PreferenceCategory>
                 </PreferenceScreen>
                 """.trimIndent()
@@ -488,7 +487,7 @@ private val boostMorpheSettingsResourcesPatch = resourcePatch(
 @Suppress("unused")
 val boostMorpheSettingsSkeletonPatch = bytecodePatch(
     name = "Boost Morphe settings",
-    description = "Adds dedicated Morphe settings and an optional Morphe-owned Settings v4 interface.",
+    description = "Adds dedicated Morphe settings and Morphe-owned Material-style Settings v4 pages with a classic fallback.",
     default = false,
 ) {
     dependsOn(sharedExtensionPatch, boostMorpheSettingsResourcesPatch)
@@ -526,5 +525,6 @@ val boostMorpheSettingsSkeletonPatch = bytecodePatch(
                 """.trimIndent(),
             )
         }
+
     }
 }

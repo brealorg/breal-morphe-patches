@@ -4,11 +4,9 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.inputmethod.EditorInfo;
@@ -22,9 +20,7 @@ import android.view.Window;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RadioButton;
 import android.widget.ScrollView;
-import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
@@ -94,7 +90,7 @@ public final class MorpheSettingsV4SavedViewsFragment extends Fragment {
 
         entriesHost = new LinearLayout(context);
         entriesHost.setOrientation(LinearLayout.VERTICAL);
-        entriesHost.setPadding(dp(18), dp(12), dp(18), dp(32));
+        entriesHost.setPadding(dp(16), dp(10), dp(16), dp(32));
         scrollView.addView(
                 entriesHost,
                 new ScrollView.LayoutParams(
@@ -262,8 +258,12 @@ public final class MorpheSettingsV4SavedViewsFragment extends Fragment {
                 tokens.textPrimary
         );
         customFeedRow.addView(customFeedLabel, labelsParams());
-        Switch customFeed = new Switch(context);
-        tintSwitch(customFeed);
+        MorpheSettingsV14Ui.Toggle customFeed =
+                new MorpheSettingsV14Ui.Toggle(
+                        context,
+                        tokens,
+                        false
+                );
         customFeedRow.addView(customFeed);
         customFeedRow.setOnClickListener(
                 view -> customFeed.setChecked(!customFeed.isChecked())
@@ -473,16 +473,14 @@ public final class MorpheSettingsV4SavedViewsFragment extends Fragment {
 
         for (int index = 0; index < VIEW_TITLES.length; index++) {
             final int choice = index;
-            LinearLayout row = dialogChoiceRow();
-            RadioButton radio = new RadioButton(context);
-            radio.setChecked(VIEW_VALUES[index] == entry.viewType);
-            radio.setClickable(false);
-            radio.setFocusable(false);
-            tintRadioButton(radio);
-            row.addView(radio);
-
-            TextView label = textView(VIEW_TITLES[index], 16, tokens.textPrimary);
-            row.addView(label, labelsParams());
+            MorpheSettingsV14Ui.ChoiceRow row =
+                    MorpheSettingsV14Ui.choiceRow(
+                    context,
+                    tokens,
+                    VIEW_TITLES[index],
+                    "",
+                    VIEW_VALUES[index] == entry.viewType
+            );
             row.setOnClickListener(view -> {
                 applySavedView(
                         savedViews,
@@ -492,10 +490,7 @@ public final class MorpheSettingsV4SavedViewsFragment extends Fragment {
                 dialog.dismiss();
                 rebuildEntries();
             });
-            content.addView(row, new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-            ));
+            MorpheSettingsV14Ui.addSegmentedRow(content, row, tokens);
         }
 
         addDialogAction(content, "Cancel", () -> dialog.dismiss());
@@ -718,21 +713,7 @@ public final class MorpheSettingsV4SavedViewsFragment extends Fragment {
     }
 
     private LinearLayout addGroup(LinearLayout parent) {
-        Context context = requireContext();
-        MorpheSettingsV4Theme.Accent accent = tokens.navigationAccent();
-        int groupColor = MorpheSettingsV4Theme.blend(
-                tokens.surfaceContainer,
-                accent.container,
-                tokens.dark ? 0.035f : 0.025f
-        );
-        LinearLayout group = new LinearLayout(context);
-        group.setOrientation(LinearLayout.VERTICAL);
-        group.setBackground(MorpheSettingsV4Theme.rounded(
-                context,
-                groupColor,
-                24
-        ));
-        group.setClipToOutline(true);
+        LinearLayout group = MorpheSettingsV14Ui.group(requireContext());
         parent.addView(group, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -741,82 +722,16 @@ public final class MorpheSettingsV4SavedViewsFragment extends Fragment {
     }
 
     private void addGroupedRow(LinearLayout group, LinearLayout row) {
-        if (group.getChildCount() > 0) {
-            View divider = new View(requireContext());
-            divider.setBackgroundColor(MorpheSettingsV4Theme.blend(
-                    tokens.surfaceContainer,
-                    tokens.outline,
-                    tokens.dark ? 0.22f : 0.16f
-            ));
-            LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    dp(1)
-            );
-            dividerParams.setMarginStart(dp(18));
-            dividerParams.setMarginEnd(dp(18));
-            group.addView(divider, dividerParams);
-        }
-        group.addView(row, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        ));
+        MorpheSettingsV14Ui.addSegmentedRow(group, row, tokens);
     }
 
     private LinearLayout createLabels(String titleValue, String summaryValue) {
-        LinearLayout labels = new LinearLayout(requireContext());
-        labels.setOrientation(LinearLayout.VERTICAL);
-        TextView title = textView(titleValue, 16, tokens.textPrimary);
-        title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-        labels.addView(title);
-        TextView summary = textView(summaryValue, 14, tokens.textSecondary);
-        LinearLayout.LayoutParams summaryParams = wrapParams();
-        summaryParams.topMargin = dp(3);
-        labels.addView(summary, summaryParams);
-        return labels;
-    }
-
-    private void tintRadioButton(RadioButton radio) {
-        if (Build.VERSION.SDK_INT < 21) {
-            return;
-        }
-        radio.setButtonTintList(new ColorStateList(
-                new int[][]{
-                        new int[]{android.R.attr.state_checked},
-                        new int[]{-android.R.attr.state_checked},
-                },
-                new int[]{
-                        tokens.navigationAccent().color,
-                        tokens.textSecondary,
-                }
-        ));
-    }
-
-    private void tintSwitch(Switch toggle) {
-        if (Build.VERSION.SDK_INT < 21) {
-            return;
-        }
-        int accent = tokens.navigationAccent().color;
-        toggle.setThumbTintList(new ColorStateList(
-                new int[][]{
-                        new int[]{android.R.attr.state_checked},
-                        new int[]{-android.R.attr.state_checked},
-                },
-                new int[]{accent, tokens.textSecondary}
-        ));
-        toggle.setTrackTintList(new ColorStateList(
-                new int[][]{
-                        new int[]{android.R.attr.state_checked},
-                        new int[]{-android.R.attr.state_checked},
-                },
-                new int[]{
-                        MorpheSettingsV4Theme.blend(
-                                tokens.surfaceContainer,
-                                accent,
-                                0.45f
-                        ),
-                        tokens.surfaceContainerHigh,
-                }
-        ));
+        return MorpheSettingsV14Ui.labels(
+                requireContext(),
+                tokens,
+                titleValue,
+                summaryValue
+        );
     }
 
     private void styleHost() {
@@ -863,10 +778,11 @@ public final class MorpheSettingsV4SavedViewsFragment extends Fragment {
     }
 
     private void addSectionLabel(LinearLayout parent, String value) {
-        TextView label = textView(value, 14, tokens.primary);
-        label.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-        label.setLetterSpacing(0.02f);
-        parent.addView(label);
+        parent.addView(MorpheSettingsV14Ui.sectionLabel(
+                requireContext(),
+                tokens,
+                value
+        ));
     }
 
     private TextView textView(String value, int sizeSp, int color) {

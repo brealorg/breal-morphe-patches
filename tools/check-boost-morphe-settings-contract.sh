@@ -15,6 +15,8 @@ V4_SAVED_VIEWS="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extensi
 V4_FONTS="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4FontsFragment.java"
 V4_CATALOG="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4Catalog.java"
 V4_THEME="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4Theme.java"
+V4_NATIVE_PAGES="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4NativePages.java"
+V14_UI="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV14Ui.java"
 SYSTEM_BARS="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/utils/BoostSystemBarInsetsFix.java"
 
 test -f "$SETTINGS"
@@ -30,6 +32,8 @@ test -f "$V4_SAVED_VIEWS"
 test -f "$V4_FONTS"
 test -f "$V4_CATALOG"
 test -f "$V4_THEME"
+test -f "$V4_NATIVE_PAGES"
+test -f "$V14_UI"
 test -f "$SYSTEM_BARS"
 
 rg -q -F 'get("res/xml/pref_headers_v2.xml")' "$SETTINGS"
@@ -46,6 +50,8 @@ rg -q -F 'MORPHE_BOOST_SETTINGS_V4_COMPACT_GROUPS_ISSUE106_V1' "$V4_APPEARANCE"
 rg -q -F 'MORPHE_BOOST_SETTINGS_V4_POST_VIEWS_ISSUE106_V1' "$V4_POST_VIEWS"
 rg -q -F 'MORPHE_BOOST_SETTINGS_V4_SAVED_VIEWS_ISSUE106_V1' "$V4_SAVED_VIEWS"
 rg -q -F 'MORPHE_BOOST_SETTINGS_V4_FONTS_ISSUE106_V1' "$V4_FONTS"
+rg -q -F 'MORPHE_BOOST_SETTINGS_V4_NATIVE_REST_ISSUE106_V1' "$V4_NATIVE_PAGES"
+rg -q -F 'MORPHE_BOOST_SETTINGS_V14_COHERENT_UI_ISSUE106_V1' "$V14_UI"
 rg -q -F 'setPreferencesFromResource(resourceId, rootKey);' "$FRAGMENT" "$HUB"
 
 if rg -q -F 'get("res/xml/pref_advanced_v2.xml")' "$SETTINGS"; then
@@ -67,6 +73,8 @@ python3 - \
     "$V4_FONTS" \
     "$V4_CATALOG" \
     "$V4_THEME" \
+    "$V4_NATIVE_PAGES" \
+    "$V14_UI" \
     "$SYSTEM_BARS" <<'PY_CHECK'
 import re
 import sys
@@ -85,7 +93,9 @@ v4_saved_views = Path(sys.argv[10]).read_text()
 v4_fonts = Path(sys.argv[11]).read_text()
 v4_catalog = Path(sys.argv[12]).read_text()
 v4_theme = Path(sys.argv[13]).read_text()
-system_bars = Path(sys.argv[14]).read_text()
+v4_native_pages = Path(sys.argv[14]).read_text()
+v14_ui = Path(sys.argv[15]).read_text()
+system_bars = Path(sys.argv[16]).read_text()
 
 preference_keys = [
     "morphe_boost_inline_media_previews_enabled",
@@ -115,21 +125,21 @@ toggle = re.search(
     re.S,
 )
 assert toggle is not None
-assert 'android:title="Settings v4 (preview)"' in toggle.group(0)
-assert 'android:defaultValue="false"' in toggle.group(0)
-assert 'Close and reopen Settings to apply.' in toggle.group(0)
+assert 'android:title="Material settings"' in toggle.group(0)
+assert 'android:defaultValue="true"' in toggle.group(0)
+assert "Use Morphe's modern task-based settings. Reopen Settings to apply." in toggle.group(0)
 
 categories = re.findall(
     r'<PreferenceCategory android:title="([^"]+)">',
     settings,
 )
 assert categories == [
-    "Settings",
     "Media previews",
     "Open behavior",
     "Search",
     "Display &amp; performance",
     "Recovery &amp; archives",
+    "Settings",
 ]
 
 legacy_start = settings.index('get("res/xml/pref_headers_v2.xml")')
@@ -243,7 +253,8 @@ assert f'ENABLED_KEY =\n            "{toggle_key}"' in v4
 assert 'LEGACY_V2_ENABLED_KEY =\n            "morphe_boost_settings_layout_v2_enabled"' in v4
 assert 'public static void prepareIntent(Activity activity)' in v4
 assert 'preferences.contains(ENABLED_KEY)' in v4
-assert 'preferences.getBoolean(\n                LEGACY_V2_ENABLED_KEY,' in v4
+assert 'boolean legacyEnabled = preferences.getBoolean(' in v4
+assert 'LEGACY_V2_ENABLED_KEY,' in v4
 assert '.putBoolean(ENABLED_KEY, true)' in v4
 assert 'intent.getStringExtra(EXTRA_SHOW_FRAGMENT)' in v4
 assert 'intent.putExtra(EXTRA_SHOW_FRAGMENT, FRAGMENT_NAME);' in v4
@@ -259,8 +270,8 @@ assert 'new EditText(context)' in v4_fragment
 assert 'renderSearchResults' in v4_fragment
 assert 'hideMenuItem(menu, "action_generic_search")' in v4_fragment
 assert 'openClassicSettings' in v4_fragment
-assert 'MorpheSettingsV4Fragment.class.getName()' in v4_fragment
-assert 'intent.putExtra(ARGUMENT_PAGE, category.id);' in v4_fragment
+assert 'view -> openLeaf(leaf, null)' in v4_fragment
+assert 'MorpheSettingsV14Ui.addSegmentedRow(' in v4_fragment
 assert 'intent.putExtra(EXTRA_SHOW_FRAGMENT, fragmentName);' in v4_fragment
 assert 'activity.startActivity(intent);' in v4_fragment
 assert 'private Activity hostActivity()' in v4_fragment
@@ -292,7 +303,11 @@ assert 'BoostSystemBarInsetsFix.clearMorpheSettingsV4SystemBars(activity);' in v
 assert 'private LinearLayout addGroup(LinearLayout parent)' in v4_appearance
 assert 'private void addGroupedRow(LinearLayout group, LinearLayout row)' in v4_appearance
 assert 'private void addGroupDivider(LinearLayout group)' in v4_appearance
-assert 'row.setMinimumHeight(dp(68));' in v4_appearance
+assert 'return MorpheSettingsV14Ui.baseRow(context, tokens);' in v4_appearance
+assert 'MorpheSettingsV14Ui.addSegmentedRow(group, row, tokens);' in v4_appearance
+assert 'ROW_SINGLE_DP = 56' in v14_ui
+assert 'ROW_TWO_LINE_DP = 72' in v14_ui
+assert 'row.setMinimumHeight(dp(context, ROW_SINGLE_DP));' in v14_ui
 assert 'addHeader(content);' not in v4_appearance
 assert 'createIconContainer(' not in v4_appearance
 assert 'addSectionLabel(content, "Appearance");' in v4_appearance
@@ -494,13 +509,59 @@ category_ids = [
 for category_id in category_ids:
     assert f'"{category_id}"' in v4_catalog, category_id
 
-for name in v2_leaf_fragments:
-    if name in {
-        "PreferenceFragmentViewsCompat",
-        "PreferenceFragmentFontsCompat",
-    }:
-        continue
+for name in [
+    "PreferenceFragmentAppearanceCompat",
+    "PreferenceFragmentAccountCompat",
+]:
     assert name in v4_catalog, name
+
+native_leaf_mappings = {
+    "PreferenceFragmentPostsCompat": "Posts",
+    "PreferenceFragmentCommentsCompat": "Comments",
+    "PreferenceFragmentBottomNavigationCompat": "BottomNavigation",
+    "PreferenceFragmentDrawerCompat": "Drawer",
+    "PreferenceFragmentMediaCompat": "Media",
+    "PreferenceFragmentLinksCompat": "Links",
+    "PreferenceFragmentSearchCompat": "Search",
+    "PreferenceFragmentFiltersCompat": "Filters",
+    "PreferenceFragmentMessagesCompat": "Messages",
+    "PreferenceFragmentPrivacyCompat": "Privacy",
+    "PreferenceFragmentGeneralCompat": "General",
+    "PreferenceFragmentMiscCompat": "Misc",
+    "PreferenceFragmentAboutCompat": "About",
+}
+for legacy_fragment, native_page in native_leaf_mappings.items():
+    assert (
+        f'legacyDestination.endsWith("{legacy_fragment}")'
+        in v4_native_pages
+    ), legacy_fragment
+    assert f'return PREFIX + "{native_page}";' in v4_native_pages, native_page
+
+native_redirects = {
+    "PreferenceFragmentViewsCompat": "V4_POST_VIEWS_FRAGMENT",
+    "PreferenceFragmentToolbarCompat": "V4_TOOLBAR_FRAGMENT",
+}
+for legacy_fragment, destination in native_redirects.items():
+    assert (
+        f'legacyDestination.endsWith("{legacy_fragment}")'
+        in v4_native_pages
+    ), legacy_fragment
+    assert (
+        f'return MorpheSettingsV4Catalog.{destination};'
+        in v4_native_pages
+    ), destination
+
+for retired_catalog_fragment in [
+    "PreferenceFragmentFontsCompat",
+    "PreferenceFragmentDataSavingCompat",
+]:
+    assert retired_catalog_fragment not in v4_catalog, retired_catalog_fragment
+
+for native_destination in [
+    "V4_FONTS_FRAGMENT",
+    "V4_DATA_STORAGE_FRAGMENT",
+]:
+    assert native_destination in v4_catalog, native_destination
 
 assert 'morphe_boost_settings_skeleton' in v4_catalog
 assert 'buildSearchIndex(Context context)' in v4_catalog
@@ -524,7 +585,12 @@ assert 'Leaf.fragment("Fonts", "Font family, size, and style"' in v4_catalog
 assert '"Appearance & layout · Fonts"' in v4_catalog
 assert 'PreferenceFragmentFontsCompat' not in v4_catalog
 assert 'PreferenceFragmentViewsCompat' not in v4_catalog
-assert 'Leaf.fragment("Classic theme editor", "Legacy Boost palettes and per-color customization"' in v4_catalog
+assert 'Leaf.fragment("Classic theme editor", "Legacy Boost palettes and per-color customization"' not in v4_catalog
+assert 'MORPHE_BOOST_SETTINGS_V14_EDITOR_SYSTEM_ISSUE106_V1' in v4_native_pages
+assert 'MORPHE_BOOST_SETTINGS_V14_NO_COMPILE_ONLY_UI_ABI_ISSUE106_V1' in v4_native_pages
+assert 'MORPHE_BOOST_SETTINGS_V14_3_MATERIAL_TOGGLE_LAST_ISSUE106_V1' in v4_native_pages
+assert 'preview toggle here is self-referential clutter' not in v4_native_pages
+assert 'showColorPatternEditor();' in v4_native_pages
 assert '{"Theme mode",' not in v4_catalog
 assert '{"Customize colors",' not in v4_catalog
 assert 'pref_colored_status_bar' in v4_catalog
@@ -548,7 +614,7 @@ assert 'tokens.accentFor(' not in v4_fragment
 assert 'MORPHE_BOOST_SETTINGS_V4_SUBTLE_COLOR_ISSUE106_V1' in v4_fragment
 assert 'MORPHE_BOOST_SETTINGS_V4_SYSTEM_BARS_ISSUE106_V1' in v4_fragment
 assert 'MORPHE_BOOST_SETTINGS_V4_SYSTEM_BAR_OWNER_ISSUE106_V2' in v4_fragment
-assert 'tokens.dark ? 0.06f : 0.05f' in v4_fragment
+assert 'MORPHE_BOOST_SETTINGS_V14_COHERENT_UI_ISSUE106_V1' in v14_ui
 assert 'tokens.dark ? 0.06f : 0.08f' in v4_fragment
 assert 'styleSystemBars(activity);' in v4_fragment
 assert 'BoostSystemBarInsetsFix.applyMorpheSettingsV4SystemBars(' in v4_fragment
@@ -584,8 +650,8 @@ assert "dependsOn(sharedExtensionPatch, boostMorpheSettingsResourcesPatch)" in s
 PY_CHECK
 
 echo 'TOP_LEVEL_MORPHE_ENTRY=PASS'
-echo 'ORIGINAL_LAYOUT_DEFAULT=PASS'
-echo 'SETTINGS_V4_TOGGLE_DEFAULT_OFF=PASS'
+echo 'LEGACY_V2_LAYOUT_DEFAULT_OFF=PASS'
+echo 'SETTINGS_V4_TOGGLE_DEFAULT_ON=PASS'
 echo 'SETTINGS_V4_V2_MIGRATION=PASS'
 echo 'SETTINGS_V4_ACTIVITY_ROUTE=PASS'
 echo 'SETTINGS_V4_MATERIAL3_VIEW_SHELL=PASS'
@@ -607,6 +673,9 @@ echo 'SETTINGS_V4_FONT_SPECIMEN=PASS'
 echo 'SETTINGS_V4_TASK_HUBS=PASS'
 echo 'SETTINGS_V4_SEARCH_INDEX=PASS'
 echo 'SETTINGS_V4_CLASSIC_FALLBACK=PASS'
+echo 'SETTINGS_V14_NATIVE_PAGES=PASS'
+echo 'SETTINGS_V14_COHERENT_UI=PASS'
+echo 'SETTINGS_V14_3_MATERIAL_TOGGLE_LAST=PASS'
 echo 'SETTINGS_V4_MINIFIED_ANDROIDX_COMPAT=PASS'
 echo 'SETTINGS_V4_NO_COMPOSE=PASS'
 echo 'SETTINGS_V2_RESOURCE_FALLBACK=PASS'
