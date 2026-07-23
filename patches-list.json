@@ -147,9 +147,12 @@
     },
     {
       "name": "Boost Morphe settings",
-      "description": "Adds Boost Morphe settings for Search keyboard behavior, inline media previews, undelete toggles, adaptive refresh rate, source text visibility, and preview alignment.",
+      "description": "Adds dedicated Morphe settings and Morphe-owned Material-style Settings v4 pages with a classic fallback.",
       "default": false,
-      "dependencies": [],
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch"
+      ],
       "compatiblePackages": [
         {
           "packageName": "com.rubenmayayo.reddit",
@@ -1608,7 +1611,7 @@
       "default": false,
       "dependencies": [
         "BytecodePatch",
-        "ResourcePatch"
+        "BytecodePatch"
       ],
       "compatiblePackages": [
         {

@@ -43,6 +43,10 @@ public final class BoostSystemBarInsetsFix {
     private static final String EXTENDED_ACTIVITY_SURFACE_SCOPE_MARKER_V5 = "MORPHE_BOOST_EXTENDED_ACTIVITY_SURFACE_SCOPE_V5";
     private static final String DRAWER_STICKY_FOOTER_CLEARANCE_MARKER =
             "MORPHE_BOOST_DRAWER_STICKY_FOOTER_CLEARANCE_V10031";
+    private static final String MORPHE_SETTINGS_V4_SYSTEM_BAR_OWNER_MARKER =
+            "MORPHE_BOOST_SETTINGS_V4_SYSTEM_BAR_OWNER_ISSUE106_V2";
+    private static final String MORPHE_SETTINGS_V4_NAVIGATION_SURFACE_MARKER =
+            "MORPHE_BOOST_SETTINGS_V4_NAVIGATION_SURFACE_ISSUE106_V3";
     private static final String DECOR_NAVIGATION_CONTAINER_TAG =
             "morphe_boost_decor_owned_navigation_container";
     private static final String COMMENTS_ACTIVITY_NAME = "com.rubenmayayo.reddit.ui.comments.CommentsActivity";
@@ -53,6 +57,8 @@ public final class BoostSystemBarInsetsFix {
     private static final WeakHashMap<View, Boolean> WATCHERS = new WeakHashMap<>();
     private static final WeakHashMap<View, Integer> STICKY_FOOTER_CLEARANCE =
             new WeakHashMap<>();
+    private static final WeakHashMap<Activity, MorpheSettingsV4SystemBars>
+            MORPHE_SETTINGS_V4_SYSTEM_BARS = new WeakHashMap<>();
 
     private BoostSystemBarInsetsFix() {
     }
@@ -383,6 +389,35 @@ public final class BoostSystemBarInsetsFix {
         scheduleCommentsSystemBars(activity);
     }
 
+    public static void applyMorpheSettingsV4SystemBars(
+            Activity activity,
+            int color,
+            boolean dark
+    ) {
+        try {
+            if (!shouldApply(activity)) return;
+
+            MorpheSettingsV4SystemBars state =
+                    new MorpheSettingsV4SystemBars(color, dark);
+            MORPHE_SETTINGS_V4_SYSTEM_BARS.put(activity, state);
+            applyMorpheSettingsV4SystemBarsNow(activity, state);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    public static void clearMorpheSettingsV4SystemBars(Activity activity) {
+        try {
+            if (activity == null) return;
+
+            MORPHE_SETTINGS_V4_SYSTEM_BARS.remove(activity);
+            Window window = activity.getWindow();
+            View decor = window == null ? null : window.getDecorView();
+            removeMorpheSettingsV4NavigationBarSurface(decor);
+            scheduleCommentsSystemBars(activity);
+        } catch (Throwable ignored) {
+        }
+    }
+
     private static void scheduleCommentsSystemBars(final Activity activity) {
         try {
             if (!shouldApply(activity) || !isToolbarSurfaceActivity(activity)) return;
@@ -468,6 +503,13 @@ public final class BoostSystemBarInsetsFix {
         try {
             if (!shouldApply(activity) || !isToolbarSurfaceActivity(activity)) return;
 
+            MorpheSettingsV4SystemBars v4State =
+                    MORPHE_SETTINGS_V4_SYSTEM_BARS.get(activity);
+            if (v4State != null) {
+                applyMorpheSettingsV4SystemBarsNow(activity, v4State);
+                return;
+            }
+
             Window window = activity.getWindow();
             if (window == null) return;
 
@@ -490,6 +532,119 @@ public final class BoostSystemBarInsetsFix {
             applyLightStatusBarFlag(decor, color);
             applyMainActivityNavigationBarSurface(activity, window, decor, color);
             applyCommentsToolbarForeground(activity, decor, statusHeight, color);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static void applyMorpheSettingsV4SystemBarsNow(
+            Activity activity,
+            MorpheSettingsV4SystemBars state
+    ) {
+        if (activity == null || state == null) return;
+
+        Window window = activity.getWindow();
+        if (window == null) return;
+
+        View decor = window.getDecorView();
+        if (decor == null) return;
+
+        int statusHeight = getStatusBarTopInset(decor);
+        if (statusHeight <= 0) {
+            statusHeight = getStatusBarHeight(activity);
+        }
+        if (statusHeight > 0) {
+            installStatusBarSurface(decor, statusHeight, state.color);
+        }
+
+        decor.setBackgroundColor(state.color);
+        if (Build.VERSION.SDK_INT >= 21) {
+            window.setStatusBarColor(state.color);
+            // Keep the requested color as a fallback for devices that do not let
+            // app content draw behind the gesture/navigation area.
+            window.setNavigationBarColor(state.color);
+        }
+        if (Build.VERSION.SDK_INT >= 28) {
+            window.setNavigationBarDividerColor(Color.TRANSPARENT);
+        }
+        if (Build.VERSION.SDK_INT >= 29) {
+            window.setStatusBarContrastEnforced(false);
+            window.setNavigationBarContrastEnforced(false);
+        }
+
+        int bottomInset = getEffectiveNavigationBottomInset(
+                decor,
+                getBestCurrentInsets(decor)
+        );
+        if (bottomInset <= 0) {
+            bottomInset = getNavigationBarHeight(decor);
+        }
+        installMorpheSettingsV4NavigationBarSurface(
+                decor,
+                bottomInset,
+                state.color
+        );
+        applyLightStatusBarFlag(decor, state.color);
+        applyLightNavigationBarFlag(decor, state.color);
+
+        if (MORPHE_SETTINGS_V4_SYSTEM_BAR_OWNER_MARKER.length() == 0
+                || MORPHE_SETTINGS_V4_NAVIGATION_SURFACE_MARKER.length() == 0
+                || state.dark && state.color == Color.TRANSPARENT) {
+            decor.invalidate();
+        }
+    }
+
+    private static void removeMorpheSettingsV4NavigationBarSurface(View decor) {
+        if (decor == null) return;
+
+        View surface = decor.findViewWithTag(
+                MORPHE_SETTINGS_V4_NAVIGATION_SURFACE_MARKER
+        );
+        if (surface == null || !(surface.getParent() instanceof ViewGroup)) return;
+
+        ((ViewGroup) surface.getParent()).removeView(surface);
+    }
+
+    private static void installMorpheSettingsV4NavigationBarSurface(
+            View decor,
+            int bottomInset,
+            int color
+    ) {
+        try {
+            if (!(decor instanceof FrameLayout) || bottomInset <= 0) return;
+
+            FrameLayout group = (FrameLayout) decor;
+            View surface = decor.findViewWithTag(
+                    MORPHE_SETTINGS_V4_NAVIGATION_SURFACE_MARKER
+            );
+
+            if (surface == null) {
+                surface = new View(decor.getContext());
+                surface.setTag(MORPHE_SETTINGS_V4_NAVIGATION_SURFACE_MARKER);
+                surface.setClickable(false);
+                surface.setFocusable(false);
+                if (Build.VERSION.SDK_INT >= 16) {
+                    surface.setImportantForAccessibility(
+                            View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                    );
+                }
+
+                FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        bottomInset,
+                        Gravity.BOTTOM
+                );
+                group.addView(surface, params);
+            }
+
+            ViewGroup.LayoutParams params = surface.getLayoutParams();
+            if (params != null && params.height != bottomInset) {
+                params.height = bottomInset;
+                surface.setLayoutParams(params);
+            }
+
+            surface.setBackgroundColor(color);
+            surface.bringToFront();
+            surface.invalidate();
         } catch (Throwable ignored) {
         }
     }
@@ -1112,6 +1267,16 @@ public final class BoostSystemBarInsetsFix {
         }
 
         return 0;
+    }
+
+    private static final class MorpheSettingsV4SystemBars {
+        final int color;
+        final boolean dark;
+
+        MorpheSettingsV4SystemBars(int color, boolean dark) {
+            this.color = color;
+            this.dark = dark;
+        }
     }
 
     private static final class Padding {

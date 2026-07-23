@@ -16,6 +16,8 @@ Options:
   --dev-package PACKAGE   Dev clone package. Default: com.rubenmayayo.reddit.dev.
   --normal-package PKG    Original package. Default: com.rubenmayayo.reddit.
   --label LABEL           App label. Default: Boost Dev.
+  --debuggable            Set android:debuggable=true and enable the
+                          DUMP-protected settings audit gateway on DEV only.
   --out-root DIR          Output root. Default: local-artifacts/boost-dev-overwrite-candidates.
   --help                  Show this help.
 
@@ -43,6 +45,10 @@ DEV_PACKAGE="com.rubenmayayo.reddit.dev"
 NORMAL_PACKAGE="com.rubenmayayo.reddit"
 LABEL="Boost Dev"
 OUT_ROOT="local-artifacts/boost-dev-overwrite-candidates"
+DEBUGGABLE=0
+AUDIT_SETTINGS_ACTIVITY="com.rubenmayayo.reddit.ui.preferences.v2.SettingsActivityCompat"
+AUDIT_GATEWAY_PERMISSION="android.permission.DUMP"
+AUDIT_GATEWAY_CHECKER="tools/check_boost_settings_audit_gateway.py"
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -74,6 +80,10 @@ while [ "$#" -gt 0 ]; do
       LABEL="${2:-}"
       shift 2
       ;;
+    --debuggable)
+      DEBUGGABLE=1
+      shift
+      ;;
     --out-root)
       OUT_ROOT="${2:-}"
       shift 2
@@ -96,6 +106,7 @@ if [ -z "$PATCH_RESULT" ]; then
 fi
 [ -f "$PATCH_RESULT" ] || fail "Patch result missing: $PATCH_RESULT"
 [ -x tools/boost-bytecode-safety-gate.sh ] || fail "bytecode safety gate missing or not executable"
+[ -f "$AUDIT_GATEWAY_CHECKER" ] || fail "audit gateway checker missing: $AUDIT_GATEWAY_CHECKER"
 
 AAPT="$(command -v aapt || true)"
 [ -n "$AAPT" ] || fail "aapt missing"
@@ -148,6 +159,9 @@ mkdir -p "$DEV_DIR"
   echo "DEV_PACKAGE=$DEV_PACKAGE"
   echo "NORMAL_PACKAGE=$NORMAL_PACKAGE"
   echo "LABEL=$LABEL"
+  echo "DEBUGGABLE=$DEBUGGABLE"
+  echo "AUDIT_SETTINGS_ACTIVITY=$AUDIT_SETTINGS_ACTIVITY"
+  echo "AUDIT_GATEWAY_PERMISSION=$AUDIT_GATEWAY_PERMISSION"
   echo "OUT_DIR=$OUT_DIR"
   echo "AAPT=$AAPT"
   echo "APKTOOL_MODE=$APKTOOL_MODE"
@@ -184,7 +198,14 @@ mkdir -p "$DEV_DIR"
 
   echo
   echo "===== rewrite manifest/resources ====="
-  DECODED="$DECODED" NORMAL_PACKAGE="$NORMAL_PACKAGE" DEV_PACKAGE="$DEV_PACKAGE" LABEL="$LABEL" python3 <<'PY'
+  DECODED="$DECODED" \
+    NORMAL_PACKAGE="$NORMAL_PACKAGE" \
+    DEV_PACKAGE="$DEV_PACKAGE" \
+    LABEL="$LABEL" \
+    DEBUGGABLE="$DEBUGGABLE" \
+    AUDIT_SETTINGS_ACTIVITY="$AUDIT_SETTINGS_ACTIVITY" \
+    AUDIT_GATEWAY_PERMISSION="$AUDIT_GATEWAY_PERMISSION" \
+    python3 <<'PY'
 from pathlib import Path
 import os
 import xml.etree.ElementTree as ET
@@ -193,6 +214,9 @@ decoded = Path(os.environ["DECODED"])
 normal_pkg = os.environ["NORMAL_PACKAGE"]
 dev_pkg = os.environ["DEV_PACKAGE"]
 label = os.environ["LABEL"]
+debuggable = os.environ["DEBUGGABLE"] == "1"
+audit_settings_activity = os.environ["AUDIT_SETTINGS_ACTIVITY"]
+audit_gateway_permission = os.environ["AUDIT_GATEWAY_PERMISSION"]
 
 android_ns = "http://schemas.android.com/apk/res/android"
 ET.register_namespace("android", android_ns)
@@ -205,16 +229,38 @@ root.set("package", dev_pkg)
 android_label = f"{{{android_ns}}}label"
 android_authorities = f"{{{android_ns}}}authorities"
 android_target_package = f"{{{android_ns}}}targetPackage"
+android_debuggable = f"{{{android_ns}}}debuggable"
+android_name = f"{{{android_ns}}}name"
+android_exported = f"{{{android_ns}}}exported"
+android_permission = f"{{{android_ns}}}permission"
 
 manifest_attr_rewrites = 0
+audit_gateway_rewrites = 0
 for node in root.iter():
     if node.tag == "application":
         node.set(android_label, label)
+        if debuggable:
+            node.set(android_debuggable, "true")
+
+    if (
+        debuggable
+        and node.tag == "activity"
+        and node.attrib.get(android_name) == audit_settings_activity
+    ):
+        node.set(android_exported, "true")
+        node.set(android_permission, audit_gateway_permission)
+        audit_gateway_rewrites += 1
 
     for attr in (android_authorities, android_target_package):
         if attr in node.attrib and normal_pkg in node.attrib[attr]:
             node.set(attr, node.attrib[attr].replace(normal_pkg, dev_pkg))
             manifest_attr_rewrites += 1
+
+if debuggable and audit_gateway_rewrites != 1:
+    raise RuntimeError(
+        "expected exactly one DEV settings audit gateway rewrite, "
+        f"found {audit_gateway_rewrites}"
+    )
 
 tree.write(manifest_path, encoding="utf-8", xml_declaration=True)
 
@@ -245,6 +291,8 @@ for strings in (decoded / "res").glob("values*/strings.xml"):
 print(f"MANIFEST_ATTR_REWRITES={manifest_attr_rewrites}")
 print(f"RESOURCE_XML_REWRITE_FILES={resource_xml_rewrites}")
 print(f"LABEL_REWRITE_FILES={label_rewrites}")
+print(f"DEV_DEBUGGABLE={int(debuggable)}")
+print(f"DEV_AUDIT_GATEWAY_REWRITES={audit_gateway_rewrites}")
 PY
 
   echo
@@ -259,6 +307,22 @@ PY
   else
     echo "[WARN] no dev targetPackage values found"
   fi
+
+  if [ "$DEBUGGABLE" -eq 1 ]; then
+    grep -Eq 'android:debuggable="true"' "$DECODED/AndroidManifest.xml" \
+      || fail "decoded DEV manifest is not debuggable"
+    pass "decoded DEV manifest is debuggable"
+    EXPECTED_AUDIT_GATEWAY=present
+  else
+    EXPECTED_AUDIT_GATEWAY=absent
+  fi
+  python3 "$AUDIT_GATEWAY_CHECKER" \
+    --manifest "$DECODED/AndroidManifest.xml" \
+    --expect "$EXPECTED_AUDIT_GATEWAY" \
+    --activity "$AUDIT_SETTINGS_ACTIVITY" \
+    --permission "$AUDIT_GATEWAY_PERMISSION" \
+    || fail "decoded DEV settings audit gateway state is invalid"
+  pass "decoded DEV settings audit gateway state matches request: $EXPECTED_AUDIT_GATEWAY"
 
   echo
   echo "===== build ====="
@@ -284,6 +348,35 @@ PY
   echo "DEV_APK_SHA256=$(sha256sum "$SIGNED_APK" | awk '{print $1}')"
 
   "$AAPT" dump badging "$SIGNED_APK" | grep -E "package:|targetSdkVersion|application-label|launchable-activity" | sed -n '1,160p'
+
+  SIGNED_MANIFEST_XMLTREE="$DEV_DIR/manifest-xmltree.txt"
+  "$AAPT" dump xmltree "$SIGNED_APK" AndroidManifest.xml > "$SIGNED_MANIFEST_XMLTREE" \
+    || fail "could not inspect signed DEV manifest"
+  if grep -Eq 'android:debuggable.*0xffffffff' "$SIGNED_MANIFEST_XMLTREE"; then
+    APK_DEBUGGABLE=1
+  else
+    APK_DEBUGGABLE=0
+  fi
+  [ "$APK_DEBUGGABLE" -eq "$DEBUGGABLE" ] \
+    || fail "signed DEV debuggable state mismatch: requested $DEBUGGABLE got $APK_DEBUGGABLE"
+  pass "signed DEV debuggable state matches request: $DEBUGGABLE"
+
+  if [ "$DEBUGGABLE" -eq 1 ]; then
+    EXPECTED_AUDIT_GATEWAY=present
+  else
+    EXPECTED_AUDIT_GATEWAY=absent
+  fi
+  python3 "$AUDIT_GATEWAY_CHECKER" \
+    --manifest "$SIGNED_MANIFEST_XMLTREE" \
+    --expect "$EXPECTED_AUDIT_GATEWAY" \
+    --activity "$AUDIT_SETTINGS_ACTIVITY" \
+    --permission "$AUDIT_GATEWAY_PERMISSION" \
+    || fail "signed DEV settings audit gateway state is invalid"
+  if [ "$DEBUGGABLE" -eq 1 ]; then
+    pass "signed DEV settings audit gateway is exported and DUMP-protected"
+  else
+    pass "signed non-debuggable DEV has no settings audit gateway"
+  fi
 
   "$APKSIGNER" verify --print-certs "$SIGNED_APK" | grep -E 'Signer #1 certificate DN|Signer #1 certificate SHA-256 digest' | sed -n '1,40p'
 

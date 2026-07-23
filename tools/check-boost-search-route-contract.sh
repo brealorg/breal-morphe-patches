@@ -91,7 +91,7 @@ matching = [
     if f'android:key="{key}"' in block
 ]
 
-assert len(matching) == 2
+assert len(matching) == 1
 
 assert all(
     'android:defaultValue="false"' in block
@@ -102,14 +102,14 @@ assert (
     settings.count(
         'android:title="Open keyboard when entering Search"'
     )
-    == 2
+    == 1
 )
 
 assert (
     settings.count(
         "When disabled, tap Search again to start typing."
     )
-    == 2
+    == 1
 )
 PY_CHECK
 
