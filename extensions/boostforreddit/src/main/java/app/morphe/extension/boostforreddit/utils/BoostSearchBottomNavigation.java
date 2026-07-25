@@ -126,6 +126,8 @@ public final class BoostSearchBottomNavigation {
     private static volatile Integer SHARED_INBOX_BADGE_COUNT;
     private static final String ALL_ACTIVITY_SELECTION_GUARD_MARKER =
             "MORPHE_BOOST_BOTTOM_NAV_ALL_ACTIVITY_SELECTION_GUARD_V6";
+    private static final String SOURCE_SELECTION_RETAINED_MARKER =
+            "MORPHE_BOOST_BOTTOM_NAV_SOURCE_SELECTION_RETAINED_ISSUE117_V2";
     private static final String SHOW_PREFERENCE_STABILITY_GUARD_MARKER =
             "MORPHE_BOOST_BOTTOM_NAV_SHOW_PREFERENCE_STABILITY_GUARD_ISSUE97_V1";
     private static final String PERSISTED_INBOX_BADGE_MARKER =
@@ -1955,7 +1957,6 @@ public final class BoostSearchBottomNavigation {
                         )
         );
     }
-
 
     private static String nativeCoordinatorBehaviorName(
             View navigation
@@ -4172,9 +4173,18 @@ public final class BoostSearchBottomNavigation {
                                         && args.length == 1
                                         && args[0] instanceof MenuItem
                         ) {
-                            return handleItem(
+                            MenuItem item =
+                                    (MenuItem) args[0];
+                            boolean handled =
+                                    handleItem(
+                                            activity,
+                                            item
+                                    );
+
+                            return preserveSourceSelectionAfterRoute(
                                     activity,
-                                    (MenuItem) args[0]
+                                    item,
+                                    handled
                             );
                         }
 
@@ -4193,6 +4203,55 @@ public final class BoostSearchBottomNavigation {
         setter.setAccessible(true);
         setter.invoke(navigation, listener);
         return api;
+    }
+
+    private static boolean preserveSourceSelectionAfterRoute(
+            Activity activity,
+            MenuItem routedItem,
+            boolean handled
+    ) {
+        if (
+                !handled
+                        || activity == null
+                        || routedItem == null
+        ) {
+            return handled;
+        }
+
+        int sourceItemId =
+                selectedItemIdForActivity(
+                        activity,
+                        0
+                );
+        int routedItemId =
+                routedItem.getItemId();
+
+        if (
+                sourceItemId == 0
+                        || sourceItemId == routedItemId
+        ) {
+            return true;
+        }
+
+        /*
+         * BottomNavigationView interprets true as permission to persist the
+         * tapped destination as selected in the current Activity. Morphe has
+         * already opened a different Activity, so the source Activity must
+         * reject that visual state change and retain its own destination.
+         */
+        Log.i(
+                TAG,
+                "Source selection retained after routed tab marker="
+                        + SOURCE_SELECTION_RETAINED_MARKER
+                        + " activity="
+                        + activity.getClass().getName()
+                        + " sourceItemId="
+                        + sourceItemId
+                        + " routedItemId="
+                        + routedItemId
+        );
+
+        return false;
     }
 
     private static String attachSubredditNavigationListeners(
