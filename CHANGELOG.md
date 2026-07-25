@@ -1,6 +1,12 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.95](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-94...morphe-patches-95) (2026-07-25)
+
+* **Boost for Reddit:** Bug Fixes
+
+- Preserve each Activity's selected bottom-navigation destination when returning with Android Back.
+
 ## [1.4.94](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-93...morphe-patches-94) (2026-07-23)
 
 * **Boost for Reddit:** Features
