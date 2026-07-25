@@ -88,6 +88,37 @@ contains `OPERATION_READY=YES`, `MUTATIONS=NONE`, `REMOTE_WRITES=NONE`, an
 never performs the actual push. Dirty unrelated worktrees are counted and
 reported, but do not invalidate a correctly isolated target operation.
 
+## v22.3 operation-scoped receipts
+
+Repository-wide snapshots remain useful diagnostics, but they are not universal
+postconditions. A transaction verifier now checks only the fields that the
+specific operation is authorized to change or must preserve by contract.
+
+The first v22.3 verifier covers a completed local `main` synchronization:
+
+```bash
+python3 tools/morphe-flow.py \
+  --repo ~/dev/breal-morphe-patches \
+  main verify-sync \
+  --old-main <previous-main-sha> \
+  --new-main <merged-main-sha> \
+  --pr-head <authorized-pr-head-sha> \
+  --work-branch work/example
+```
+
+`SYNC_LOCAL_MAIN` verifies local `main`, `origin/main`, remote `main`, the
+preserved work branch, the clean main worktree, the squash parent, the squash
+tree, and the optional symbolic `origin/HEAD` alias. Other worktrees are observed
+only for diagnostic context. Dirty state, index metadata, or concurrent work in
+an unrelated issue worktree is reported under
+`UNRELATED_ACTIVITY_POLICY=REPORT_ONLY_NEVER_GATE_SYNC_LOCAL_MAIN` and cannot
+make the main-sync receipt fail.
+
+Every required mismatch is emitted as a field-level `CHECK=... STATUS=FAIL`
+entry with expected and actual values. The verifier is read-only, requires no
+historic whole-repository snapshot, and emits an operation fingerprint derived
+only from the authorized operation and its relevant observations.
+
 ## Mutation boundary
 
 Later v22 phases may consume the audit and readiness reports, but they must

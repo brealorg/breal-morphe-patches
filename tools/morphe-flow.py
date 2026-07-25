@@ -5,6 +5,11 @@ Hardening v22.1 deliberately performs no Git or GitHub mutation. Hardening
 v22.2 adds an exact push dry-run and a fingerprinted push plan, but still
 performs no local-ref mutation, remote write, pull-request mutation, workflow
 dispatch, tag, release, or asset upload.
+
+Hardening v22.3 adds operation-scoped postcondition receipts. They verify only
+the fields causally relevant to an authorized operation and report unrelated
+activity without turning it into a transaction failure. These receipts remain
+read-only.
 """
 
 from __future__ import annotations
@@ -21,6 +26,16 @@ import shutil
 import subprocess
 import sys
 from typing import Any, Iterable, Sequence
+
+_TOOLS_DIR = str(Path(__file__).resolve().parent)
+if _TOOLS_DIR not in sys.path:
+    sys.path.insert(0, _TOOLS_DIR)
+
+from morphe_flow_operations import (
+    OperationObservationError,
+    collect_main_sync_verification,
+    print_main_sync_verification,
+)
 
 
 SCHEMA_VERSION = 1
@@ -1549,12 +1564,57 @@ def _build_parser() -> argparse.ArgumentParser:
         help="prove one exact work branch is ready for explicit push authorization",
     )
     ready_push.add_argument("branch")
+
+    main_parser = subparsers.add_parser("main", help="main-branch lifecycle commands")
+    main_subparsers = main_parser.add_subparsers(dest="main_command", required=True)
+    verify_sync = main_subparsers.add_parser(
+        "verify-sync",
+        help="verify operation-scoped postconditions for a completed local main sync",
+    )
+    verify_sync.add_argument("--old-main", required=True)
+    verify_sync.add_argument("--new-main", required=True)
+    verify_sync.add_argument("--pr-head", required=True)
+    verify_sync.add_argument("--work-branch", required=True)
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
+
+    if args.command == "main" and args.main_command == "verify-sync":
+        if args.local_only:
+            parser.error("main verify-sync requires remote Git observation")
+        try:
+            verification = collect_main_sync_verification(
+                args.repo,
+                old_main_sha=args.old_main,
+                new_main_sha=args.new_main,
+                pr_head_sha=args.pr_head,
+                work_branch=args.work_branch,
+            )
+        except (
+            OperationObservationError,
+            OSError,
+            subprocess.SubprocessError,
+            ValueError,
+        ) as exc:
+            print("===== MORPHE FLOW MAIN SYNC VERIFICATION =====")
+            print(f"ERROR={exc}")
+            print("MUTATIONS=NONE")
+            print("RESULT=MORPHE_FLOW_MAIN_SYNC_VERIFICATION_FAILED")
+            return 1
+        if args.json_output:
+            _write_payload(verification.as_dict(), args.json_output)
+            print(
+                f"JSON_OUTPUT={args.json_output}",
+                file=sys.stderr if args.format == "json" else sys.stdout,
+            )
+        if args.format == "json":
+            print(json.dumps(verification.as_dict(), indent=2, sort_keys=True))
+        else:
+            print_main_sync_verification(verification)
+        return 0 if verification.verified else 2
 
     if args.command == "branch" and args.branch_command == "ready-push":
         if args.local_only:
