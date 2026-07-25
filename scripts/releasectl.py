@@ -4962,6 +4962,94 @@ def _idempotent_draft_creation_guard(
 
     return guard()
 
+def _incomplete_observation_diagnostics(
+    inspection: ReleaseInspectionResult,
+) -> str:
+    # Describe exactly which authoritative observer was incomplete.
+
+    sources: tuple[tuple[str, Any, bool], ...] = (
+        (
+            "local_git",
+            inspection.local_git,
+            inspection.local_git.safety.observations_complete,
+        ),
+        (
+            "remote_git",
+            inspection.remote_git,
+            inspection.remote_git.observations_complete,
+        ),
+        (
+            "github_release",
+            inspection.github_release,
+            inspection.github_release.observations_complete,
+        ),
+        (
+            "local_artifacts",
+            inspection.local_artifacts,
+            inspection.local_artifacts.observations_complete,
+        ),
+        (
+            "local_metadata",
+            inspection.local_metadata,
+            inspection.local_metadata.observations_complete,
+        ),
+        (
+            "remote_assets",
+            inspection.remote_assets,
+            inspection.remote_assets.observations_complete,
+        ),
+    )
+
+    details: list[str] = []
+    for label, result, complete in sources:
+        if complete:
+            continue
+
+        components = [f"{label}=INCOMPLETE"]
+        errors = tuple(getattr(result, "errors", ()))
+        warnings = tuple(getattr(result, "warnings", ()))
+        mismatches = tuple(getattr(result, "mismatches", ()))
+
+        if label == "local_git":
+            safety = result.safety
+            components.extend(
+                (
+                    f"current_branch_is_main={safety.current_branch_is_main}",
+                    f"worktree_clean={safety.worktree_clean}",
+                    f"index_clean={safety.index_clean}",
+                    (
+                        "required_tools_available="
+                        f"{safety.required_tools_available}"
+                    ),
+                )
+            )
+
+        if errors:
+            components.append("errors=" + " | ".join(errors))
+        if mismatches:
+            components.append(
+                "mismatches=" + " | ".join(mismatches)
+            )
+        if warnings:
+            components.append("warnings=" + " | ".join(warnings))
+
+        details.append(", ".join(components))
+
+    if details:
+        return "; ".join(details)
+
+    aggregate_errors = tuple(inspection.errors)
+    aggregate_warnings = tuple(inspection.warnings)
+    fallback = ["aggregate observations are incomplete"]
+    if aggregate_errors:
+        fallback.append("errors=" + " | ".join(aggregate_errors))
+    if aggregate_warnings:
+        fallback.append(
+            "warnings=" + " | ".join(aggregate_warnings)
+        )
+    return ", ".join(fallback)
+
+
 def publish_release_workflow(
     repo_path: str | Path,
     repository: str,
@@ -5033,7 +5121,10 @@ def publish_release_workflow(
                 + "; ".join(initial.state_result.reasons)
             )
         if not initial.state_result.observations_complete:
-            raise RuntimeError("one or more required release observations are incomplete")
+            raise RuntimeError(
+                "one or more required release observations are incomplete: "
+                + _incomplete_observation_diagnostics(initial)
+            )
         if initial.state_result.state is ReleaseState.PUBLISHED_AND_VERIFIED:
             token = "MORPHE_RELEASE_ALREADY_PUBLISHED_VERIFIED_OK"
             append_transaction_entry(
@@ -5075,7 +5166,10 @@ def publish_release_workflow(
             if state is ReleaseState.INCONSISTENT_ABORT:
                 raise RuntimeError("release state is inconsistent: " + "; ".join(inspection.state_result.reasons))
             if not inspection.state_result.observations_complete:
-                raise RuntimeError("one or more required release observations are incomplete")
+                raise RuntimeError(
+                    "one or more required release observations are incomplete: "
+                    + _incomplete_observation_diagnostics(inspection)
+                )
             if state is ReleaseState.PUBLISHED_AND_VERIFIED:
                 append_transaction_entry(
                     log_path, command=command_name, phase="COMPLETE", status="COMPLETED",
