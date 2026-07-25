@@ -66,10 +66,32 @@ Use `--strict` when a caller should receive exit code `2` for incomplete
 observations or lifecycle blockers. Normal audit mode prints the complete report
 and exits successfully so inspection remains usable during diagnosis.
 
+## v22.2 operation-specific push readiness
+
+A repository-wide blocker no longer automatically blocks every unrelated
+operation. The command below evaluates only the exact work branch, while still
+requiring canonical `main`, current `origin/main`, complete remote/GitHub
+observation, a clean target worktree, and a forward-only remote relation:
+
+```bash
+python3 tools/morphe-flow.py \
+  --repo ~/dev/breal-morphe-patches \
+  branch ready-push work/example
+```
+
+The command disables local Git hooks and executes an exact SHA-bound
+`git push --dry-run --porcelain`. It snapshots local refs, the worktree
+registry, target status, and target index bytes/metadata before and after, then
+re-observes remote `main` and the target remote branch. A successful result
+contains `OPERATION_READY=YES`, `MUTATIONS=NONE`, `REMOTE_WRITES=NONE`, an
+`OPERATION_FINGERPRINT`, and `NEXT=REQUEST_EXPLICIT_PUSH_AUTHORIZATION`. It
+never performs the actual push. Dirty unrelated worktrees are counted and
+reported, but do not invalidate a correctly isolated target operation.
+
 ## Mutation boundary
 
-Later v22 phases may consume this report, but they must not bypass it. A future
-mutation command must:
+Later v22 phases may consume the audit and readiness reports, but they must
+not bypass them. A future mutation command must:
 
 1. collect a fresh complete audit;
 2. bind the intended operation to exact branch, worktree, local HEAD, remote HEAD,

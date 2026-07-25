@@ -17,6 +17,12 @@ class MorpheFlowSourceContractTest(unittest.TestCase):
         self.assertIn('mutations: str = "NONE"', text)
         self.assertIn("report_fingerprint: str", text)
         self.assertIn("refusing non-read-only Git operation", text)
+        self.assertIn('remote_writes: str = "NONE"', text)
+        self.assertIn("class PushDryRunner", text)
+        self.assertIn('"--dry-run"', text)
+        self.assertIn('"core.hooksPath=/dev/null"', text)
+        self.assertIn("REQUEST_EXPLICIT_PUSH_AUTHORIZATION", text)
+        self.assertEqual(1, text.count('"push",'))
 
     def test_all_subprocess_calls_are_centralized(self) -> None:
         tree = ast.parse(SOURCE.read_text(encoding="utf-8"))

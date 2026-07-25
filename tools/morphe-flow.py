@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Read-only lifecycle audit for Morphe repository worktrees and branches.
+"""Read-only lifecycle audit and operation-specific readiness for Morphe.
 
-Hardening v22.1 deliberately performs no Git or GitHub mutation. It observes
-local worktrees, branches, stashes, remote heads, and pull requests, then emits
-one normalized lifecycle report that later mutation commands can consume.
+Hardening v22.1 deliberately performs no Git or GitHub mutation. Hardening
+v22.2 adds an exact push dry-run and a fingerprinted push plan, but still
+performs no local-ref mutation, remote write, pull-request mutation, workflow
+dispatch, tag, release, or asset upload.
 """
 
 from __future__ import annotations
@@ -80,6 +81,7 @@ class GitReader:
         "merge-base",
         "rev-list",
         "rev-parse",
+        "show-ref",
         "status",
     }
 
@@ -128,6 +130,55 @@ class GitReader:
             detail = result.stderr.strip() or result.stdout.strip() or "unknown Git error"
             raise ObservationError(f"git {' '.join(args)} failed in {cwd}: {detail}")
         return result
+
+
+class PushDryRunner:
+    """Run one exact hook-disabled Git push dry-run without updating refs."""
+
+    _WORK_BRANCH = re.compile(r"^work/[A-Za-z0-9][A-Za-z0-9._/-]*$")
+    _FULL_SHA = re.compile(r"^[0-9a-f]{40}$")
+
+    def __init__(self, runner: CommandRunner) -> None:
+        self._runner = runner
+
+    @classmethod
+    def validate_branch(cls, branch: str) -> None:
+        if not cls._WORK_BRANCH.fullmatch(branch):
+            raise ValueError(f"refusing push readiness for non-work branch: {branch}")
+        if ".." in branch or "//" in branch or branch.endswith(("/", ".")):
+            raise ValueError(f"refusing malformed work branch: {branch}")
+
+    @classmethod
+    def _validate(cls, branch: str, local_sha: str) -> None:
+        cls.validate_branch(branch)
+        if not cls._FULL_SHA.fullmatch(local_sha):
+            raise ValueError("push readiness requires an exact lowercase 40-character commit SHA")
+
+    @classmethod
+    def command(cls, branch: str, local_sha: str) -> tuple[str, ...]:
+        cls._validate(branch, local_sha)
+        return (
+            "git",
+            "-c",
+            "core.hooksPath=/dev/null",
+            "push",
+            "--dry-run",
+            "--porcelain",
+            "origin",
+            f"{local_sha}:refs/heads/{branch}",
+        )
+
+    def run(self, cwd: Path, *, branch: str, local_sha: str) -> CommandResult:
+        return self._runner.run(
+            self.command(branch, local_sha),
+            cwd=cwd,
+            timeout=60,
+            env_overrides={
+                "GIT_OPTIONAL_LOCKS": "0",
+                "GIT_TERMINAL_PROMPT": "0",
+                "LC_ALL": "C",
+            },
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -234,6 +285,59 @@ class AuditReport:
     safe_to_mutate: bool
     report_fingerprint: str
     mutations: str = "NONE"
+
+    def as_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True, slots=True)
+class RepositoryIntegritySnapshot:
+    refs_sha256: str
+    worktree_registry_sha256: str
+    target_status_sha256: str
+    target_index_sha256: str
+    target_index_size: int
+    target_index_mtime_ns: int
+
+
+@dataclass(frozen=True, slots=True)
+class PushReadinessReport:
+    schema_version: int
+    generated_at: str
+    repository_root: str
+    repository_slug: str | None
+    operation: str
+    branch: str
+    worktree_path: str | None
+    local_head_sha: str | None
+    local_main_sha: str | None
+    origin_main_tracking_sha: str | None
+    remote_main_before_sha: str | None
+    remote_main_after_sha: str | None
+    remote_branch_before_sha: str | None
+    remote_branch_after_sha: str | None
+    target_lifecycle_state: str | None
+    target_main_ahead: int | None
+    target_main_behind: int | None
+    target_dirty: bool | None
+    audit_fingerprint: str
+    operation_fingerprint: str
+    dry_run_command: tuple[str, ...]
+    dry_run_status: str
+    dry_run_exit_code: int | None
+    dry_run_stdout: str
+    dry_run_stderr: str
+    local_repository_unchanged: bool | None
+    remote_branch_unchanged: bool | None
+    remote_main_unchanged: bool | None
+    unrelated_blocker_count: int
+    unrelated_warning_count: int
+    blockers: tuple[str, ...]
+    warnings: tuple[str, ...]
+    ready: bool
+    next_action: str
+    mutations: str = "NONE"
+    remote_writes: str = "NONE"
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -1043,6 +1147,239 @@ def collect_audit(
     )
 
 
+def _sha256_text(value: str) -> str:
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def _repository_integrity_snapshot(
+    git: GitReader,
+    root: Path,
+    target: WorktreeObservation,
+) -> RepositoryIntegritySnapshot:
+    target_path = Path(target.path)
+    refs = git.run(root, "show-ref", allow_failure=True)
+    if refs.returncode not in (0, 1):
+        detail = refs.stderr.strip() or refs.stdout.strip() or "git show-ref failed"
+        raise ObservationError(detail)
+    worktrees = git.run(root, "worktree", "list", "--porcelain")
+    status = git.run(
+        target_path,
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--untracked-files=all",
+    )
+    index_result = git.run(target_path, "rev-parse", "--git-path", "index")
+    index_path = Path(_git_stdout(index_result))
+    if not index_path.is_absolute():
+        index_path = target_path / index_path
+    payload = index_path.read_bytes()
+    stat = index_path.stat()
+    return RepositoryIntegritySnapshot(
+        refs_sha256=_sha256_text(refs.stdout),
+        worktree_registry_sha256=_sha256_text(worktrees.stdout),
+        target_status_sha256=_sha256_text(status.stdout),
+        target_index_sha256=hashlib.sha256(payload).hexdigest(),
+        target_index_size=stat.st_size,
+        target_index_mtime_ns=stat.st_mtime_ns,
+    )
+
+
+
+def collect_push_readiness(
+    candidate: Path,
+    branch: str,
+    *,
+    runner: CommandRunner | None = None,
+) -> PushReadinessReport:
+    command_runner = runner or CommandRunner()
+    PushDryRunner.validate_branch(branch)
+    audit = collect_audit(candidate, local_only=False, runner=command_runner)
+    root = Path(audit.repository_root)
+    git = GitReader(command_runner)
+    blockers: list[str] = []
+    warnings: list[str] = []
+
+    targets = [item for item in audit.worktrees if item.branch == branch]
+    target = targets[0] if len(targets) == 1 else None
+    if not targets:
+        blockers.append("target branch is not attached to a registered worktree")
+    elif len(targets) > 1:
+        blockers.append("target branch is attached to multiple registered worktrees")
+
+    if audit.local_observer.status != "PASS":
+        blockers.append("local Git observer is incomplete")
+    if audit.remote_git_observer.status != "PASS":
+        blockers.append("remote Git observer is incomplete")
+    if audit.github_observer.status != "PASS":
+        blockers.append("GitHub observer is incomplete")
+    if audit.local_main_sha is None or audit.remote_main_sha is None:
+        blockers.append("canonical main identity is incomplete")
+    elif audit.local_main_sha != audit.remote_main_sha:
+        blockers.append("local main does not equal remote main")
+    if audit.origin_main_tracking_current is not True:
+        blockers.append("origin/main tracking ref is not current")
+
+    local_head = target.head_sha if target else None
+    remote_branch_before = target.remote_head_sha if target else None
+    target_state = target.lifecycle_state if target else None
+    target_next = target.next_action if target else "ATTACH_TARGET_WORKTREE"
+    if target:
+        if target.dirty is not False:
+            blockers.append("target worktree is not clean")
+        if target.main_behind != 0:
+            blockers.append("target branch is not based on current origin/main")
+        if target.main_ahead is None or target.main_ahead < 1:
+            blockers.append("target branch contains no commit ahead of origin/main")
+        if target.remote_relation not in {"ABSENT", "LOCAL_AHEAD"}:
+            blockers.append(
+                f"target remote relation {target.remote_relation} does not require a safe forward push"
+            )
+        if target.lifecycle_state not in {"LOCAL_ONLY_READY", "LOCAL_AHEAD_OF_REMOTE"}:
+            blockers.append(
+                f"target lifecycle state {target.lifecycle_state} is not push-ready"
+            )
+        if target.pull_request is not None:
+            blockers.append("target branch is already associated with a pull request")
+        blockers.extend(
+            blocker for blocker in target.blockers if blocker not in blockers
+        )
+        warnings.extend(target.warnings)
+
+    unrelated_blocker_count = sum(
+        len(item.blockers)
+        for item in audit.worktrees
+        if item.branch != branch
+    )
+    unrelated_warning_count = (
+        len(audit.global_warnings)
+        + sum(len(item.warnings) for item in audit.worktrees if item.branch != branch)
+    )
+    if unrelated_blocker_count:
+        warnings.append(
+            f"repository has {unrelated_blocker_count} blocker(s) outside target branch; "
+            "they do not affect this exact push plan"
+        )
+    warnings.extend(audit.global_warnings)
+
+    dry_run_status = "SKIPPED"
+    dry_run_exit_code: int | None = None
+    dry_run_stdout = ""
+    dry_run_stderr = ""
+    local_unchanged: bool | None = None
+    remote_branch_after = remote_branch_before
+    remote_main_after = audit.remote_main_sha
+    remote_branch_unchanged: bool | None = None
+    remote_main_unchanged: bool | None = None
+    dry_run_command: tuple[str, ...] = ()
+
+    if not blockers and target and local_head:
+        dry_run_command = PushDryRunner.command(branch, local_head)
+        before_integrity = _repository_integrity_snapshot(git, root, target)
+        dry_run = PushDryRunner(command_runner).run(
+            root,
+            branch=branch,
+            local_sha=local_head,
+        )
+        dry_run_exit_code = dry_run.returncode
+        dry_run_stdout = dry_run.stdout.strip()
+        dry_run_stderr = dry_run.stderr.strip()
+        dry_run_status = "PASS" if dry_run.returncode == 0 else "FAIL"
+        if dry_run.returncode != 0:
+            detail = dry_run_stderr or dry_run_stdout or "git push --dry-run failed"
+            blockers.append(f"push dry-run failed: {detail}")
+
+        after_integrity = _repository_integrity_snapshot(git, root, target)
+        local_unchanged = before_integrity == after_integrity
+        if not local_unchanged:
+            blockers.append("local repository state changed during push dry-run")
+
+        remote_heads_after, remote_errors = _read_remote_heads(git, root)
+        if remote_errors:
+            blockers.append(f"post-dry-run remote observation failed: {remote_errors[0]}")
+            remote_branch_unchanged = None
+            remote_main_unchanged = None
+        else:
+            remote_branch_after = remote_heads_after.get(branch)
+            remote_main_after = remote_heads_after.get("main")
+            remote_branch_unchanged = remote_branch_after == remote_branch_before
+            remote_main_unchanged = remote_main_after == audit.remote_main_sha
+            if not remote_branch_unchanged:
+                blockers.append("remote target branch changed during push dry-run")
+            if not remote_main_unchanged:
+                blockers.append("remote main changed during push dry-run")
+
+    operation_payload = {
+        "schema_version": SCHEMA_VERSION,
+        "operation": "PUSH_BRANCH",
+        "repository_root": str(root),
+        "repository_slug": audit.repository_slug,
+        "branch": branch,
+        "worktree_path": target.path if target else None,
+        "local_head_sha": local_head,
+        "local_main_sha": audit.local_main_sha,
+        "origin_main_tracking_sha": audit.origin_main_tracking_sha,
+        "remote_main_before_sha": audit.remote_main_sha,
+        "remote_main_after_sha": remote_main_after,
+        "remote_branch_before_sha": remote_branch_before,
+        "remote_branch_after_sha": remote_branch_after,
+        "target_lifecycle_state": target_state,
+        "target_main_ahead": target.main_ahead if target else None,
+        "target_main_behind": target.main_behind if target else None,
+        "audit_fingerprint": audit.report_fingerprint,
+        "dry_run_status": dry_run_status,
+        "dry_run_exit_code": dry_run_exit_code,
+        "local_repository_unchanged": local_unchanged,
+        "remote_branch_unchanged": remote_branch_unchanged,
+        "remote_main_unchanged": remote_main_unchanged,
+    }
+    operation_fingerprint = _canonical_fingerprint(operation_payload)
+    ready = not blockers and dry_run_status == "PASS"
+    next_action = (
+        "REQUEST_EXPLICIT_PUSH_AUTHORIZATION"
+        if ready
+        else target_next if target_next not in {"PREFLIGHT_PUSH", "NONE"}
+        else "RESOLVE_PUSH_READINESS_BLOCKERS"
+    )
+
+    return PushReadinessReport(
+        schema_version=SCHEMA_VERSION,
+        generated_at=datetime.now(timezone.utc).isoformat(),
+        repository_root=str(root),
+        repository_slug=audit.repository_slug,
+        operation="PUSH_BRANCH",
+        branch=branch,
+        worktree_path=target.path if target else None,
+        local_head_sha=local_head,
+        local_main_sha=audit.local_main_sha,
+        origin_main_tracking_sha=audit.origin_main_tracking_sha,
+        remote_main_before_sha=audit.remote_main_sha,
+        remote_main_after_sha=remote_main_after,
+        remote_branch_before_sha=remote_branch_before,
+        remote_branch_after_sha=remote_branch_after,
+        target_lifecycle_state=target_state,
+        target_main_ahead=target.main_ahead if target else None,
+        target_main_behind=target.main_behind if target else None,
+        target_dirty=target.dirty if target else None,
+        audit_fingerprint=audit.report_fingerprint,
+        operation_fingerprint=operation_fingerprint,
+        dry_run_command=dry_run_command,
+        dry_run_status=dry_run_status,
+        dry_run_exit_code=dry_run_exit_code,
+        dry_run_stdout=dry_run_stdout,
+        dry_run_stderr=dry_run_stderr,
+        local_repository_unchanged=local_unchanged,
+        remote_branch_unchanged=remote_branch_unchanged,
+        remote_main_unchanged=remote_main_unchanged,
+        unrelated_blocker_count=unrelated_blocker_count,
+        unrelated_warning_count=unrelated_warning_count,
+        blockers=tuple(blockers),
+        warnings=tuple(dict.fromkeys(warnings)),
+        ready=ready,
+        next_action=next_action,
+    )
+
+
 def _short_sha(value: str | None) -> str:
     return value[:12] if value else "-"
 
@@ -1136,9 +1473,58 @@ def _print_human(report: AuditReport, *, issue: int | None = None) -> None:
     print("RESULT=MORPHE_FLOW_AUDIT_COMPLETE")
 
 
-def _write_json(report: AuditReport, path: Path) -> None:
+def _print_push_readiness(report: PushReadinessReport) -> None:
+    print("===== MORPHE FLOW PUSH READINESS =====")
+    print(f"SCHEMA_VERSION={report.schema_version}")
+    print(f"OPERATION={report.operation}")
+    print(f"REPOSITORY_ROOT={report.repository_root}")
+    print(f"REPOSITORY_SLUG={report.repository_slug or '-'}")
+    print(f"BRANCH={report.branch}")
+    print(f"WORKTREE={report.worktree_path or '-'}")
+    print(f"LOCAL_HEAD={report.local_head_sha or '-'}")
+    print(f"LOCAL_MAIN={report.local_main_sha or '-'}")
+    print(f"ORIGIN_MAIN_TRACKING={report.origin_main_tracking_sha or '-'}")
+    print(f"REMOTE_MAIN_BEFORE={report.remote_main_before_sha or 'ABSENT'}")
+    print(f"REMOTE_MAIN_AFTER={report.remote_main_after_sha or 'ABSENT'}")
+    print(f"REMOTE_BRANCH_BEFORE={report.remote_branch_before_sha or 'ABSENT'}")
+    print(f"REMOTE_BRANCH_AFTER={report.remote_branch_after_sha or 'ABSENT'}")
+    print(f"TARGET_STATE={report.target_lifecycle_state or 'MISSING'}")
+    print(f"TARGET_DIRTY={_tri_state(report.target_dirty)}")
+    print(f"TARGET_MAIN_AHEAD={report.target_main_ahead if report.target_main_ahead is not None else '-'}")
+    print(f"TARGET_MAIN_BEHIND={report.target_main_behind if report.target_main_behind is not None else '-'}")
+    print(f"AUDIT_FINGERPRINT={report.audit_fingerprint}")
+    print(f"OPERATION_FINGERPRINT={report.operation_fingerprint}")
+    print(f"DRY_RUN_STATUS={report.dry_run_status}")
+    print(f"DRY_RUN_EXIT_CODE={report.dry_run_exit_code if report.dry_run_exit_code is not None else '-'}")
+    if report.dry_run_command:
+        print(f"DRY_RUN_COMMAND={' '.join(report.dry_run_command)}")
+    for line in report.dry_run_stdout.splitlines():
+        print(f"DRY_RUN_STDOUT={line}")
+    for line in report.dry_run_stderr.splitlines():
+        print(f"DRY_RUN_STDERR={line}")
+    print(f"LOCAL_REPOSITORY_UNCHANGED={_tri_state(report.local_repository_unchanged)}")
+    print(f"REMOTE_BRANCH_UNCHANGED={_tri_state(report.remote_branch_unchanged)}")
+    print(f"REMOTE_MAIN_UNCHANGED={_tri_state(report.remote_main_unchanged)}")
+    print(f"UNRELATED_BLOCKER_COUNT={report.unrelated_blocker_count}")
+    print(f"UNRELATED_WARNING_COUNT={report.unrelated_warning_count}")
+    for blocker in report.blockers:
+        print(f"BLOCKER={blocker}")
+    for warning in report.warnings:
+        print(f"WARNING={warning}")
+    print(f"OPERATION_READY={'YES' if report.ready else 'NO'}")
+    print(f"NEXT={report.next_action}")
+    print(f"MUTATIONS={report.mutations}")
+    print(f"REMOTE_WRITES={report.remote_writes}")
+    print("RESULT=MORPHE_FLOW_PUSH_READINESS_COMPLETE")
+
+
+def _write_payload(payload: dict[str, Any], path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(report.as_dict(), indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def _write_json(report: AuditReport, path: Path) -> None:
+    _write_payload(report.as_dict(), path)
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -1155,12 +1541,45 @@ def _build_parser() -> argparse.ArgumentParser:
     issue_subparsers = issue_parser.add_subparsers(dest="issue_command", required=True)
     issue_status = issue_subparsers.add_parser("status", help="show worktrees and branches associated with one issue")
     issue_status.add_argument("issue_number", type=int)
+
+    branch_parser = subparsers.add_parser("branch", help="branch-scoped lifecycle commands")
+    branch_subparsers = branch_parser.add_subparsers(dest="branch_command", required=True)
+    ready_push = branch_subparsers.add_parser(
+        "ready-push",
+        help="prove one exact work branch is ready for explicit push authorization",
+    )
+    ready_push.add_argument("branch")
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
+
+    if args.command == "branch" and args.branch_command == "ready-push":
+        if args.local_only:
+            parser.error("branch ready-push requires complete remote and GitHub observations")
+        try:
+            readiness = collect_push_readiness(args.repo, args.branch)
+        except (ObservationError, OSError, subprocess.SubprocessError, ValueError) as exc:
+            print("===== MORPHE FLOW PUSH READINESS =====")
+            print(f"ERROR={exc}")
+            print("MUTATIONS=NONE")
+            print("REMOTE_WRITES=NONE")
+            print("RESULT=MORPHE_FLOW_PUSH_READINESS_FAILED")
+            return 1
+        if args.json_output:
+            _write_payload(readiness.as_dict(), args.json_output)
+            print(
+                f"JSON_OUTPUT={args.json_output}",
+                file=sys.stderr if args.format == "json" else sys.stdout,
+            )
+        if args.format == "json":
+            print(json.dumps(readiness.as_dict(), indent=2, sort_keys=True))
+        else:
+            _print_push_readiness(readiness)
+        return 0 if readiness.ready else 2
+
     try:
         report = collect_audit(args.repo, local_only=args.local_only)
     except (ObservationError, OSError, subprocess.SubprocessError, ValueError) as exc:

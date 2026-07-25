@@ -374,5 +374,120 @@ class IntegrationAuditTest(unittest.TestCase):
         self.assertIn("MUTATIONS=NONE", result.stdout)
 
 
+class PushReadinessTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory()
+        self.base = Path(self.temp.name)
+        self.remote = self.base / "remote.git"
+        self.repo = self.base / "repo"
+        self.unrelated = self.base / "repo-issue121"
+        self.target = self.base / "repo-hardening"
+
+        git(self.base, "init", "--bare", str(self.remote))
+        git(self.base, "clone", str(self.remote), str(self.repo))
+        git(self.repo, "config", "user.name", "Test")
+        git(self.repo, "config", "user.email", "test@example.invalid")
+        git(self.repo, "checkout", "-b", "main")
+        (self.repo / "README.md").write_text("base\n", encoding="utf-8")
+        git(self.repo, "add", "README.md")
+        git(self.repo, "commit", "-m", "base")
+        git(self.repo, "push", "-u", "origin", "main")
+        git(self.remote, "symbolic-ref", "HEAD", "refs/heads/main")
+
+        git(self.repo, "branch", "work/issue121-dirty")
+        git(self.repo, "worktree", "add", str(self.unrelated), "work/issue121-dirty")
+        (self.unrelated / "dirty.txt").write_text("dirty\n", encoding="utf-8")
+
+        git(self.repo, "branch", "work/hardening-v22-test")
+        git(self.repo, "worktree", "add", str(self.target), "work/hardening-v22-test")
+        (self.target / "feature.txt").write_text("feature\n", encoding="utf-8")
+        git(self.target, "add", "feature.txt")
+        git(self.target, "commit", "-m", "feature")
+
+        github_url = "https://github.com/brealorg/breal-morphe-patches.git"
+        git(self.repo, "config", "remote.origin.url", github_url)
+        git(
+            self.repo,
+            "config",
+            f"url.file://{self.remote}.insteadOf",
+            github_url,
+        )
+        self.fake_bin = self.base / "bin"
+        self.fake_bin.mkdir()
+        fake_gh = self.fake_bin / "gh"
+        fake_gh.write_text("#!/bin/sh\nprintf '[]\\n'\n", encoding="utf-8")
+        fake_gh.chmod(0o755)
+        self.old_path = MODULE.os.environ.get("PATH", "")
+        MODULE.os.environ["PATH"] = f"{self.fake_bin}:{self.old_path}"
+
+    def tearDown(self) -> None:
+        MODULE.os.environ["PATH"] = self.old_path
+        self.temp.cleanup()
+
+    def test_push_dry_runner_rejects_non_work_branch_and_non_exact_sha(self) -> None:
+        with self.assertRaises(ValueError):
+            MODULE.PushDryRunner._validate("main", "0" * 40)
+        with self.assertRaises(ValueError):
+            MODULE.PushDryRunner._validate("work/test", "abc")
+        MODULE.PushDryRunner._validate("work/test-safe", "a" * 40)
+
+    def test_ready_push_ignores_unrelated_dirty_worktree_and_mutates_nothing(self) -> None:
+        refs_before = git_ro(self.repo, "show-ref")
+        worktrees_before = git_ro(self.repo, "worktree", "list", "--porcelain")
+        status_target_before = git_ro(self.target, "status", "--porcelain=v1")
+        remote_before = git_ro(self.repo, "ls-remote", "--heads", "origin")
+
+        report = MODULE.collect_push_readiness(
+            self.repo,
+            "work/hardening-v22-test",
+        )
+
+        self.assertTrue(report.ready, report.blockers)
+        self.assertEqual("PASS", report.dry_run_status)
+        self.assertEqual(1, report.unrelated_blocker_count)
+        self.assertTrue(report.local_repository_unchanged)
+        self.assertTrue(report.remote_branch_unchanged)
+        self.assertTrue(report.remote_main_unchanged)
+        self.assertEqual("REQUEST_EXPLICIT_PUSH_AUTHORIZATION", report.next_action)
+        self.assertEqual("NONE", report.mutations)
+        self.assertEqual("NONE", report.remote_writes)
+        self.assertIsNone(report.remote_branch_before_sha)
+        self.assertIsNone(report.remote_branch_after_sha)
+
+        self.assertEqual(refs_before, git_ro(self.repo, "show-ref"))
+        self.assertEqual(worktrees_before, git_ro(self.repo, "worktree", "list", "--porcelain"))
+        self.assertEqual(status_target_before, git_ro(self.target, "status", "--porcelain=v1"))
+        self.assertEqual(remote_before, git_ro(self.repo, "ls-remote", "--heads", "origin"))
+
+    def test_dirty_target_blocks_before_push_dry_run(self) -> None:
+        (self.target / "uncommitted.txt").write_text("no\n", encoding="utf-8")
+        report = MODULE.collect_push_readiness(
+            self.repo,
+            "work/hardening-v22-test",
+        )
+        self.assertFalse(report.ready)
+        self.assertEqual("SKIPPED", report.dry_run_status)
+        self.assertIn("target worktree is not clean", report.blockers)
+        self.assertIsNone(report.local_repository_unchanged)
+
+    def test_ready_push_cli_emits_bound_plan(self) -> None:
+        result = run(
+            sys.executable,
+            str(SOURCE),
+            "--repo",
+            str(self.repo),
+            "branch",
+            "ready-push",
+            "work/hardening-v22-test",
+            cwd=ROOT,
+        )
+        self.assertEqual(0, result.returncode, result.stderr + result.stdout)
+        self.assertIn("OPERATION_READY=YES", result.stdout)
+        self.assertIn("DRY_RUN_STATUS=PASS", result.stdout)
+        self.assertIn("UNRELATED_BLOCKER_COUNT=1", result.stdout)
+        self.assertIn("REMOTE_WRITES=NONE", result.stdout)
+        self.assertIn("NEXT=REQUEST_EXPLICIT_PUSH_AUTHORIZATION", result.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()
