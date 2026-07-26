@@ -14,6 +14,10 @@ test -f "$FEED_RUNNER"
 
 rg -q -F "command -v rg" "$PROJECT_RUNNER"
 rg -q -F "./tools/check-project-contracts.sh" "$FEED_RUNNER"
+rg -q -F "python3 scripts/release-gate.py" "$FEED_RUNNER"
+rg -q -F -- '--version "$VERSION"' "$FEED_RUNNER"
+rg -q -F -- '--tag "$TAG"' "$FEED_RUNNER"
+rg -q -F -- '--mpp "$MPP"' "$FEED_RUNNER"
 
 python3 - "$SMOKE_WORKFLOW" "$RELEASE_WORKFLOW" <<'PY_CHECK'
 import sys
@@ -41,5 +45,6 @@ PY_CHECK
 
 echo 'PROJECT_RUNNER_RIPGREP_PREFLIGHT=PASS'
 echo 'RELEASE_FEED_SMOKE_PROVISIONS_RIPGREP=PASS'
+echo 'RELEASE_FEED_MPP_SHA_GATE=PASS'
 echo 'RELEASE_WORKFLOW_PROVISIONS_RIPGREP=PASS'
 echo 'RESULT=MORPHE_CI_TOOLING_CONTRACT_OK'

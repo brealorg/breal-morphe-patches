@@ -23,4 +23,12 @@ echo "MPP=$MPP"
 test -n "$MPP"
 test -f "$MPP"
 
+TAG="morphe-patches-${VERSION##*.}"
+echo "TAG=$TAG"
+
+python3 scripts/release-gate.py \
+  --version "$VERSION" \
+  --tag "$TAG" \
+  --mpp "$MPP"
+
 tools/check-mpp-release-asset.sh "$MPP"
