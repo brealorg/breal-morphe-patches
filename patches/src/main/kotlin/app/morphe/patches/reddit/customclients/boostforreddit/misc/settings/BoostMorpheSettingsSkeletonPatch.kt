@@ -487,7 +487,7 @@ private val boostMorpheSettingsResourcesPatch = resourcePatch(
 @Suppress("unused")
 val boostMorpheSettingsSkeletonPatch = bytecodePatch(
     name = "Boost Morphe settings",
-    description = "Adds dedicated Morphe settings and Morphe-owned Material-style Settings v4 pages with a classic fallback.",
+    description = "Adds dedicated Morphe settings and task-based Material Settings V5 navigation with global search and a classic fallback.",
     default = false,
 ) {
     dependsOn(sharedExtensionPatch, boostMorpheSettingsResourcesPatch)
