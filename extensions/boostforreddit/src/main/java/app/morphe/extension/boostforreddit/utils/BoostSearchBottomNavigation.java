@@ -94,6 +94,8 @@ public final class BoostSearchBottomNavigation {
             "MORPHE_BOOST_NATIVE_BOTTOM_NAV_HIDE_PREFERENCE_ACTIVE_PATH_ISSUE97_V7";
     private static final String NATIVE_PROFILE_LONG_PRESS_MARKER =
             "MORPHE_BOOST_NATIVE_PROFILE_LONGPRESS_ISSUE97_V2";
+    private static final String NATIVE_SUBSCRIPTIONS_LONG_PRESS_MARKER =
+            "MORPHE_BOOST_NATIVE_SUBSCRIPTIONS_LONGPRESS_ISSUE135_V1";
     private static final String NAVIGATION_VISIBILITY_STATE_MARKER =
             "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_VISIBILITY_STATE_V1";
     private static final String ACTIVITY_STACK_STATE_MARKER =
@@ -149,6 +151,10 @@ public final class BoostSearchBottomNavigation {
             75L;
     private static final int NATIVE_PROFILE_LONG_PRESS_RETRY_LIMIT = 24;
     private static final long NATIVE_PROFILE_LONG_PRESS_RETRY_DELAY_MS =
+            75L;
+    private static final int NATIVE_SUBSCRIPTIONS_LONG_PRESS_RETRY_LIMIT =
+            24;
+    private static final long NATIVE_SUBSCRIPTIONS_LONG_PRESS_RETRY_DELAY_MS =
             75L;
 
     private static final String SEARCH_ACTIVITY =
@@ -2524,6 +2530,158 @@ public final class BoostSearchBottomNavigation {
         });
     }
 
+    private static void scheduleNativeSubscriptionsLongPress(
+            final Activity activity,
+            final View navigation
+    ) {
+        if (activity == null || navigation == null) {
+            return;
+        }
+
+        final int subscriptionsId = resourceId(
+                activity,
+                "item_subs",
+                "id"
+        );
+
+        if (subscriptionsId == 0) {
+            Log.e(
+                    TAG,
+                    "native Subscriptions long-press ID unavailable marker="
+                            + NATIVE_SUBSCRIPTIONS_LONG_PRESS_MARKER
+            );
+            return;
+        }
+
+        navigation.post(new Runnable() {
+            private int attempts;
+
+            @Override
+            public void run() {
+                attempts++;
+
+                if (activity.isFinishing() || activity.isDestroyed()) {
+                    return;
+                }
+
+                final View subscriptionsItem =
+                        navigation.findViewById(subscriptionsId);
+
+                if (subscriptionsItem == null) {
+                    if (
+                            attempts
+                                    < NATIVE_SUBSCRIPTIONS_LONG_PRESS_RETRY_LIMIT
+                    ) {
+                        navigation.postDelayed(
+                                this,
+                                NATIVE_SUBSCRIPTIONS_LONG_PRESS_RETRY_DELAY_MS
+                        );
+                    } else {
+                        Log.e(
+                                TAG,
+                                "native Subscriptions long-press view exhausted marker="
+                                        + NATIVE_SUBSCRIPTIONS_LONG_PRESS_MARKER
+                                        + " attempts="
+                                        + attempts
+                        );
+                    }
+                    return;
+                }
+
+                try {
+                    Class<?> baseActivityClass = Class.forName(
+                            BOTTOM_NAV_BASE_ACTIVITY,
+                            false,
+                            activity.getClassLoader()
+                    );
+
+                    if (!baseActivityClass.isInstance(activity)) {
+                        throw new IllegalStateException(
+                                "Activity is not Boost base activity: "
+                                        + activity.getClass().getName()
+                        );
+                    }
+
+                    Class<?> listenerClass = Class.forName(
+                            BOTTOM_NAV_BASE_ACTIVITY + "$z",
+                            false,
+                            activity.getClassLoader()
+                    );
+
+                    Constructor<?> constructor =
+                            listenerClass.getDeclaredConstructor(
+                                    baseActivityClass
+                            );
+                    constructor.setAccessible(true);
+
+                    Object rawListener =
+                            constructor.newInstance(activity);
+
+                    if (
+                            !(rawListener
+                                    instanceof View.OnLongClickListener)
+                    ) {
+                        throw new IllegalStateException(
+                                "Boost Subscriptions listener has wrong type"
+                        );
+                    }
+
+                    final View.OnLongClickListener nativeListener =
+                            (View.OnLongClickListener) rawListener;
+
+                    subscriptionsItem.setOnLongClickListener(
+                            new View.OnLongClickListener() {
+                                @Override
+                                public boolean onLongClick(View view) {
+                                    try {
+                                        boolean handled =
+                                                nativeListener.onLongClick(
+                                                        view
+                                                );
+
+                                        Log.i(
+                                                TAG,
+                                                "native Subscriptions long-press invoked marker="
+                                                        + NATIVE_SUBSCRIPTIONS_LONG_PRESS_MARKER
+                                                        + " handled="
+                                                        + handled
+                                        );
+                                        return handled;
+                                    } catch (Throwable error) {
+                                        Log.e(
+                                                TAG,
+                                                "native Subscriptions long-press invocation failed marker="
+                                                        + NATIVE_SUBSCRIPTIONS_LONG_PRESS_MARKER,
+                                                error
+                                        );
+                                        return false;
+                                    }
+                                }
+                            }
+                    );
+                    subscriptionsItem.setLongClickable(true);
+
+                    Log.i(
+                            TAG,
+                            "native Subscriptions long-press attached marker="
+                                    + NATIVE_SUBSCRIPTIONS_LONG_PRESS_MARKER
+                                    + " listener="
+                                    + listenerClass.getName()
+                                    + " attempts="
+                                    + attempts
+                    );
+                } catch (Throwable error) {
+                    Log.e(
+                            TAG,
+                            "native Subscriptions long-press attach failed marker="
+                                    + NATIVE_SUBSCRIPTIONS_LONG_PRESS_MARKER,
+                            error
+                    );
+                }
+            }
+        });
+    }
+
     private static void installOwnedCanonicalMenu(
             Activity activity,
             View navigation
@@ -2658,6 +2816,10 @@ public final class BoostSearchBottomNavigation {
                 );
 
         scheduleNativeProfileLongPress(
+                activity,
+                navigation
+        );
+        scheduleNativeSubscriptionsLongPress(
                 activity,
                 navigation
         );
