@@ -72,14 +72,14 @@ The repository shorthand shown at the top is the preferred Manager setup. Raw
 
 | Field | Value |
 |---|---|
-| Version | `1.4.97` |
-| Release tag | `morphe-patches-97` |
-| Asset | `patches-1.4.97.mpp` |
-| SHA256 | `4722ebd94d7d926f39949ebb1ec08d92564d5565134554be662a2819e607c415` |
+| Version | `1.4.98` |
+| Release tag | `morphe-patches-98` |
+| Asset | `patches-1.4.98.mpp` |
+| SHA256 | `af53ce35c7bd7177505c016b9c513e5fca495d5cca471299892006ca0b65765a` |
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-97/patches-1.4.97.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-98/patches-1.4.98.mpp` |
 
-SHA256: `4722ebd94d7d926f39949ebb1ec08d92564d5565134554be662a2819e607c415`
+SHA256: `af53ce35c7bd7177505c016b9c513e5fca495d5cca471299892006ca0b65765a`
 ## What this bundle does
 
 The current bundle is focused on practical hotfixes for tested app versions, especially Boost for Reddit behavior on newer Android versions.
@@ -126,7 +126,7 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.97` • `main` • 52 unique patches • 104 package entries
+> **Patch source version:** `1.4.98` • `main` • 52 unique patches • 104 package entries
 
 <details>
 <summary><strong>Boost for Reddit</strong> • 43 patches</summary>
@@ -539,16 +539,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.97` is prepared and GitHub Actions verified with:
+Release `1.4.98` is prepared and locally verified with:
 
-- Release tag `morphe-patches-97`.
-- GitHub Actions MPP SHA256 matching README.
-`4722ebd94d7d926f39949ebb1ec08d92564d5565134554be662a2819e607c415`
-- `patches-bundle.json` returning version `1.4.97`.
-- `patches-bundle.json` pointing to the `morphe-patches-97` asset.
+- Release tag `morphe-patches-98`.
+- Local built MPP SHA256 matching README.
+`af53ce35c7bd7177505c016b9c513e5fca495d5cca471299892006ca0b65765a`
+- `patches-bundle.json` returning version `1.4.98`.
+- `patches-bundle.json` pointing to the `morphe-patches-98` asset.
 - Expected release asset:
-`patches-1.4.97.mpp`
-- `4722ebd94d7d926f39949ebb1ec08d92564d5565134554be662a2819e607c415  patches-1.4.97.mpp`
+`patches-1.4.98.mpp`
+- `af53ce35c7bd7177505c016b9c513e5fca495d5cca471299892006ca0b65765a  patches-1.4.98.mpp`
 
 ## Development notes
 

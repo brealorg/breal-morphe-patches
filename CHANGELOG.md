@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.98](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-97...morphe-patches-98) (2026-07-27)
+
+* **Boost for Reddit:** Bug Fixes Restore Boost's native Subscriptions long-press sort menu.
+
 ## [1.4.97](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-96...morphe-patches-97) (2026-07-26)
 
 * **Boost for Reddit:** Bug Fixes Repair malformed parenthesized Reddit links in Boost.
