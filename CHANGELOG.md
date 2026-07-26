@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.97](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-96...morphe-patches-97) (2026-07-26)
+
+* **Boost for Reddit:** Bug Fixes Repair malformed parenthesized Reddit links in Boost.
+
 ## [1.4.96](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-95...morphe-patches-96) (2026-07-26)
 
 * **Boost for Reddit:** Features

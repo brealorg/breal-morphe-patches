@@ -72,14 +72,14 @@ The repository shorthand shown at the top is the preferred Manager setup. Raw
 
 | Field | Value |
 |---|---|
-| Version | `1.4.96` |
-| Release tag | `morphe-patches-96` |
-| Asset | `patches-1.4.96.mpp` |
-| SHA256 | `1a94a3d39f269f53852cd38aa30fd5c11140b59779677980a576eb47e00932d5` |
+| Version | `1.4.97` |
+| Release tag | `morphe-patches-97` |
+| Asset | `patches-1.4.97.mpp` |
+| SHA256 | `20dd7acebf91fe248c4c80d5a2389af6eef73c4fae057618800f1cddbd1495b8` |
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-96/patches-1.4.96.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-97/patches-1.4.97.mpp` |
 
-SHA256: `1a94a3d39f269f53852cd38aa30fd5c11140b59779677980a576eb47e00932d5`
+SHA256: `20dd7acebf91fe248c4c80d5a2389af6eef73c4fae057618800f1cddbd1495b8`
 ## What this bundle does
 
 The current bundle is focused on practical hotfixes for tested app versions, especially Boost for Reddit behavior on newer Android versions.
@@ -126,7 +126,7 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.96` • `main` • 52 unique patches • 104 package entries
+> **Patch source version:** `1.4.97` • `main` • 52 unique patches • 104 package entries
 
 <details>
 <summary><strong>Boost for Reddit</strong> • 43 patches</summary>
@@ -152,7 +152,7 @@ Included Imgur patches:
 | [Disable Boost Crashlytics startup network calls](#disable-boost-crashlytics-startup-network-calls) | Disables Boost's Crashlytics startup initialization while keeping Firebase Analytics and other Firebase components. |  |
 | [Fix /r/all](#fix-r-all) |  |  |
 | [Fix /s/ links](#fix-s-links) |  |  |
-| [Fix Boost code block rendering](#fix-boost-code-block-rendering) | Preserves Reddit code blocks by normalizing multiline <code> HTML and malformed fenced selftext to Boost's native <pre> renderer path. |  |
+| [Fix Boost code block rendering](#fix-boost-code-block-rendering) | Preserves Reddit code blocks and repairs malformed legacy HTML links with parenthesized URLs before Boost renders them. |  |
 | [Fix Boost comments Lemmy-style toolbar UI](#fix-boost-comments-lemmy-style-toolbar-ui) | Removes the duplicate native comments title by disabling the SlidrTheme window title/actionbar layer while preserving Boost's selected light/dark theme, toolbar title, and dynamic sort subtitle. |  |
 | [Fix Boost FAB nested scroll](#fix-boost-fab-nested-scroll) | Synchronizes Boost FAB hide/show with collapsing-header and nested-scroll motion. |  |
 | [Fix Boost image widget click target](#fix-boost-image-widget-click-target) | Prevents Boost's image widget from opening a stale post by making the CommentsActivity PendingIntent data unique per widget update. |  |
@@ -539,16 +539,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.96` is prepared and locally verified with:
+Release `1.4.97` is prepared and locally verified with:
 
-- Release tag `morphe-patches-96`.
+- Release tag `morphe-patches-97`.
 - Local built MPP SHA256 matching README.
-`1a94a3d39f269f53852cd38aa30fd5c11140b59779677980a576eb47e00932d5`
-- `patches-bundle.json` returning version `1.4.96`.
-- `patches-bundle.json` pointing to the `morphe-patches-96` asset.
+`20dd7acebf91fe248c4c80d5a2389af6eef73c4fae057618800f1cddbd1495b8`
+- `patches-bundle.json` returning version `1.4.97`.
+- `patches-bundle.json` pointing to the `morphe-patches-97` asset.
 - Expected release asset:
-`patches-1.4.96.mpp`
-- `1a94a3d39f269f53852cd38aa30fd5c11140b59779677980a576eb47e00932d5  patches-1.4.96.mpp`
+`patches-1.4.97.mpp`
+- `20dd7acebf91fe248c4c80d5a2389af6eef73c4fae057618800f1cddbd1495b8  patches-1.4.97.mpp`
 
 ## Development notes
 
