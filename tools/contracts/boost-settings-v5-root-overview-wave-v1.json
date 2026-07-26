@@ -1,0 +1,88 @@
+{
+  "activation_state": {
+    "activation_performed": false,
+    "root_classic_fallback_location": "root_only",
+    "v5_visible_by_default": false
+  },
+  "configurable_feature_reference_keys": [
+    "morphe_boost_inline_media_previews_enabled",
+    "morphe_boost_inline_media_preview_size",
+    "morphe_boost_inline_media_preview_alignment",
+    "morphe_boost_inline_media_preview_show_source_text",
+    "morphe_boost_direct_reddit_gif_tap_action",
+    "morphe_boost_giphy_preview_tap_action",
+    "morphe_boost_static_preview_tap_action",
+    "morphe_boost_search_open_keyboard_on_entry",
+    "morphe_boost_prefer_high_refresh_rate",
+    "morphe_boost_reddit_undelete_enabled",
+    "morphe_boost_imgur_undelete_enabled",
+    "morphe_boost_settings_v4_enabled"
+  ],
+  "issue": 121,
+  "root": "Morphe",
+  "root_destinations": [
+    {
+      "page_id": "v5/morphe",
+      "title": "Morphe"
+    },
+    {
+      "page_id": "v5/appearance",
+      "title": "Appearance"
+    },
+    {
+      "page_id": "v5/reading_and_interaction",
+      "title": "Reading & interaction"
+    },
+    {
+      "page_id": "v5/navigation",
+      "title": "Navigation & gestures"
+    },
+    {
+      "page_id": "v5/media",
+      "title": "Media"
+    },
+    {
+      "page_id": "v5/notifications_and_account",
+      "title": "Notifications & account"
+    },
+    {
+      "page_id": "v5/data_and_app",
+      "title": "Data & app"
+    }
+  ],
+  "schema": 1,
+  "semantic_revision": {
+    "revision": "V4",
+    "removed_page_id": "v5/morphe/patch_features",
+    "removed_path": "Morphe / Patch features",
+    "result": "Morphe renders its 12 configurable feature references directly"
+  },
+  "screens": [
+    {
+      "child_count": 0,
+      "configurable_reference_count": 12,
+      "control_count": 0,
+      "page_id": "v5/morphe",
+      "path": "Morphe",
+      "renderer": "MorpheSettingsV5MorpheFragment",
+      "role": "root_group",
+      "title": "Morphe"
+    }
+  ],
+  "targets": {
+    "classic_fallback_count": 1,
+    "configurable_feature_reference_count": 12,
+    "root_destination_count": 7,
+    "root_group_count": 1,
+    "root_overview_shell_count": 1,
+    "screen_count": 1,
+    "task_page_count": 0,
+    "visible_item_count": 0,
+    "withheld_item_count": 0
+  },
+  "v5_contract": {
+    "path": "tools/contracts/boost-settings-v5-completeness-v2.json",
+    "sha256": "f1d6a9ac6c27f71eec61b300e5f36d0785d831fde14cb982450e21b3ae238682"
+  },
+  "wave": "root_overview_morphe_flatten_and_classic_fallback"
+}

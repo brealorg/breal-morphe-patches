@@ -123,9 +123,15 @@ public final class MorpheSettingsV4SavedViewsFragment extends Fragment {
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
-        hideMenuItem(menu, "action_generic_search");
-        hideMenuItem(menu, "action_search");
-        hideMenuItem(menu, "search");
+        MorpheSettingsV4Search.prepareMenu(this, menu, true);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (MorpheSettingsV4Search.handleMenuItem(this, item)) {
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void rebuildEntries() {

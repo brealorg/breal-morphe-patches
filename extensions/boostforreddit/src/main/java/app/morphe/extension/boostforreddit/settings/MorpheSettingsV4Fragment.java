@@ -16,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -44,10 +45,22 @@ public final class MorpheSettingsV4Fragment extends Fragment {
             "MORPHE_BOOST_SETTINGS_V4_SYSTEM_BARS_ISSUE106_V1";
     public static final String SYSTEM_BAR_OWNER_CONTRACT_MARKER =
             "MORPHE_BOOST_SETTINGS_V4_SYSTEM_BAR_OWNER_ISSUE106_V2";
+    public static final String ROOT_SHELL_PHASE1_MARKER =
+            "MORPHE_BOOST_SETTINGS_ROOT_SHELL_ISSUE121_PHASE1_V1";
+    public static final String SEVEN_CARD_ROOT_PHASE1_1_MARKER =
+            "MORPHE_BOOST_SETTINGS_SEVEN_CARD_ROOT_ISSUE121_PHASE1_1_V1";
+    public static final String GLOBAL_SEARCH_PHASE1_2_MARKER =
+            "MORPHE_BOOST_SETTINGS_GLOBAL_SEARCH_ISSUE121_PHASE1_2_V1";
+    public static final String MATERIAL_VISUAL_FOUNDATION_MARKER =
+            "MORPHE_BOOST_SETTINGS_MATERIAL_VISUAL_FOUNDATION_"
+                    + "ISSUE121_PHASE2_1_V1";
+    public static final String ANDROID_SETTINGS_GUIDANCE_PILOT_MARKER =
+            "MORPHE_BOOST_SETTINGS_ANDROID_GUIDANCE_OVERVIEW_"
+                    + "ISSUE121_PHASE2_2_V1";
 
     private static final String ARGUMENT_PAGE =
-            "morphe_boost_settings_v4_page";
-    private static final String PAGE_ROOT = "root";
+            MorpheSettingsV4Search.ARGUMENT_PAGE;
+    private static final String PAGE_ROOT = MorpheSettingsV4Search.PAGE_ROOT;
     private static final String EXTRA_SHOW_FRAGMENT = "extra_show_fragment";
     private static final String CLASSIC_HEADER_FRAGMENT =
             "com.rubenmayayo.reddit.ui.preferences.v2."
@@ -72,14 +85,37 @@ public final class MorpheSettingsV4Fragment extends Fragment {
         tokens = MorpheSettingsV4Theme.resolve(context);
         setHasOptionsMenu(true);
 
+        boolean openSearchRequested = false;
+        boolean navigationFromArguments = false;
+        Bundle arguments = getArguments();
+        if (arguments != null && arguments.containsKey(ARGUMENT_PAGE)) {
+            String requestedPage = arguments.getString(ARGUMENT_PAGE);
+            if (!TextUtils.isEmpty(requestedPage)) {
+                page = requestedPage;
+            }
+            openSearchRequested = arguments.getBoolean(
+                    MorpheSettingsV4Search.EXTRA_OPEN_SEARCH,
+                    false
+            );
+            navigationFromArguments = true;
+        }
+
         Activity activity = hostActivity();
-        if (activity != null) {
+        if (!navigationFromArguments && activity != null) {
             Intent intent = activity.getIntent();
             String requestedPage = intent == null
                     ? null
                     : intent.getStringExtra(ARGUMENT_PAGE);
             if (!TextUtils.isEmpty(requestedPage)) {
                 page = requestedPage;
+            }
+            openSearchRequested = intent != null
+                    && intent.getBooleanExtra(
+                    MorpheSettingsV4Search.EXTRA_OPEN_SEARCH,
+                    false
+            );
+            if (openSearchRequested) {
+                intent.removeExtra(MorpheSettingsV4Search.EXTRA_OPEN_SEARCH);
             }
         }
 
@@ -102,8 +138,11 @@ public final class MorpheSettingsV4Fragment extends Fragment {
 
         if (PAGE_ROOT.equals(page)) {
             buildRoot(content);
+            if (openSearchRequested) {
+                focusSearchField();
+            }
         } else {
-            buildHub(content, page);
+            buildPage(content, page);
         }
         return scrollView;
     }
@@ -126,10 +165,19 @@ public final class MorpheSettingsV4Fragment extends Fragment {
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
-        hideMenuItem(menu, "action_generic_search");
-        hideMenuItem(menu, "action_search");
-        hideMenuItem(menu, "search");
-        hideMenuItem(menu, "menu_search");
+        MorpheSettingsV4Search.prepareMenu(
+                this,
+                menu,
+                !PAGE_ROOT.equals(page)
+        );
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (MorpheSettingsV4Search.handleMenuItem(this, item)) {
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -155,7 +203,61 @@ public final class MorpheSettingsV4Fragment extends Fragment {
         renderRootContent("");
     }
 
-    private void buildHub(LinearLayout content, String categoryId) {
+    private void buildPage(LinearLayout content, String pageId) {
+        MorpheSettingsV4Catalog.RootGroup rootGroup =
+                MorpheSettingsV4Catalog.findRootGroup(pageId);
+        if (rootGroup != null) {
+            buildRootGroup(content, rootGroup);
+            return;
+        }
+        buildTaskPage(content, pageId);
+    }
+
+    private void buildRootGroup(
+            LinearLayout content,
+            MorpheSettingsV4Catalog.RootGroup rootGroup
+    ) {
+        LinearLayout list = MorpheSettingsV14Ui.standardList(requireContext());
+        content.addView(list, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
+
+        if (rootGroup.includesMorphe) {
+            MorpheSettingsV4Catalog.Leaf morphe =
+                    MorpheSettingsV4Catalog.morphe();
+            MorpheSettingsV14Ui.addStandardListRow(
+                    list,
+                    createStandardNavigationRow(
+                            morphe.title,
+                            "",
+                            null,
+                            view -> openLeaf(morphe, null)
+                    ),
+                    tokens
+            );
+        }
+
+        for (String categoryId : rootGroup.categoryIds) {
+            MorpheSettingsV4Catalog.Category category =
+                    MorpheSettingsV4Catalog.findCategory(categoryId);
+            if (category == null) {
+                continue;
+            }
+            MorpheSettingsV14Ui.addStandardListRow(
+                    list,
+                    createStandardNavigationRow(
+                            category.title,
+                            "",
+                            null,
+                            view -> openCategory(category)
+                    ),
+                    tokens
+            );
+        }
+    }
+
+    private void buildTaskPage(LinearLayout content, String categoryId) {
         MorpheSettingsV4Catalog.Category category =
                 MorpheSettingsV4Catalog.findCategory(categoryId);
         if (category == null) {
@@ -164,23 +266,40 @@ public final class MorpheSettingsV4Fragment extends Fragment {
             return;
         }
 
-        addSectionLabel(content, category.title);
-        addSpace(content, 10);
+        if (category.leaves.length == 0) {
+            addBodyText(
+                    content,
+                    "These controls are still available through Search or "
+                            + "classic Boost settings while this task page is organized."
+            );
+            addSpace(content, 18);
+            TextView classic = MorpheSettingsV14Ui.action(
+                    requireContext(),
+                    tokens,
+                    "Open classic Boost settings",
+                    false
+            );
+            classic.setOnClickListener(view -> openClassicSettings());
+            content.addView(classic, wrapParams());
+            return;
+        }
 
-        LinearLayout group = MorpheSettingsV14Ui.group(requireContext());
-        content.addView(group, new LinearLayout.LayoutParams(
+        LinearLayout list = MorpheSettingsV14Ui.standardList(requireContext());
+        content.addView(list, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         ));
         for (MorpheSettingsV4Catalog.Leaf leaf : category.leaves) {
-            View row = createNavigationCard(
-                    leaf.title,
-                    leaf.summary,
-                    leaf.iconName,
-                    false,
-                    view -> openLeaf(leaf, null)
+            MorpheSettingsV14Ui.addStandardListRow(
+                    list,
+                    createStandardNavigationRow(
+                            leaf.title,
+                            "",
+                            null,
+                            view -> openLeaf(leaf, null)
+                    ),
+                    tokens
             );
-            MorpheSettingsV14Ui.addSegmentedRow(group, row, tokens);
         }
     }
 
@@ -242,6 +361,28 @@ public final class MorpheSettingsV4Fragment extends Fragment {
         });
     }
 
+    private void focusSearchField() {
+        if (searchField == null) {
+            return;
+        }
+        searchField.post(() -> {
+            if (!isAdded() || searchField == null) {
+                return;
+            }
+            searchField.requestFocus();
+            InputMethodManager inputMethodManager =
+                    (InputMethodManager) requireContext().getSystemService(
+                            Context.INPUT_METHOD_SERVICE
+                    );
+            if (inputMethodManager != null) {
+                inputMethodManager.showSoftInput(
+                        searchField,
+                        InputMethodManager.SHOW_IMPLICIT
+                );
+            }
+        });
+    }
+
     private void renderRootContent(String query) {
         if (dynamicContent == null) {
             return;
@@ -257,53 +398,30 @@ public final class MorpheSettingsV4Fragment extends Fragment {
     }
 
     private void renderCategories() {
-        addSectionLabel(dynamicContent, "Morphe");
-        addSpace(dynamicContent, 10);
-        LinearLayout morpheGroup = MorpheSettingsV14Ui.group(requireContext());
-        dynamicContent.addView(morpheGroup, new LinearLayout.LayoutParams(
+        MorpheSettingsV4Catalog.RootGroup[] rootGroups =
+                MorpheSettingsV4Catalog.rootGroups();
+        LinearLayout list = MorpheSettingsV14Ui.standardList(requireContext());
+        dynamicContent.addView(list, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         ));
-        MorpheSettingsV4Catalog.Leaf morphe = MorpheSettingsV4Catalog.morphe();
-        MorpheSettingsV14Ui.addSegmentedRow(
-                morpheGroup,
-                createNavigationCard(
-                        "Patch features",
-                        "Media routing, recovery, search, and performance",
-                        morphe.iconName,
-                        true,
-                        view -> openLeaf(morphe, null)
-                ),
-                tokens
-        );
+        for (MorpheSettingsV4Catalog.RootGroup rootGroup : rootGroups) {
+            String supporting = "root_morphe".equals(rootGroup.id)
+                    ? "Patch features"
+                    : "";
+            MorpheSettingsV14Ui.addStandardListRow(
+                    list,
+                    createStandardNavigationRow(
+                            rootGroup.title,
+                            supporting,
+                            rootGroup.iconName,
+                            view -> openRootGroup(rootGroup)
+                    ),
+                    tokens
+            );
+        }
 
-        renderHomeSection(
-                "Look & feel",
-                "appearance_layout"
-        );
-        renderHomeSection(
-                "Reading & interaction",
-                "posts_comments",
-                "search_filters"
-        );
-        renderHomeSection(
-                "Navigation & media",
-                "navigation",
-                "media_links"
-        );
-        renderHomeSection(
-                "Data & account",
-                "notifications",
-                "data_storage",
-                "account_privacy"
-        );
-        renderHomeSection(
-                "App & support",
-                "app_legacy",
-                "about"
-        );
-
-        addSpace(dynamicContent, 12);
+        addSpace(dynamicContent, 18);
         TextView classic = MorpheSettingsV14Ui.action(
                 requireContext(),
                 tokens,
@@ -312,38 +430,6 @@ public final class MorpheSettingsV4Fragment extends Fragment {
         );
         classic.setOnClickListener(view -> openClassicSettings());
         dynamicContent.addView(classic, wrapParams());
-    }
-
-    private void renderHomeSection(String title, String... categoryIds) {
-        addSpace(dynamicContent, 24);
-        addSectionLabel(dynamicContent, title);
-        addSpace(dynamicContent, 10);
-
-        LinearLayout group = MorpheSettingsV14Ui.group(requireContext());
-        dynamicContent.addView(group, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        ));
-        for (String categoryId : categoryIds) {
-            MorpheSettingsV4Catalog.Category category =
-                    MorpheSettingsV4Catalog.findCategory(categoryId);
-            if (category == null) {
-                continue;
-            }
-            for (MorpheSettingsV4Catalog.Leaf leaf : category.leaves) {
-                MorpheSettingsV14Ui.addSegmentedRow(
-                        group,
-                        createNavigationCard(
-                                leaf.title,
-                                leaf.summary,
-                                leaf.iconName,
-                                false,
-                                view -> openLeaf(leaf, null)
-                        ),
-                        tokens
-                );
-            }
-        }
     }
 
     private void renderSearchResults(String normalizedQuery) {
@@ -391,6 +477,7 @@ public final class MorpheSettingsV4Fragment extends Fragment {
                     secondary,
                     item.iconName,
                     false,
+                    false,
                     view -> openSearchItem(item)
             );
             MorpheSettingsV14Ui.addSegmentedRow(group, row, tokens);
@@ -404,10 +491,72 @@ public final class MorpheSettingsV4Fragment extends Fragment {
         }
     }
 
+    private View createStandardNavigationRow(
+            String titleValue,
+            String supportingValue,
+            String iconName,
+            View.OnClickListener clickListener
+    ) {
+        Context context = requireContext();
+        LinearLayout row = MorpheSettingsV14Ui.standardListRow(
+                context,
+                tokens,
+                !TextUtils.isEmpty(supportingValue)
+        );
+        row.setOnClickListener(clickListener);
+
+        if (!TextUtils.isEmpty(iconName)) {
+            row.addView(createPlainLeadingIcon(iconName));
+        }
+
+        LinearLayout labels = MorpheSettingsV14Ui.standardListLabels(
+                context,
+                tokens,
+                titleValue,
+                supportingValue
+        );
+        LinearLayout.LayoutParams labelsParams = new LinearLayout.LayoutParams(
+                0,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                1.0f
+        );
+        if (!TextUtils.isEmpty(iconName)) {
+            labelsParams.setMarginStart(dp(16));
+        }
+        row.addView(labels, labelsParams);
+        row.addView(MorpheSettingsV14Ui.chevron(context, tokens));
+        return row;
+    }
+
+    private View createPlainLeadingIcon(String iconName) {
+        Context context = requireContext();
+        FrameLayout slot = new FrameLayout(context);
+        ImageView image = new ImageView(context);
+        Drawable drawable = icon(
+                iconName,
+                tokens.navigationAccent().color
+        );
+        if (drawable != null) {
+            image.setImageDrawable(drawable);
+        } else {
+            image.setImageResource(android.R.drawable.ic_menu_preferences);
+            image.setColorFilter(tokens.navigationAccent().color);
+        }
+        image.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        slot.addView(image, new FrameLayout.LayoutParams(
+                dp(24),
+                dp(24),
+                Gravity.CENTER
+        ));
+        slot.setLayoutParams(new LinearLayout.LayoutParams(dp(40), dp(40)));
+        return slot;
+    }
+
     private View createNavigationCard(
             String titleValue,
             String summaryValue,
             String iconName,
+            boolean rootLevel,
             boolean highlighted,
             View.OnClickListener clickListener
     ) {
@@ -427,7 +576,14 @@ public final class MorpheSettingsV4Fragment extends Fragment {
         int iconColor = accent.color;
 
         LinearLayout card = MorpheSettingsV14Ui.baseRow(context, tokens);
-        card.setMinimumHeight(dp(TextUtils.isEmpty(summaryValue) ? 56 : 72));
+        card.setMinimumHeight(dp(
+                rootLevel
+                        ? (TextUtils.isEmpty(summaryValue) ? 64 : 80)
+                        : (TextUtils.isEmpty(summaryValue) ? 52 : 64)
+        ));
+        if (rootLevel) {
+            card.setPadding(dp(16), dp(10), dp(12), dp(10));
+        }
         card.setClickable(true);
         card.setFocusable(true);
         card.setOnClickListener(clickListener);
@@ -436,7 +592,8 @@ public final class MorpheSettingsV4Fragment extends Fragment {
                 iconName,
                 iconColor,
                 iconBackground,
-                40
+                rootLevel ? 44 : 36,
+                rootLevel ? 24 : 20
         ));
 
         LinearLayout labels = new LinearLayout(context);
@@ -446,15 +603,23 @@ public final class MorpheSettingsV4Fragment extends Fragment {
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 1.0f
         );
-        labelsParams.setMarginStart(dp(14));
+        labelsParams.setMarginStart(dp(rootLevel ? 14 : 12));
         card.addView(labels, labelsParams);
 
-        TextView title = textView(titleValue, 16, tokens.textPrimary);
+        TextView title = textView(
+                titleValue,
+                rootLevel ? 18 : 16,
+                tokens.textPrimary
+        );
         labels.addView(title);
 
         if (!TextUtils.isEmpty(summaryValue)) {
-            TextView summary = textView(summaryValue, 14, tokens.textSecondary);
-            summary.setLineSpacing(0, 1.06f);
+            TextView summary = textView(
+                    summaryValue,
+                    rootLevel ? 15 : 13,
+                    tokens.textSecondary
+            );
+            summary.setLineSpacing(0, rootLevel ? 1.06f : 1.04f);
             summary.setMaxLines(2);
             summary.setEllipsize(TextUtils.TruncateAt.END);
             LinearLayout.LayoutParams summaryParams = wrapParams();
@@ -470,7 +635,8 @@ public final class MorpheSettingsV4Fragment extends Fragment {
             String iconName,
             int iconColor,
             int backgroundColor,
-            int sizeDp
+            int sizeDp,
+            int glyphDp
     ) {
         Context context = requireContext();
         FrameLayout container = new FrameLayout(context);
@@ -490,7 +656,7 @@ public final class MorpheSettingsV4Fragment extends Fragment {
         }
         iconView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
 
-        int iconSize = dp(24);
+        int iconSize = dp(glyphDp);
         FrameLayout.LayoutParams iconParams = new FrameLayout.LayoutParams(
                 iconSize,
                 iconSize,
@@ -502,11 +668,56 @@ public final class MorpheSettingsV4Fragment extends Fragment {
     }
 
     private void openSearchItem(MorpheSettingsV4Catalog.SearchItem item) {
+        if (!TextUtils.isEmpty(item.pageId)) {
+            MorpheSettingsV4Catalog.Category category =
+                    MorpheSettingsV4Catalog.findCategory(item.pageId);
+            if (category == null) {
+                showUnavailable();
+                return;
+            }
+            openCategory(category);
+            return;
+        }
         if (!TextUtils.isEmpty(item.activityName)) {
             openActivity(item.activityName);
             return;
         }
         openFragment(item.fragmentName, item.title);
+    }
+
+    private void openRootGroup(
+            MorpheSettingsV4Catalog.RootGroup rootGroup
+    ) {
+        if (rootGroup == null) {
+            showUnavailable();
+            return;
+        }
+        openHub(rootGroup.id);
+    }
+
+    private void openCategory(MorpheSettingsV4Catalog.Category category) {
+        if (category == null) {
+            showUnavailable();
+            return;
+        }
+        if (MorpheSettingsV4Catalog.opensDirectly(category)) {
+            openLeaf(category.leaves[0], null);
+            return;
+        }
+        openHub(category.id);
+    }
+
+    private void openHub(String categoryId) {
+        Activity activity = hostActivity();
+        if (activity == null || TextUtils.isEmpty(categoryId)) {
+            showUnavailable();
+            return;
+        }
+
+        Intent intent = new Intent(activity, activity.getClass());
+        intent.putExtra(EXTRA_SHOW_FRAGMENT, getClass().getName());
+        intent.putExtra(ARGUMENT_PAGE, categoryId);
+        activity.startActivity(intent);
     }
 
     private void openLeaf(
@@ -568,10 +779,16 @@ public final class MorpheSettingsV4Fragment extends Fragment {
 
         String title = "Settings";
         if (!PAGE_ROOT.equals(page)) {
-            MorpheSettingsV4Catalog.Category category =
-                    MorpheSettingsV4Catalog.findCategory(page);
-            if (category != null) {
-                title = category.title;
+            MorpheSettingsV4Catalog.RootGroup rootGroup =
+                    MorpheSettingsV4Catalog.findRootGroup(page);
+            if (rootGroup != null) {
+                title = rootGroup.title;
+            } else {
+                MorpheSettingsV4Catalog.Category category =
+                        MorpheSettingsV4Catalog.findCategory(page);
+                if (category != null) {
+                    title = category.title;
+                }
             }
         }
         activity.setTitle(title);
@@ -644,6 +861,14 @@ public final class MorpheSettingsV4Fragment extends Fragment {
 
     private void addBodyText(LinearLayout parent, String value) {
         parent.addView(MorpheSettingsV14Ui.supportingText(
+                requireContext(),
+                tokens,
+                value
+        ));
+    }
+
+    private void addPageIntro(LinearLayout parent, String value) {
+        parent.addView(MorpheSettingsV14Ui.pageIntro(
                 requireContext(),
                 tokens,
                 value

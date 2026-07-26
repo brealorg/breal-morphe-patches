@@ -25,13 +25,13 @@ public final class MorpheSettingsV4 {
             "extra_show_fragment";
     private static final String FRAGMENT_NAME =
             "app.morphe.extension.boostforreddit.settings."
-                    + "MorpheSettingsV4Fragment";
+                    + "MorpheSettingsV5RootFragment";
 
     private MorpheSettingsV4() {
     }
 
     /**
-     * Selects the v4 fragment only for a normal Settings launch. Explicit Boost
+     * Selects the V5 root only for a normal Settings launch. Explicit Boost
      * deep links keep their requested destination.
      */
     public static void prepareIntent(Activity activity) {

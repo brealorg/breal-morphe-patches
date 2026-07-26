@@ -1,0 +1,566 @@
+{
+  "binding_capture": {
+    "archive_sha256": "3b5f170322d956db8c0898943d0532aab871f7546cf041c9611ea749b42f5a3d",
+    "base_apk_sha256": "a68c22d632a5dd1f446c3759a171c7dbb9edab2afc3c2f87e39323f198606742",
+    "source_mpp_sha256": "600904a3d9639e198adcf9bab6d17ab6cbb3fd07e3a53694fc756b85d1be9934",
+    "special_handler_archive_sha256": "d2fe10c466530ef6168af9108728f8d3fcf4cdbe81d68f855dd730cb7bac41d7",
+    "v5_contract_sha256": "f1d6a9ac6c27f71eec61b300e5f36d0785d831fde14cb982450e21b3ae238682"
+  },
+  "issue": 121,
+  "items": [
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "buy_pro",
+      "logical_kind": "action",
+      "page_id": "v5/data_and_app/about_and_support/about_boost",
+      "storage_type": "none_or_custom",
+      "title": "Boost PRO"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "remove_ads",
+      "logical_kind": "action",
+      "page_id": "v5/data_and_app/about_and_support/about_boost",
+      "storage_type": "none_or_custom",
+      "title": "Remove ads"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "about_version",
+      "logical_kind": "action",
+      "page_id": "v5/data_and_app/about_and_support/about_boost",
+      "storage_type": "none_or_custom",
+      "title": "Changelog"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "rate_app",
+      "logical_kind": "action",
+      "page_id": "v5/data_and_app/about_and_support/about_boost",
+      "storage_type": "none_or_custom",
+      "title": "Do you like this app?"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "about_subreddit",
+      "logical_kind": "action",
+      "page_id": "v5/data_and_app/about_and_support/about_boost",
+      "storage_type": "none_or_custom",
+      "title": "Feedback and support"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "about_faq",
+      "logical_kind": "action",
+      "page_id": "v5/data_and_app/about_and_support/about_boost",
+      "storage_type": "none_or_custom",
+      "title": "Help/FAQ"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "support_launch",
+      "logical_kind": "action",
+      "page_id": "v5/data_and_app/about_and_support/about_boost",
+      "storage_type": "none_or_custom",
+      "title": "Launch the rocket"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "licenses_preference",
+      "logical_kind": "action",
+      "page_id": "v5/data_and_app/about_and_support/about_boost",
+      "storage_type": "none_or_custom",
+      "title": "Licenses"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "contact_dev_key",
+      "logical_kind": "action",
+      "page_id": "v5/data_and_app/about_and_support/author",
+      "storage_type": "none_or_custom",
+      "title": "Email"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "about_reddit",
+      "logical_kind": "action",
+      "page_id": "v5/data_and_app/about_and_support/author",
+      "storage_type": "none_or_custom",
+      "title": "reddit"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "about_twitter",
+      "logical_kind": "action",
+      "page_id": "v5/data_and_app/about_and_support/author",
+      "storage_type": "none_or_custom",
+      "title": "Twitter"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "privacy_policy",
+      "logical_kind": "action",
+      "page_id": "v5/data_and_app/about_and_support/privacy",
+      "storage_type": "none_or_custom",
+      "title": "Privacy policy"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_gdpr_revoke",
+      "logical_kind": "special_preference",
+      "page_id": "v5/data_and_app/about_and_support/privacy",
+      "storage_type": "none_or_custom",
+      "title": "Revoke GDPR consent"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_statistics",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/data_and_app/about_and_support/privacy",
+      "storage_type": "boolean",
+      "title": "Send statistics"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_shortcut_icon_crop",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/data_and_app/app_behavior_and_compatibility/community_shortcuts",
+      "storage_type": "boolean",
+      "title": "Crop community icon"
+    },
+    {
+      "default_value": "3",
+      "dependency": "",
+      "key": "pref_autoplay_swipe",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/data_and_app/app_behavior_and_compatibility/compatibility_and_legacy",
+      "storage_type": "string",
+      "title": "Autoplay videos in Swipe view"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_info_color_indicators",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/data_and_app/app_behavior_and_compatibility/compatibility_and_legacy",
+      "storage_type": "boolean",
+      "title": "Colored link type indicators"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_go_to_sub_dialog",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/data_and_app/app_behavior_and_compatibility/compatibility_and_legacy",
+      "storage_type": "boolean",
+      "title": "Go to community in a dialog"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_cards_preview_top",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/data_and_app/app_behavior_and_compatibility/compatibility_and_legacy",
+      "storage_type": "boolean",
+      "title": "Previews on top"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_info_post_shorten_score",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/data_and_app/app_behavior_and_compatibility/compatibility_and_legacy",
+      "storage_type": "boolean",
+      "title": "Shorten score"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_send_floating_button",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/data_and_app/app_behavior_and_compatibility/compatibility_and_legacy",
+      "storage_type": "boolean",
+      "title": "Show floating send button"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_info_post_self_image",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/data_and_app/app_behavior_and_compatibility/compatibility_and_legacy",
+      "storage_type": "boolean",
+      "title": "Show images from text posts"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_info_post_view_count",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/data_and_app/app_behavior_and_compatibility/compatibility_and_legacy",
+      "storage_type": "boolean",
+      "title": "Show view count"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_toolbar_dropdown",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/data_and_app/app_behavior_and_compatibility/compatibility_and_legacy",
+      "storage_type": "boolean",
+      "title": "Subscriptions dropdown in toolbar"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_toolbar_tap_to_go",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/data_and_app/app_behavior_and_compatibility/compatibility_and_legacy",
+      "storage_type": "boolean",
+      "title": "Tap toolbar to show subs"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_cards_legacy",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/data_and_app/app_behavior_and_compatibility/compatibility_and_legacy",
+      "storage_type": "boolean",
+      "title": "Use legacy cards layout"
+    },
+    {
+      "default_value": "0",
+      "dependency": "",
+      "key": "pref_ad_format",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/data_and_app/app_behavior_and_compatibility/other_app_behavior",
+      "storage_type": "string",
+      "title": "Preferred Ad format"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "reset_tips",
+      "logical_kind": "action",
+      "page_id": "v5/data_and_app/app_behavior_and_compatibility/other_app_behavior",
+      "storage_type": "none_or_custom",
+      "title": "Reset tips"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "morphe_boost_settings_v4_enabled",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/data_and_app/settings_experience/settings_presentation",
+      "storage_type": "boolean",
+      "title": "Material settings"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_cache_current_size",
+      "logical_kind": "action",
+      "page_id": "v5/data_and_app/storage_and_bandwidth/cache",
+      "storage_type": "none_or_custom",
+      "title": "Clear cache"
+    },
+    {
+      "default_value": "128",
+      "dependency": "",
+      "key": "pref_cache_max_size",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/data_and_app/storage_and_bandwidth/cache",
+      "storage_type": "string",
+      "title": "Maximum cache size"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_reduce_mobile",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/data_and_app/storage_and_bandwidth/data_saver",
+      "storage_type": "boolean",
+      "title": "Mobile data saver"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_reduce_wifi",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/data_and_app/storage_and_bandwidth/data_saver",
+      "storage_type": "boolean",
+      "title": "Wifi data saver"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_download_folders",
+      "logical_kind": "action",
+      "page_id": "v5/data_and_app/storage_and_bandwidth/data_usage",
+      "storage_type": "none_or_custom",
+      "title": "Configure downloads"
+    },
+    {
+      "default_value": "0",
+      "dependency": "",
+      "key": "pref_load_images",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/data_and_app/storage_and_bandwidth/images",
+      "storage_type": "string",
+      "title": "Load images"
+    },
+    {
+      "default_value": "1080",
+      "dependency": "",
+      "key": "pref_video_quality_max",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/data_and_app/storage_and_bandwidth/videos",
+      "storage_type": "string",
+      "title": "Maximum quality"
+    },
+    {
+      "default_value": "480",
+      "dependency": "",
+      "key": "pref_video_quality_min",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/data_and_app/storage_and_bandwidth/videos",
+      "storage_type": "string",
+      "title": "Minimum quality"
+    },
+    {
+      "default_value": "0",
+      "dependency": "",
+      "key": "pref_video_quality",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/data_and_app/storage_and_bandwidth/videos",
+      "storage_type": "string",
+      "title": "Video quality"
+    }
+  ],
+  "root": "Data & app",
+  "schema": 1,
+  "screens": [
+    {
+      "child_count": 5,
+      "control_count": 0,
+      "page_id": "v5/data_and_app",
+      "path": "Data & app",
+      "renderer": "MorpheSettingsV5DataAppFragment",
+      "role": "root_group",
+      "title": "Data & app"
+    },
+    {
+      "child_count": 3,
+      "control_count": 0,
+      "page_id": "v5/data_and_app/about_and_support",
+      "path": "Data & app / About & support",
+      "renderer": "MorpheSettingsV5DataAppFragment",
+      "role": "task_page",
+      "title": "About & support"
+    },
+    {
+      "child_count": 3,
+      "control_count": 0,
+      "page_id": "v5/data_and_app/app_behavior_and_compatibility",
+      "path": "Data & app / App behavior & compatibility",
+      "renderer": "MorpheSettingsV5DataAppFragment",
+      "role": "task_page",
+      "title": "App behavior & compatibility"
+    },
+    {
+      "child_count": 0,
+      "control_count": 0,
+      "page_id": "v5/data_and_app/backup_and_restore",
+      "path": "Data & app / Backup & restore",
+      "renderer": "MorpheSettingsV5BackupRestoreFragment",
+      "role": "task_page",
+      "title": "Backup & restore"
+    },
+    {
+      "child_count": 1,
+      "control_count": 0,
+      "page_id": "v5/data_and_app/settings_experience",
+      "path": "Data & app / Settings experience",
+      "renderer": "MorpheSettingsV5DataAppFragment",
+      "role": "task_page",
+      "title": "Settings experience"
+    },
+    {
+      "child_count": 5,
+      "control_count": 0,
+      "page_id": "v5/data_and_app/storage_and_bandwidth",
+      "path": "Data & app / Storage & bandwidth",
+      "renderer": "MorpheSettingsV5DataAppFragment",
+      "role": "task_page",
+      "title": "Storage & bandwidth"
+    },
+    {
+      "child_count": 0,
+      "control_count": 8,
+      "page_id": "v5/data_and_app/about_and_support/about_boost",
+      "path": "Data & app / About & support / About Boost",
+      "renderer": "MorpheSettingsV5DataAppLeafFragment",
+      "role": "leaf_section",
+      "title": "About Boost"
+    },
+    {
+      "child_count": 0,
+      "control_count": 3,
+      "page_id": "v5/data_and_app/about_and_support/author",
+      "path": "Data & app / About & support / Author",
+      "renderer": "MorpheSettingsV5DataAppLeafFragment",
+      "role": "leaf_section",
+      "title": "Author"
+    },
+    {
+      "child_count": 0,
+      "control_count": 3,
+      "page_id": "v5/data_and_app/about_and_support/privacy",
+      "path": "Data & app / About & support / Privacy",
+      "renderer": "MorpheSettingsV5DataAppLeafFragment",
+      "role": "leaf_section",
+      "title": "Privacy"
+    },
+    {
+      "child_count": 0,
+      "control_count": 1,
+      "page_id": "v5/data_and_app/app_behavior_and_compatibility/community_shortcuts",
+      "path": "Data & app / App behavior & compatibility / Community shortcuts",
+      "renderer": "MorpheSettingsV5DataAppLeafFragment",
+      "role": "leaf_section",
+      "title": "Community shortcuts"
+    },
+    {
+      "child_count": 0,
+      "control_count": 11,
+      "page_id": "v5/data_and_app/app_behavior_and_compatibility/compatibility_and_legacy",
+      "path": "Data & app / App behavior & compatibility / Compatibility & legacy",
+      "renderer": "MorpheSettingsV5DataAppLeafFragment",
+      "role": "leaf_section",
+      "title": "Compatibility & legacy"
+    },
+    {
+      "child_count": 0,
+      "control_count": 2,
+      "page_id": "v5/data_and_app/app_behavior_and_compatibility/other_app_behavior",
+      "path": "Data & app / App behavior & compatibility / Other app behavior",
+      "renderer": "MorpheSettingsV5DataAppLeafFragment",
+      "role": "leaf_section",
+      "title": "Other app behavior"
+    },
+    {
+      "child_count": 0,
+      "control_count": 1,
+      "page_id": "v5/data_and_app/settings_experience/settings_presentation",
+      "path": "Data & app / Settings experience / Settings presentation",
+      "renderer": "MorpheSettingsV5DataAppLeafFragment",
+      "role": "leaf_section",
+      "title": "Settings presentation"
+    },
+    {
+      "child_count": 0,
+      "control_count": 2,
+      "page_id": "v5/data_and_app/storage_and_bandwidth/cache",
+      "path": "Data & app / Storage & bandwidth / Cache",
+      "renderer": "MorpheSettingsV5DataAppLeafFragment",
+      "role": "leaf_section",
+      "title": "Cache"
+    },
+    {
+      "child_count": 0,
+      "control_count": 2,
+      "page_id": "v5/data_and_app/storage_and_bandwidth/data_saver",
+      "path": "Data & app / Storage & bandwidth / Data saver",
+      "renderer": "MorpheSettingsV5DataAppLeafFragment",
+      "role": "leaf_section",
+      "title": "Data saver"
+    },
+    {
+      "child_count": 0,
+      "control_count": 1,
+      "page_id": "v5/data_and_app/storage_and_bandwidth/data_usage",
+      "path": "Data & app / Storage & bandwidth / Data usage",
+      "renderer": "MorpheSettingsV5DataAppLeafFragment",
+      "role": "leaf_section",
+      "title": "Data usage"
+    },
+    {
+      "child_count": 0,
+      "control_count": 1,
+      "page_id": "v5/data_and_app/storage_and_bandwidth/images",
+      "path": "Data & app / Storage & bandwidth / Images",
+      "renderer": "MorpheSettingsV5DataAppLeafFragment",
+      "role": "leaf_section",
+      "title": "Images"
+    },
+    {
+      "child_count": 0,
+      "control_count": 3,
+      "page_id": "v5/data_and_app/storage_and_bandwidth/videos",
+      "path": "Data & app / Storage & bandwidth / Videos",
+      "renderer": "MorpheSettingsV5DataAppLeafFragment",
+      "role": "leaf_section",
+      "title": "Videos"
+    }
+  ],
+  "special_handlers": {
+    "backup_route": [
+      "v5/data_and_app/backup_and_restore"
+    ],
+    "privacy": [
+      "pref_gdpr_revoke"
+    ],
+    "purchase_and_ads": [
+      "buy_pro",
+      "remove_ads"
+    ],
+    "storage": [
+      "pref_cache_current_size",
+      "pref_cache_max_size",
+      "pref_download_folders"
+    ],
+    "support": [
+      "about_version",
+      "rate_app",
+      "about_subreddit",
+      "about_faq",
+      "support_launch",
+      "licenses_preference",
+      "contact_dev_key",
+      "about_reddit",
+      "about_twitter",
+      "privacy_policy",
+      "reset_tips"
+    ],
+    "video_quality_state": [
+      "pref_video_quality",
+      "pref_video_quality_min",
+      "pref_video_quality_max",
+      "pref_reduce_mobile",
+      "pref_reduce_wifi"
+    ]
+  },
+  "targets": {
+    "action_count": 15,
+    "dependency_count": 0,
+    "screen_count": 18,
+    "special_preference_count": 1,
+    "stored_setting_count": 22,
+    "visible_item_count": 38,
+    "zero_control_route_count": 1
+  }
+}

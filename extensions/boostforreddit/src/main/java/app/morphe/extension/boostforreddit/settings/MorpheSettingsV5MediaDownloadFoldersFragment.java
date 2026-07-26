@@ -27,10 +27,12 @@ import app.morphe.extension.boostforreddit.utils.BoostSystemBarInsetsFix;
 
 import java.lang.reflect.Method;
 
-/** Morphe-owned M3 surface for Boost's complete download-folder contract. */
-public final class MorpheSettingsV4DownloadsFragment extends Fragment {
+/** Complete hidden download-folder leaf for Settings V5 Media. */
+public final class MorpheSettingsV5MediaDownloadFoldersFragment extends Fragment {
     public static final String CONTRACT_MARKER =
-            "MORPHE_BOOST_SETTINGS_V4_DOWNLOADS_ISSUE106_V1";
+            "MORPHE_BOOST_SETTINGS_V5_MEDIA_DOWNLOAD_FOLDERS_ISSUE121_V1";
+    public static final String CANONICAL_BINDINGS_MARKER =
+            "MORPHE_BOOST_SETTINGS_V5_MEDIA_DOWNLOAD_BINDINGS_ISSUE121_V1";
 
     private static final int REQUEST_FOLDER = 0x4ee9;
     private static final int FOLDER_DEFAULT = 0;
@@ -52,7 +54,7 @@ public final class MorpheSettingsV4DownloadsFragment extends Fragment {
     private SharedPreferences preferences;
     private int pendingFolderType = -1;
 
-    public MorpheSettingsV4DownloadsFragment() {
+    public MorpheSettingsV5MediaDownloadFoldersFragment() {
     }
 
     @Override
@@ -89,6 +91,14 @@ public final class MorpheSettingsV4DownloadsFragment extends Fragment {
                 )
         );
 
+        content.addView(MorpheSettingsV14Ui.pageIntro(
+                context,
+                tokens,
+                MorpheSettingsV5Registry.introFor(
+                        "v5/media/downloads_and_cache/download_folders"
+                )
+        ));
+        addSpace(content, 16);
         addSectionLabel(content, "Download folders");
         addSpace(content, 8);
         LinearLayout foldersGroup = addGroup(content);
@@ -155,12 +165,12 @@ public final class MorpheSettingsV4DownloadsFragment extends Fragment {
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
-        MorpheSettingsV4Search.prepareMenu(this, menu, true);
+        MorpheSettingsV5Search.prepareMenu(this, menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (MorpheSettingsV4Search.handleMenuItem(this, item)) {
+        if (MorpheSettingsV5Search.handleMenuItem(this, item)) {
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -514,7 +524,7 @@ public final class MorpheSettingsV4DownloadsFragment extends Fragment {
         if (activity == null || tokens == null) {
             return;
         }
-        activity.setTitle("Configure downloads");
+        activity.setTitle("Download folders");
         BoostSystemBarInsetsFix.applyMorpheSettingsV4SystemBars(
                 activity,
                 tokens.background,

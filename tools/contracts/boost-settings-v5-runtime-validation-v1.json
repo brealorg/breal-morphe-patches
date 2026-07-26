@@ -1,0 +1,106 @@
+{
+  "activation": {
+    "entry_fragment": "app.morphe.extension.boostforreddit.settings.MorpheSettingsV5RootFragment",
+    "material_settings_false_route": "classic",
+    "material_settings_true_route": "v5",
+    "normal_settings_launch_fragment_override": false,
+    "v5_visible_by_default": true
+  },
+  "artifacts": [
+    {
+      "filename": "summary.txt",
+      "role": "classic_summary",
+      "sha256": "5e70eb6d6d80ec554dc4e95b3571d943f4e6474bc244fa3413b3f4617abc7518"
+    },
+    {
+      "filename": "logcat-focused.txt",
+      "role": "classic_logcat",
+      "sha256": "a1bcef39b8bd78224346d67db71065d5e877b60cf57ee65017af40321272f0b0"
+    },
+    {
+      "filename": "final_classic-final.png",
+      "role": "classic_screenshot",
+      "sha256": "f3922444fbc502687d77732ba813fdb82d73172ae6d4a0e77868e8231a5de1b2"
+    },
+    {
+      "filename": "summary.txt",
+      "role": "root7_summary",
+      "sha256": "d2dd33eda197b86e2c22f2be5271b474c6487c18f573d74fb57f23bd56e801bc"
+    },
+    {
+      "filename": "runtime-plan.tsv",
+      "role": "root7_plan",
+      "sha256": "6bf95e4d25eabd6130fe24265298eea49c76bf1085589c6f5c23934da6f91768"
+    },
+    {
+      "filename": "logcat-focused.txt",
+      "role": "root7_logcat",
+      "sha256": "1d8320075dc02b84dbcc6401e037c3c2c6cee5ea5cdc99af84e27f8bd9f3c441"
+    },
+    {
+      "filename": "final_root-final.png",
+      "role": "root7_screenshot",
+      "sha256": "23a3930a38e41decbfaa0034455286c5143c1fcaf94bf30686e148d318be0095"
+    },
+    {
+      "filename": "summary.txt",
+      "role": "visible_summary",
+      "sha256": "f8f8b66b9dd6ce3f7138c1512a003c64a4555a315c3e94e32bb82082e9f197bf"
+    },
+    {
+      "filename": "logcat-focused.txt",
+      "role": "visible_logcat",
+      "sha256": "02fcf7139c6812a73c1f8f70affcf227114c2742b8e9c47d34d9de32b40c59f5"
+    },
+    {
+      "filename": "v5-visible-root.png",
+      "role": "visible_screenshot",
+      "sha256": "b5721785d101e99432c19c51302048f4707482eaf1e6c49fd5d6444af142fe2c"
+    }
+  ],
+  "build": {
+    "activated_dev_apk_sha256": "ff8a34987283a5ed1aeb98a5621986784f548ba5c2bb1de9aa3cfa5ef83847ae",
+    "activated_mpp_sha256": "0c52634ea6519c720896624e3f13706efa29c15d2c36d2d8f6fa88df0b1cc7cb",
+    "android_release": "17",
+    "android_sdk": 37,
+    "device": "oriole",
+    "model": "Pixel 6"
+  },
+  "coverage": {
+    "classic_fallback_runtime": {
+      "covered": 1,
+      "target": 1
+    },
+    "morphe_configurable_controls": {
+      "covered": 12,
+      "target": 12
+    },
+    "root_destinations_back": {
+      "covered": 7,
+      "target": 7
+    },
+    "root_destinations_click": {
+      "covered": 7,
+      "target": 7
+    },
+    "root_destinations_render": {
+      "covered": 7,
+      "target": 7
+    },
+    "visible_root_labels": {
+      "covered": 8,
+      "target": 8
+    }
+  },
+  "issue": 121,
+  "safety": {
+    "critical_settings_exception_count": 0,
+    "normal_boost_untouched": true,
+    "relevant_fatal_count": 0,
+    "setting_value_mutations_by_harness": false
+  },
+  "schema_version": 1,
+  "semantic_revision": "V4",
+  "validated_at": "2026-07-26T03:10:16+02:00",
+  "validation_state": "complete"
+}

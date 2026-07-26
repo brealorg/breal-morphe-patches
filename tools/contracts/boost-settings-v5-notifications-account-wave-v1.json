@@ -1,0 +1,271 @@
+{
+  "binding_capture": {
+    "archive_sha256": "38fe3cb8f3a276cbc15dcc4aa3d564c357c09060765a778ff3c773cf251a0c3b",
+    "base_apk_sha256": "a68c22d632a5dd1f446c3759a171c7dbb9edab2afc3c2f87e39323f198606742",
+    "source_mpp_sha256": "f5912189364f1c672c25a18fdda04fda99fdcd61edb6aebbadf2cedb0e086158",
+    "v5_contract_sha256": "4c8e081069d7444938c3ff5ad0e451bb3b16183592114a6b8adf77cd1208d3f7"
+  },
+  "dependencies": {
+    "pref_check_messages_interval": "pref_check_messages",
+    "pref_check_messages_push": "pref_check_messages",
+    "pref_check_messages_push_clear": "pref_check_messages_push",
+    "pref_check_modmail": "pref_check_messages"
+  },
+  "issue": 121,
+  "items": [
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_all_delete",
+      "logical_kind": "special_preference",
+      "page_id": "v5/notifications_and_account/history_privacy_and_recovery/history",
+      "storage_type": "none_or_custom",
+      "title": "Clear all history"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_history_delete",
+      "logical_kind": "special_preference",
+      "page_id": "v5/notifications_and_account/history_privacy_and_recovery/history",
+      "storage_type": "none_or_custom",
+      "title": "Clear community history"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_recent_posts_delete",
+      "logical_kind": "special_preference",
+      "page_id": "v5/notifications_and_account/history_privacy_and_recovery/history",
+      "storage_type": "none_or_custom",
+      "title": "Clear post history"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_searches_delete",
+      "logical_kind": "special_preference",
+      "page_id": "v5/notifications_and_account/history_privacy_and_recovery/history",
+      "storage_type": "none_or_custom",
+      "title": "Clear search history"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_recent_posts_save_nsfw",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/notifications_and_account/history_privacy_and_recovery/history",
+      "storage_type": "boolean",
+      "title": "Include NSFW posts"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_history_save",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/notifications_and_account/history_privacy_and_recovery/history",
+      "storage_type": "boolean",
+      "title": "Save recent communities"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_recent_posts_save",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/notifications_and_account/history_privacy_and_recovery/history",
+      "storage_type": "boolean",
+      "title": "Save recent posts"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_search_history_save",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/notifications_and_account/history_privacy_and_recovery/history",
+      "storage_type": "boolean",
+      "title": "Show recent searches"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "morphe_boost_imgur_undelete_enabled",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/notifications_and_account/history_privacy_and_recovery/recovery_and_archives",
+      "storage_type": "boolean",
+      "title": "Automatically undelete Imgur images"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "morphe_boost_reddit_undelete_enabled",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/notifications_and_account/history_privacy_and_recovery/recovery_and_archives",
+      "storage_type": "boolean",
+      "title": "Automatically undelete Reddit content"
+    },
+    {
+      "default_value": "true",
+      "dependency": "pref_check_messages_push",
+      "key": "pref_check_messages_push_clear",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/notifications_and_account/notifications_and_inbox/advanced",
+      "storage_type": "boolean",
+      "title": "Clear source notification"
+    },
+    {
+      "default_value": "false",
+      "dependency": "pref_check_messages",
+      "key": "pref_check_messages_push",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/notifications_and_account/notifications_and_inbox/advanced",
+      "storage_type": "boolean",
+      "title": "Reddit push"
+    },
+    {
+      "default_value": "60",
+      "dependency": "pref_check_messages",
+      "key": "pref_check_messages_interval",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/notifications_and_account/notifications_and_inbox/notifications",
+      "storage_type": "string",
+      "title": "Check interval"
+    },
+    {
+      "default_value": "true",
+      "dependency": "pref_check_messages",
+      "key": "pref_check_modmail",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/notifications_and_account/notifications_and_inbox/notifications",
+      "storage_type": "boolean",
+      "title": "Check moderator mail"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_check_messages",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/notifications_and_account/notifications_and_inbox/notifications",
+      "storage_type": "boolean",
+      "title": "Check notifications"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_notifications_configure",
+      "logical_kind": "action",
+      "page_id": "v5/notifications_and_account/notifications_and_inbox/notifications",
+      "storage_type": "none_or_custom",
+      "title": "Configure notifications"
+    }
+  ],
+  "schema": 1,
+  "screens": [
+    {
+      "child_count": 3,
+      "control_count": 0,
+      "page_id": "v5/notifications_and_account",
+      "renderer": "MorpheSettingsV5NotificationsAccountFragment",
+      "role": "root_group",
+      "title": "Notifications & account"
+    },
+    {
+      "child_count": 2,
+      "control_count": 0,
+      "page_id": "v5/notifications_and_account/history_privacy_and_recovery",
+      "renderer": "MorpheSettingsV5NotificationsAccountFragment",
+      "role": "task_page",
+      "title": "History, privacy & recovery"
+    },
+    {
+      "child_count": 2,
+      "control_count": 0,
+      "page_id": "v5/notifications_and_account/notifications_and_inbox",
+      "renderer": "MorpheSettingsV5NotificationsAccountFragment",
+      "role": "task_page",
+      "title": "Notifications & inbox"
+    },
+    {
+      "child_count": 0,
+      "control_count": 0,
+      "page_id": "v5/notifications_and_account/reddit_account",
+      "renderer": "MorpheSettingsV5RedditAccountFragment",
+      "role": "task_page",
+      "title": "Reddit account"
+    },
+    {
+      "child_count": 0,
+      "control_count": 8,
+      "page_id": "v5/notifications_and_account/history_privacy_and_recovery/history",
+      "renderer": "MorpheSettingsV5NotificationsAccountLeafFragment",
+      "role": "leaf_section",
+      "title": "History"
+    },
+    {
+      "child_count": 0,
+      "control_count": 2,
+      "page_id": "v5/notifications_and_account/history_privacy_and_recovery/recovery_and_archives",
+      "renderer": "MorpheSettingsV5NotificationsAccountLeafFragment",
+      "role": "leaf_section",
+      "title": "Recovery & archives"
+    },
+    {
+      "child_count": 0,
+      "control_count": 2,
+      "page_id": "v5/notifications_and_account/notifications_and_inbox/advanced",
+      "renderer": "MorpheSettingsV5NotificationsAccountLeafFragment",
+      "role": "leaf_section",
+      "title": "Advanced"
+    },
+    {
+      "child_count": 0,
+      "control_count": 4,
+      "page_id": "v5/notifications_and_account/notifications_and_inbox/notifications",
+      "renderer": "MorpheSettingsV5NotificationsAccountLeafFragment",
+      "role": "leaf_section",
+      "title": "Notifications"
+    }
+  ],
+  "source_files": [
+    "MorpheSettingsV5Registry.java",
+    "MorpheSettingsV5Navigation.java",
+    "MorpheSettingsV5NotificationsAccountFragment.java",
+    "MorpheSettingsV5NotificationsAccountLeafFragment.java",
+    "MorpheSettingsV5NotificationsAccountMetadata.java",
+    "MorpheSettingsV5RedditAccountFragment.java",
+    "MorpheSettingsV5XmlPreferenceFragment.java",
+    "MorpheSettingsV5Search.java"
+  ],
+  "special_handlers": {
+    "hidden_canonical_controls": [
+      "pref_search_history_save",
+      "pref_searches_delete"
+    ],
+    "history_delete_actions": [
+      "pref_all_delete",
+      "pref_history_delete",
+      "pref_recent_posts_delete",
+      "pref_searches_delete"
+    ],
+    "notification_configuration_action": [
+      "pref_notifications_configure"
+    ],
+    "notification_side_effects": [
+      "pref_check_messages",
+      "pref_check_messages_interval",
+      "pref_check_messages_push"
+    ],
+    "reddit_account_status_page": [
+      "v5/notifications_and_account/reddit_account"
+    ]
+  },
+  "target": {
+    "legacy_routes": 0,
+    "max_controls_per_leaf": 8,
+    "placeholder_pages": 0,
+    "screen_nodes": 8,
+    "visible_by_default": false,
+    "visible_items": 16,
+    "withheld_items": 0
+  },
+  "wave": "Notifications & account"
+}

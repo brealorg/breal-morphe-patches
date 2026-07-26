@@ -1,0 +1,55 @@
+{
+  "comments_topology": {
+    "child_pages": [
+      "Sorting & loading",
+      "Appearance",
+      "Collapse behavior",
+      "Navigation & controls"
+    ],
+    "leaf_sections": {
+      "Appearance": [
+        "Author & media",
+        "Thread styling",
+        "Awards & flair"
+      ],
+      "Collapse behavior": [
+        "Collapse rules",
+        "Collapsed presentation"
+      ],
+      "Navigation & controls": [
+        "Comment navigation",
+        "Visible buttons",
+        "Gestures"
+      ],
+      "Sorting & loading": [
+        "Sorting",
+        "Loading"
+      ]
+    },
+    "task_page": "Comments"
+  },
+  "global_search": {
+    "androidx_navigation_calls": "forbidden",
+    "back_callback_priority": "platform_overlay",
+    "deeper_morphe_pages": "top_app_bar_action",
+    "navigation_mode": "platform_dialog_overlay",
+    "opens_with_keyboard": true,
+    "result_back_stack": "returns_to_originating_page",
+    "root_surface": "inline_search_field",
+    "scope": "all_settings",
+    "single_back_behavior": "dismiss_overlay_and_ime"
+  },
+  "intermediate_pages_required_when_domains_mix": true,
+  "issue": 121,
+  "leaf_hard_max_controls": 12,
+  "leaf_target_controls": {
+    "max": 9,
+    "min": 4
+  },
+  "root_group_count": 7,
+  "root_screen": "seven_category_list_rows",
+  "schema": 1,
+  "section_headers_do_not_replace_navigation": true,
+  "task_pages": "one_level_below_root",
+  "task_pages_must_not_be_xml_dumps": true
+}

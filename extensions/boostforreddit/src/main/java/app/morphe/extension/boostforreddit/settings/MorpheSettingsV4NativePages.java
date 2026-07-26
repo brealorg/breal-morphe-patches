@@ -78,6 +78,16 @@ public final class MorpheSettingsV4NativePages {
             "MORPHE_BOOST_SETTINGS_V14_EDITOR_SYSTEM_ISSUE106_V1";
     public static final String V14_NO_COMPILE_ONLY_UI_MARKER =
             "MORPHE_BOOST_SETTINGS_V14_NO_COMPILE_ONLY_UI_ABI_ISSUE106_V1";
+    public static final String NAVIGATION_IA_MARKER =
+            "MORPHE_BOOST_SETTINGS_NAVIGATION_GESTURES_ISSUE121_V1";
+    public static final String NAVIGATION_PHASE2_MARKER =
+            "MORPHE_BOOST_SETTINGS_NAVIGATION_PHASE2_LEAF_SPLIT_ISSUE121_V1";
+    public static final String MATERIAL_VISUAL_FOUNDATION_MARKER =
+            "MORPHE_BOOST_SETTINGS_NATIVE_MATERIAL_VISUAL_FOUNDATION_"
+                    + "ISSUE121_PHASE2_1_V1";
+    public static final String ANDROID_SETTINGS_GUIDANCE_PILOT_MARKER =
+            "MORPHE_BOOST_SETTINGS_NATIVE_STANDARD_PREFERENCE_LIST_"
+                    + "ISSUE121_PHASE2_2_V1";
 
     private static final String PREFIX =
             "app.morphe.extension.boostforreddit.settings."
@@ -150,6 +160,313 @@ public final class MorpheSettingsV4NativePages {
         }
     }
 
+    public static final class Headers extends NativePage {
+        public Headers() {
+            super("Community header", "pref_headers_v2");
+        }
+    }
+
+    public static final class Navigation extends NativePage {
+        public Navigation() {
+            super(
+                    "Navigation & gestures",
+                    "pref_toolbar_v2",
+                    "pref_bottom_navigation_v2",
+                    "pref_drawer_v2",
+                    "pref_general_v2"
+            );
+        }
+
+        @Override
+        protected boolean includeControl(String resourceName, String key) {
+            if (TextUtils.isEmpty(key)) {
+                return false;
+            }
+            switch (key) {
+                case "pref_toolbar_main_action":
+                case "pref_toolbar":
+                case "pref_bottom_navigation":
+                case "pref_bottom_navigation_hide_on_scroll":
+                case "pref_drawer_show_home":
+                case "pref_drawer_show_frontpage":
+                case "pref_drawer_show_popular":
+                case "pref_drawer_show_all":
+                case "pref_drawer_show_saved":
+                case "pref_drawer_show_history":
+                case "pref_drawer_show_profile":
+                case "pref_drawer_show_inbox":
+                case "pref_drawer_show_drafts":
+                case "pref_drawer_show_mod":
+                case "pref_drawer_show_search_generic":
+                case "pref_drawer_show_go_to":
+                case "pref_drawer_show_go_to_subreddit":
+                case "pref_drawer_show_go_to_user":
+                case "pref_drawer_show_night_mode":
+                case "pref_drawer_show_nsfw_switch":
+                case "pref_drawer_show_blur_switch":
+                case "pref_drawer_sticky_settings":
+                case "pref_subscriptions_drawer":
+                case "pref_subscriptions_drawer_show_icon":
+                case "pref_subscriptions_only_casual":
+                case "pref_accounts_show_avatar":
+                case "pref_accounts_show_username":
+                case "pref_drawer_end":
+                case "pref_ask_exit":
+                case "pref_double_exit":
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        @Override
+        protected String sectionFor(
+                String resourceName,
+                String key,
+                String currentSection
+        ) {
+            if ("pref_toolbar_v2".equals(resourceName)) {
+                return "Toolbar behavior";
+            }
+            if ("pref_bottom_navigation_v2".equals(resourceName)) {
+                return "Bottom navigation";
+            }
+            if ("pref_drawer_v2".equals(resourceName)) {
+                return "Navigation drawer";
+            }
+            if ("pref_ask_exit".equals(key)
+                    || "pref_double_exit".equals(key)) {
+                return "Back & exit";
+            }
+            return currentSection;
+        }
+    }
+
+    private abstract static class NavigationSubsetPage
+            extends NativePage {
+        private final String sectionTitle;
+        private final String intro;
+        private final String[] includedKeys;
+
+        NavigationSubsetPage(
+                String title,
+                String resourceName,
+                String intro,
+                String... includedKeys
+        ) {
+            super(title, resourceName);
+            this.sectionTitle = title;
+            this.intro = intro;
+            this.includedKeys = includedKeys == null
+                    ? new String[0]
+                    : includedKeys.clone();
+        }
+
+        @Override
+        protected boolean includeControl(String resourceName, String key) {
+            if (TextUtils.isEmpty(key)) {
+                return false;
+            }
+            for (String includedKey : includedKeys) {
+                if (key.equals(includedKey)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        protected String sectionFor(
+                String resourceName,
+                String key,
+                String currentSection
+        ) {
+            return sectionTitle;
+        }
+
+        @Override
+        protected String pageIntro() {
+            return "";
+        }
+
+        @Override
+        protected boolean useAndroidSettingsGuidanceRows() {
+            return true;
+        }
+    }
+
+    public static final class NavigationToolbar
+            extends NavigationSubsetPage {
+        public NavigationToolbar() {
+            super(
+                    "Toolbar",
+                    "pref_toolbar_v2",
+                    "Choose the toolbar's primary action and whether it "
+                            + "stays visible while scrolling.",
+                    "pref_toolbar_main_action",
+                    "pref_toolbar"
+            );
+        }
+    }
+
+    public static final class NavigationBottom
+            extends NavigationSubsetPage {
+        public NavigationBottom() {
+            super(
+                    "Bottom navigation",
+                    "pref_bottom_navigation_v2",
+                    "Control whether bottom navigation is shown and how it "
+                            + "behaves while scrolling.",
+                    "pref_bottom_navigation",
+                    "pref_bottom_navigation_hide_on_scroll"
+            );
+        }
+    }
+
+    public static final class DrawerFeedsLibrary
+            extends NavigationSubsetPage {
+        public DrawerFeedsLibrary() {
+            super(
+                    "Feeds & library",
+                    "pref_drawer_v2",
+                    "Choose which feed and library destinations appear in "
+                            + "the navigation drawer.",
+                    "pref_drawer_show_home",
+                    "pref_drawer_show_frontpage",
+                    "pref_drawer_show_popular",
+                    "pref_drawer_show_all",
+                    "pref_drawer_show_saved",
+                    "pref_drawer_show_history"
+            );
+        }
+
+        @Override
+        protected String sectionFor(
+                String resourceName,
+                String key,
+                String currentSection
+        ) {
+            return "Drawer destinations";
+        }
+
+        @Override
+        protected String displaySummary(
+                String key,
+                String currentSummary
+        ) {
+            if ("pref_drawer_show_home".equals(key)) {
+                return "Default feed";
+            }
+            if ("pref_drawer_show_frontpage".equals(key)) {
+                return "Posts from subscriptions";
+            }
+            return "";
+        }
+    }
+
+    public static final class DrawerAccountTools
+            extends NavigationSubsetPage {
+        public DrawerAccountTools() {
+            super(
+                    "Account & tools",
+                    "pref_drawer_v2",
+                    "Choose which account and utility destinations appear "
+                            + "in the navigation drawer.",
+                    "pref_drawer_show_profile",
+                    "pref_drawer_show_inbox",
+                    "pref_drawer_show_drafts",
+                    "pref_drawer_show_mod",
+                    "pref_drawer_show_search_generic"
+            );
+        }
+    }
+
+    public static final class DrawerGoToShortcuts
+            extends NavigationSubsetPage {
+        public DrawerGoToShortcuts() {
+            super(
+                    "Go-to shortcuts",
+                    "pref_drawer_v2",
+                    "Choose which direct navigation shortcuts appear in "
+                            + "the drawer.",
+                    "pref_drawer_show_go_to",
+                    "pref_drawer_show_go_to_subreddit",
+                    "pref_drawer_show_go_to_user"
+            );
+        }
+    }
+
+    public static final class DrawerQuickToggles
+            extends NavigationSubsetPage {
+        public DrawerQuickToggles() {
+            super(
+                    "Quick toggles",
+                    "pref_drawer_v2",
+                    "Choose which frequently used display controls appear "
+                            + "in the drawer.",
+                    "pref_drawer_show_night_mode",
+                    "pref_drawer_show_nsfw_switch",
+                    "pref_drawer_show_blur_switch"
+            );
+        }
+    }
+
+    public static final class DrawerSubscriptions
+            extends NavigationSubsetPage {
+        public DrawerSubscriptions() {
+            super(
+                    "Subscriptions",
+                    "pref_drawer_v2",
+                    "Configure the subscription list shown inside the "
+                            + "navigation drawer.",
+                    "pref_subscriptions_drawer",
+                    "pref_subscriptions_drawer_show_icon",
+                    "pref_subscriptions_only_casual"
+            );
+        }
+    }
+
+    public static final class DrawerAccountSwitcher
+            extends NavigationSubsetPage {
+        public DrawerAccountSwitcher() {
+            super(
+                    "Account switcher",
+                    "pref_drawer_v2",
+                    "Choose which identity details are visible in the "
+                            + "drawer's account switcher.",
+                    "pref_accounts_show_avatar",
+                    "pref_accounts_show_username"
+            );
+        }
+    }
+
+    public static final class DrawerBehavior
+            extends NavigationSubsetPage {
+        public DrawerBehavior() {
+            super(
+                    "Drawer behavior",
+                    "pref_drawer_v2",
+                    "Control persistent Settings access and which side "
+                            + "opens the navigation drawer.",
+                    "pref_drawer_sticky_settings",
+                    "pref_drawer_end"
+            );
+        }
+    }
+
+    public static final class NavigationBackExit
+            extends NavigationSubsetPage {
+        public NavigationBackExit() {
+            super(
+                    "Back & exit",
+                    "pref_general_v2",
+                    "Choose how Boost responds when Back would leave the app.",
+                    "pref_ask_exit",
+                    "pref_double_exit"
+            );
+        }
+    }
+
     public static final class BottomNavigation extends NativePage {
         public BottomNavigation() {
             super("Bottom navigation", "pref_bottom_navigation_v2");
@@ -202,6 +519,12 @@ public final class MorpheSettingsV4NativePages {
         public General() {
             super("General", "pref_general_v2");
         }
+
+        @Override
+        protected boolean includeControl(String resourceName, String key) {
+            return !"pref_ask_exit".equals(key)
+                    && !"pref_double_exit".equals(key);
+        }
     }
 
     public static final class Misc extends NativePage {
@@ -237,7 +560,7 @@ public final class MorpheSettingsV4NativePages {
         private static final int REQUEST_SYNCCIT_ACCOUNT = 1002;
 
         private final String pageTitle;
-        private final String resourceName;
+        private final String[] resourceNames;
         private final List<Binding> bindings = new ArrayList<>();
         private final Map<String, Control> controlsByKey = new LinkedHashMap<>();
 
@@ -255,8 +578,14 @@ public final class MorpheSettingsV4NativePages {
         private int editorBackStackSequence;
 
         protected NativePage(String pageTitle, String resourceName) {
+            this(pageTitle, new String[]{resourceName});
+        }
+
+        protected NativePage(String pageTitle, String... resourceNames) {
             this.pageTitle = pageTitle;
-            this.resourceName = resourceName;
+            this.resourceNames = resourceNames == null
+                    ? new String[0]
+                    : resourceNames.clone();
         }
 
         @Override
@@ -285,7 +614,7 @@ public final class MorpheSettingsV4NativePages {
 
             LinearLayout content = new LinearLayout(context);
             content.setOrientation(LinearLayout.VERTICAL);
-            content.setPadding(dp(16), dp(10), dp(16), dp(32));
+            content.setPadding(dp(16), dp(4), dp(16), dp(32));
             scrollView.addView(content, new ScrollView.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT
@@ -303,6 +632,16 @@ public final class MorpheSettingsV4NativePages {
                         view -> showUnavailable()
                 );
                 return pageHost;
+            }
+
+            String intro = pageIntro();
+            if (!TextUtils.isEmpty(intro)) {
+                content.addView(MorpheSettingsV14Ui.pageIntro(
+                        requireContext(),
+                        tokens,
+                        intro
+                ));
+                addSpace(content, 14);
             }
 
             renderControls(content, controls);
@@ -372,13 +711,56 @@ public final class MorpheSettingsV4NativePages {
         @Override
         public void onPrepareOptionsMenu(Menu menu) {
             super.onPrepareOptionsMenu(menu);
-            hideMenuItem(menu, "action_generic_search");
-            hideMenuItem(menu, "action_search");
-            hideMenuItem(menu, "search");
-            hideMenuItem(menu, "menu_search");
+            MorpheSettingsV4Search.prepareMenu(this, menu, true);
+        }
+
+        @Override
+        public boolean onOptionsItemSelected(MenuItem item) {
+            if (MorpheSettingsV4Search.handleMenuItem(this, item)) {
+                return true;
+            }
+            return super.onOptionsItemSelected(item);
+        }
+
+        protected boolean includeControl(String resourceName, String key) {
+            return true;
+        }
+
+        protected String sectionFor(
+                String resourceName,
+                String key,
+                String currentSection
+        ) {
+            return currentSection;
+        }
+
+        protected String pageIntro() {
+            return "";
+        }
+
+        protected boolean useAndroidSettingsGuidanceRows() {
+            return false;
+        }
+
+        protected String displaySummary(
+                String key,
+                String currentSummary
+        ) {
+            return currentSummary;
         }
 
         private List<Control> readControls(Context context) {
+            List<Control> result = new ArrayList<>();
+            for (String resourceName : resourceNames) {
+                result.addAll(readControls(context, resourceName));
+            }
+            return result;
+        }
+
+        private List<Control> readControls(
+                Context context,
+                String resourceName
+        ) {
             int resourceId = MorpheSettingsV4Catalog.resourceId(
                     context,
                     "xml",
@@ -496,6 +878,14 @@ public final class MorpheSettingsV4NativePages {
                             "entryValues"
                     );
                     configureMorpheControl(control);
+                    if (!includeControl(resourceName, control.key)) {
+                        continue;
+                    }
+                    control.section = sectionFor(
+                            resourceName,
+                            control.key,
+                            control.section
+                    );
                     if ("pref_general_v2".equals(resourceName)
                             && !TextUtils.isEmpty(control.fragmentName)) {
                         // These six routes duplicate the dedicated Morphe hubs.
@@ -527,12 +917,18 @@ public final class MorpheSettingsV4NativePages {
             LinearLayout group = null;
             for (Control control : controls) {
                 if (!TextUtils.equals(currentSection, control.section)) {
-                    if (content.getChildCount() > 0) {
-                        addSpace(content, 24);
+                    boolean repeatedPageTitle = TextUtils.equals(
+                            control.section,
+                            pageTitle
+                    );
+                    if (group != null) {
+                        addSpace(content, 20);
                     }
                     currentSection = control.section;
-                    addSectionLabel(content, currentSection);
-                    addSpace(content, 8);
+                    if (!repeatedPageTitle) {
+                        addSectionLabel(content, currentSection);
+                        addSpace(content, 6);
+                    }
                     group = addGroup(content);
                 }
                 if (isToggle(control)) {
@@ -552,11 +948,12 @@ public final class MorpheSettingsV4NativePages {
                     control.key,
                     booleanDefault(control)
             );
-            LinearLayout row = baseRow();
+            String summaryValue = toggleSummary(control, checked);
+            LinearLayout row = baseRow(!TextUtils.isEmpty(summaryValue));
             TextView summary = addLabels(
                     row,
                     control.title,
-                    toggleSummary(control, checked)
+                    summaryValue
             );
 
             MorpheSettingsV14Ui.Toggle toggle =
@@ -587,11 +984,12 @@ public final class MorpheSettingsV4NativePages {
         }
 
         private void addChoice(LinearLayout group, Control control) {
-            LinearLayout row = baseRow();
+            String summaryValue = selectedTitle(control);
+            LinearLayout row = baseRow(!TextUtils.isEmpty(summaryValue));
             TextView summary = addLabels(
                     row,
                     control.title,
-                    selectedTitle(control)
+                    summaryValue
             );
             addChevron(row);
             row.setOnClickListener(view -> {
@@ -667,11 +1065,12 @@ public final class MorpheSettingsV4NativePages {
         }
 
         private void addAction(LinearLayout group, Control control) {
-            LinearLayout row = baseRow();
+            String summaryValue = actionSummary(control);
+            LinearLayout row = baseRow(!TextUtils.isEmpty(summaryValue));
             TextView summary = addLabels(
                     row,
                     control.title,
-                    actionSummary(control)
+                    summaryValue
             );
             addChevron(row);
             row.setOnClickListener(view -> {
@@ -689,7 +1088,7 @@ public final class MorpheSettingsV4NativePages {
                 String summary,
                 View.OnClickListener listener
         ) {
-            LinearLayout row = baseRow();
+            LinearLayout row = baseRow(!TextUtils.isEmpty(summary));
             addLabels(row, title, summary);
             addChevron(row);
             row.setOnClickListener(listener);
@@ -2090,13 +2489,13 @@ public final class MorpheSettingsV4NativePages {
         }
 
         private String toggleSummary(Control control, boolean checked) {
+            String summary = control.summary;
             if (checked && !TextUtils.isEmpty(control.summaryOn)) {
-                return control.summaryOn;
+                summary = control.summaryOn;
+            } else if (!checked && !TextUtils.isEmpty(control.summaryOff)) {
+                summary = control.summaryOff;
             }
-            if (!checked && !TextUtils.isEmpty(control.summaryOff)) {
-                return control.summaryOff;
-            }
-            return control.summary;
+            return displaySummary(control.key, summary);
         }
 
         private String selectedTitle(Control control) {
@@ -2418,13 +2817,26 @@ public final class MorpheSettingsV4NativePages {
         }
 
         private LinearLayout addGroup(LinearLayout parent) {
-            LinearLayout group = MorpheSettingsV14Ui.group(requireContext());
+            LinearLayout group = useAndroidSettingsGuidanceRows()
+                    ? MorpheSettingsV14Ui.standardList(requireContext())
+                    : MorpheSettingsV14Ui.group(requireContext());
             parent.addView(group, matchWrapParams());
             return group;
         }
 
         private LinearLayout baseRow() {
             return MorpheSettingsV14Ui.baseRow(requireContext(), tokens);
+        }
+
+        private LinearLayout baseRow(boolean hasSupportingText) {
+            if (useAndroidSettingsGuidanceRows()) {
+                return MorpheSettingsV14Ui.standardListRow(
+                        requireContext(),
+                        tokens,
+                        hasSupportingText
+                );
+            }
+            return baseRow();
         }
 
         private MorpheSettingsV14Ui.ChoiceRow materialChoiceRow(
@@ -2457,7 +2869,9 @@ public final class MorpheSettingsV4NativePages {
                     tokens.textSecondary
             );
             summary.setLineSpacing(0, 1.04f);
-            summary.setMaxLines(4);
+            summary.setMaxLines(
+                    useAndroidSettingsGuidanceRows() ? 2 : 4
+            );
             summary.setVisibility(
                     TextUtils.isEmpty(summaryValue) ? View.GONE : View.VISIBLE
             );
@@ -2476,6 +2890,10 @@ public final class MorpheSettingsV4NativePages {
         }
 
         private void addGroupedRow(LinearLayout group, View row) {
+            if (useAndroidSettingsGuidanceRows()) {
+                MorpheSettingsV14Ui.addStandardListRow(group, row, tokens);
+                return;
+            }
             MorpheSettingsV14Ui.addSegmentedRow(group, row, tokens);
         }
 

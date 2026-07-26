@@ -1,0 +1,585 @@
+{
+  "activation_policy": "parallel_hidden_until_complete",
+  "binding_capture": {
+    "archive_sha256": "1953af26eb18a1f00a9adeb02252696551d394867892afa0b62ac65ad0b53ae3",
+    "base_apk_sha256": "a68c22d632a5dd1f446c3759a171c7dbb9edab2afc3c2f87e39323f198606742",
+    "source_mpp_sha256": "c238c79d16f17877a46483e6f467f36a0086f50fe8c4172b64663e4ab30016f7",
+    "v5_contract_sha256": "4c8e081069d7444938c3ff5ad0e451bb3b16183592114a6b8adf77cd1208d3f7"
+  },
+  "dependencies": {
+    "action:saved_views:add": "pref_view_per_subscription",
+    "action:saved_views:clear_all": "saved_views_not_empty",
+    "pref_cards_preview_self_lines": "pref_cards_preview_self",
+    "pref_header_show_description": "pref_show_subreddit_header",
+    "pref_theme": "not:pref_dynamic_colors",
+    "pref_toolbar_header_type": "pref_show_subreddit_header",
+    "pref_view_per_sub": "pref_view_per_subscription"
+  },
+  "issue": 121,
+  "items": [
+    {
+      "default_value": "center",
+      "dependency": "pref_show_subreddit_header",
+      "key": "pref_toolbar_header_type",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/community_header/community_header",
+      "storage_type": "string",
+      "title": "Community info alignment"
+    },
+    {
+      "default_value": "true",
+      "dependency": "pref_show_subreddit_header",
+      "key": "pref_header_show_description",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/community_header/community_header",
+      "storage_type": "boolean",
+      "title": "Show community description"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_show_subreddit_header",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/community_header/community_header",
+      "storage_type": "boolean",
+      "title": "Show community header"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "morphe_boost_prefer_high_refresh_rate",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/display_and_motion/display_performance",
+      "storage_type": "boolean",
+      "title": "Prefer high refresh rate"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_cards_gallery_carousel",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/post_layout/cards",
+      "storage_type": "boolean",
+      "title": "Carousel for multiple images"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_cards_full",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/post_layout/cards",
+      "storage_type": "boolean",
+      "title": "Fill the screen width"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_cards_full_preview",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/post_layout/cards",
+      "storage_type": "boolean",
+      "title": "Full height images"
+    },
+    {
+      "default_value": "5",
+      "dependency": "pref_cards_preview_self",
+      "key": "pref_cards_preview_self_lines",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/post_layout/cards",
+      "storage_type": "integer",
+      "title": "Lines to preview"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_cards_preview_self",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/post_layout/cards",
+      "storage_type": "boolean",
+      "title": "Preview text from posts"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_cards_rounded_corners",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/post_layout/cards",
+      "storage_type": "boolean",
+      "title": "Rounded corners"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_cards_subreddit_icon",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/post_layout/cards",
+      "storage_type": "boolean",
+      "title": "Show community icon"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_cards_links_as_thumbnails",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/post_layout/cards",
+      "storage_type": "boolean",
+      "title": "Show thumbnails for link posts"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_dense_buttons_visible",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/post_layout/compact_layouts/dense",
+      "storage_type": "boolean",
+      "title": "Buttons always visible"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_mini_cards_buttons_visible",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/post_layout/compact_layouts/small_cards",
+      "storage_type": "boolean",
+      "title": "Buttons always visible"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_mini_cards_full",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/post_layout/compact_layouts/small_cards",
+      "storage_type": "boolean",
+      "title": "Fill the screen width"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_mini_cards_rounded_corners",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/post_layout/compact_layouts/small_cards",
+      "storage_type": "boolean",
+      "title": "Rounded corners"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_mini_cards_truncate_title",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/post_layout/compact_layouts/small_cards",
+      "storage_type": "boolean",
+      "title": "Truncate title"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_show_subreddit_prefix",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/post_layout/layout_and_saved_views/post_layout",
+      "storage_type": "boolean",
+      "title": "Communities start with r/"
+    },
+    {
+      "default_value": "0",
+      "dependency": "",
+      "key": "pref_view",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/post_layout/layout_and_saved_views/post_layout",
+      "storage_type": "string",
+      "title": "Default view"
+    },
+    {
+      "default_value": "",
+      "dependency": "pref_view_per_subscription",
+      "key": "pref_view_per_sub",
+      "logical_kind": "action",
+      "page_id": "v5/appearance/post_layout/layout_and_saved_views/post_layout",
+      "storage_type": "none_or_custom",
+      "title": "Manage saved views"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_view_per_subscription",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/post_layout/layout_and_saved_views/post_layout",
+      "storage_type": "boolean",
+      "title": "Remember per community"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_left_handed",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/post_layout/layout_and_saved_views/post_layout",
+      "storage_type": "boolean",
+      "title": "Thumbnails on left"
+    },
+    {
+      "default_value": "",
+      "dependency": "pref_view_per_subscription",
+      "key": "action:saved_views:add",
+      "logical_kind": "action",
+      "page_id": "v5/appearance/post_layout/layout_and_saved_views/saved_community_views",
+      "storage_type": "private_preferences",
+      "title": "Add saved view"
+    },
+    {
+      "default_value": "",
+      "dependency": "saved_views_not_empty",
+      "key": "action:saved_views:clear_all",
+      "logical_kind": "destructive_action",
+      "page_id": "v5/appearance/post_layout/layout_and_saved_views/saved_community_views",
+      "storage_type": "private_preferences",
+      "title": "Clear all saved views"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_split_screen",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/post_layout/tablet_layout",
+      "storage_type": "boolean",
+      "title": "Tablet split screen mode"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_colored_nav_bar",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/theme_and_colors/advanced_appearance",
+      "storage_type": "boolean",
+      "title": "Colored navigation bar"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_colored_status_bar",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/theme_and_colors/advanced_appearance",
+      "storage_type": "boolean",
+      "title": "Colored status bar"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_app_icon",
+      "logical_kind": "action",
+      "page_id": "v5/appearance/theme_and_colors/personalization",
+      "storage_type": "none_or_custom",
+      "title": "App icon"
+    },
+    {
+      "default_value": "0",
+      "dependency": "pref_dynamic_colors",
+      "key": "pref_theme",
+      "logical_kind": "action",
+      "page_id": "v5/appearance/theme_and_colors/theme",
+      "storage_type": "none_or_custom",
+      "title": "Customize colors"
+    },
+    {
+      "default_value": "1140",
+      "dependency": "",
+      "key": "pref_theme_night_start_minutes",
+      "logical_kind": "special_preference",
+      "page_id": "v5/appearance/theme_and_colors/theme",
+      "storage_type": "none_or_custom",
+      "title": "Dark start time"
+    },
+    {
+      "default_value": "8",
+      "dependency": "",
+      "key": "pref_theme_night",
+      "logical_kind": "special_preference",
+      "page_id": "v5/appearance/theme_and_colors/theme",
+      "storage_type": "none_or_custom",
+      "title": "Dark theme"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_dynamic_colors",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/theme_and_colors/theme",
+      "storage_type": "boolean",
+      "title": "Dynamic color"
+    },
+    {
+      "default_value": "420",
+      "dependency": "",
+      "key": "pref_theme_night_end_minutes",
+      "logical_kind": "special_preference",
+      "page_id": "v5/appearance/theme_and_colors/theme",
+      "storage_type": "none_or_custom",
+      "title": "Light start time"
+    },
+    {
+      "default_value": "system",
+      "dependency": "",
+      "key": "pref_theme_mode_type",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/theme_and_colors/theme",
+      "storage_type": "string",
+      "title": "Theme"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_comments_font",
+      "logical_kind": "special_preference",
+      "page_id": "v5/appearance/typography/comments",
+      "storage_type": "none_or_custom",
+      "title": "Comments font"
+    },
+    {
+      "default_value": "Medium",
+      "dependency": "",
+      "key": "pref_font_size",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/typography/comments",
+      "storage_type": "string",
+      "title": "Comments text size"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_title_font",
+      "logical_kind": "special_preference",
+      "page_id": "v5/appearance/typography/posts",
+      "storage_type": "none_or_custom",
+      "title": "Title font"
+    },
+    {
+      "default_value": "Medium",
+      "dependency": "",
+      "key": "pref_font_size_title",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/appearance/typography/posts",
+      "storage_type": "string",
+      "title": "Title text size"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "action:typography:restore_defaults",
+      "logical_kind": "destructive_action",
+      "page_id": "v5/appearance/typography/reset",
+      "storage_type": "none",
+      "title": "Restore font defaults"
+    }
+  ],
+  "runtime_gate": "not_authorized_until_static_build_and_dev_only_audit",
+  "schema": 1,
+  "screens": [
+    {
+      "child_count": 5,
+      "control_count": 0,
+      "page_id": "v5/appearance",
+      "path": "Appearance",
+      "role": "root_group"
+    },
+    {
+      "child_count": 1,
+      "control_count": 0,
+      "page_id": "v5/appearance/community_header",
+      "path": "Appearance / Community header",
+      "role": "task_page"
+    },
+    {
+      "child_count": 1,
+      "control_count": 0,
+      "page_id": "v5/appearance/display_and_motion",
+      "path": "Appearance / Display & motion",
+      "role": "task_page"
+    },
+    {
+      "child_count": 4,
+      "control_count": 0,
+      "page_id": "v5/appearance/post_layout",
+      "path": "Appearance / Post layout",
+      "role": "task_page"
+    },
+    {
+      "child_count": 3,
+      "control_count": 0,
+      "page_id": "v5/appearance/theme_and_colors",
+      "path": "Appearance / Theme & colors",
+      "role": "task_page"
+    },
+    {
+      "child_count": 3,
+      "control_count": 0,
+      "page_id": "v5/appearance/typography",
+      "path": "Appearance / Typography",
+      "role": "task_page"
+    },
+    {
+      "child_count": 0,
+      "control_count": 3,
+      "page_id": "v5/appearance/community_header/community_header",
+      "path": "Appearance / Community header / Community header",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 1,
+      "page_id": "v5/appearance/display_and_motion/display_performance",
+      "path": "Appearance / Display & motion / Display performance",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 8,
+      "page_id": "v5/appearance/post_layout/cards",
+      "path": "Appearance / Post layout / Cards",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 2,
+      "control_count": 0,
+      "page_id": "v5/appearance/post_layout/compact_layouts",
+      "path": "Appearance / Post layout / Compact layouts",
+      "role": "intermediate_page"
+    },
+    {
+      "child_count": 2,
+      "control_count": 0,
+      "page_id": "v5/appearance/post_layout/layout_and_saved_views",
+      "path": "Appearance / Post layout / Layout & saved views",
+      "role": "intermediate_page"
+    },
+    {
+      "child_count": 0,
+      "control_count": 1,
+      "page_id": "v5/appearance/post_layout/tablet_layout",
+      "path": "Appearance / Post layout / Tablet layout",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 2,
+      "page_id": "v5/appearance/theme_and_colors/advanced_appearance",
+      "path": "Appearance / Theme & colors / Advanced appearance",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 1,
+      "page_id": "v5/appearance/theme_and_colors/personalization",
+      "path": "Appearance / Theme & colors / Personalization",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 6,
+      "page_id": "v5/appearance/theme_and_colors/theme",
+      "path": "Appearance / Theme & colors / Theme",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 2,
+      "page_id": "v5/appearance/typography/comments",
+      "path": "Appearance / Typography / Comments",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 2,
+      "page_id": "v5/appearance/typography/posts",
+      "path": "Appearance / Typography / Posts",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 1,
+      "page_id": "v5/appearance/typography/reset",
+      "path": "Appearance / Typography / Reset",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 1,
+      "page_id": "v5/appearance/post_layout/compact_layouts/dense",
+      "path": "Appearance / Post layout / Compact layouts / Dense",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 4,
+      "page_id": "v5/appearance/post_layout/compact_layouts/small_cards",
+      "path": "Appearance / Post layout / Compact layouts / Small cards",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 5,
+      "page_id": "v5/appearance/post_layout/layout_and_saved_views/post_layout",
+      "path": "Appearance / Post layout / Layout & saved views / Post layout",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 2,
+      "page_id": "v5/appearance/post_layout/layout_and_saved_views/saved_community_views",
+      "path": "Appearance / Post layout / Layout & saved views / Saved community views",
+      "role": "leaf_section"
+    }
+  ],
+  "source_files": [
+    "MorpheSettingsV5Registry.java",
+    "MorpheSettingsV5AppearanceFragment.java",
+    "MorpheSettingsV5AppearanceBindings.java",
+    "MorpheSettingsV5Search.java"
+  ],
+  "special_handlers": {
+    "app_icon": [
+      "pref_app_icon"
+    ],
+    "fonts": [
+      "pref_title_font",
+      "pref_comments_font",
+      "pref_font_size_title",
+      "pref_font_size",
+      "action:typography:restore_defaults"
+    ],
+    "high_refresh": [
+      "morphe_boost_prefer_high_refresh_rate"
+    ],
+    "post_layout": [
+      "pref_view",
+      "pref_view_per_subscription",
+      "pref_show_subreddit_prefix",
+      "pref_cards_preview_self_lines"
+    ],
+    "saved_views": [
+      "pref_view_per_sub",
+      "action:saved_views:add",
+      "action:saved_views:clear_all"
+    ],
+    "system_bars": [
+      "pref_colored_status_bar",
+      "pref_colored_nav_bar"
+    ],
+    "theme_mode": [
+      "pref_theme_mode_type",
+      "pref_theme",
+      "pref_theme_night",
+      "pref_theme_night_start_minutes",
+      "pref_theme_night_end_minutes",
+      "pref_dynamic_colors"
+    ]
+  },
+  "status": "HIDDEN_COMPLETE_WAVE_STATIC_TARGET",
+  "target": {
+    "legacy_routes": 0,
+    "max_controls_per_leaf": 8,
+    "placeholder_pages": 0,
+    "screen_nodes": 22,
+    "visible_by_default": false,
+    "visible_items": 39,
+    "withheld_items": 0
+  },
+  "wave": "Appearance"
+}

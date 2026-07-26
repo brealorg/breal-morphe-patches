@@ -1,0 +1,198 @@
+{
+  "schema": 1,
+  "issue": 121,
+  "phase": "2/7 Navigation",
+  "root_group": "Navigation",
+  "task_page": {
+    "title": "Navigation & gestures",
+    "intro": "Choose how you move around Boost and which navigation surfaces are available.",
+    "children": [
+      "Toolbar",
+      "Bottom navigation",
+      "Navigation drawer",
+      "Back & exit"
+    ]
+  },
+  "drawer_hub": {
+    "title": "Navigation drawer",
+    "intro": "Choose destinations, shortcuts, subscription behavior, account details, and drawer behavior.",
+    "children": [
+      "Feeds & library",
+      "Account & tools",
+      "Go-to shortcuts",
+      "Quick toggles",
+      "Subscriptions",
+      "Account switcher",
+      "Drawer behavior"
+    ]
+  },
+  "leaf_pages": [
+    {
+      "id": "toolbar",
+      "title": "Toolbar",
+      "summary": "Main action and hide-on-scroll behavior",
+      "icon": "ic_toolbar_24dp",
+      "fragment_constant": "V4_NAVIGATION_TOOLBAR_FRAGMENT",
+      "fragment_class": "NavigationToolbar",
+      "resource": "pref_toolbar_v2",
+      "intro": "Choose the toolbar's primary action and whether it stays visible while scrolling.",
+      "keys": [
+        "pref_toolbar_main_action",
+        "pref_toolbar"
+      ],
+      "parent": "Navigation & gestures"
+    },
+    {
+      "id": "bottom_navigation",
+      "title": "Bottom navigation",
+      "summary": "Visibility and hide-on-scroll behavior",
+      "icon": "ic_view_carousel_24dp",
+      "fragment_constant": "V4_NAVIGATION_BOTTOM_FRAGMENT",
+      "fragment_class": "NavigationBottom",
+      "resource": "pref_bottom_navigation_v2",
+      "intro": "Control whether bottom navigation is shown and how it behaves while scrolling.",
+      "keys": [
+        "pref_bottom_navigation",
+        "pref_bottom_navigation_hide_on_scroll"
+      ],
+      "parent": "Navigation & gestures"
+    },
+    {
+      "id": "back_exit",
+      "title": "Back & exit",
+      "summary": "Exit confirmation and double-back behavior",
+      "icon": "ic_restore_black_24dp",
+      "fragment_constant": "V4_NAVIGATION_BACK_EXIT_FRAGMENT",
+      "fragment_class": "NavigationBackExit",
+      "resource": "pref_general_v2",
+      "intro": "Choose how Boost responds when Back would leave the app.",
+      "keys": [
+        "pref_ask_exit",
+        "pref_double_exit"
+      ],
+      "parent": "Navigation & gestures"
+    },
+    {
+      "id": "drawer_feeds_library",
+      "title": "Feeds & library",
+      "summary": "Home, feeds, saved posts, and history",
+      "icon": "ic_subreddit_24dp",
+      "fragment_constant": "V4_DRAWER_FEEDS_LIBRARY_FRAGMENT",
+      "fragment_class": "DrawerFeedsLibrary",
+      "resource": "pref_drawer_v2",
+      "intro": "Choose which feed and library destinations appear in the navigation drawer.",
+      "keys": [
+        "pref_drawer_show_home",
+        "pref_drawer_show_frontpage",
+        "pref_drawer_show_popular",
+        "pref_drawer_show_all",
+        "pref_drawer_show_saved",
+        "pref_drawer_show_history"
+      ],
+      "parent": "Navigation drawer"
+    },
+    {
+      "id": "drawer_account_tools",
+      "title": "Account & tools",
+      "summary": "Profile, inbox, drafts, moderation, and search",
+      "icon": "ic_person_24dp",
+      "fragment_constant": "V4_DRAWER_ACCOUNT_TOOLS_FRAGMENT",
+      "fragment_class": "DrawerAccountTools",
+      "resource": "pref_drawer_v2",
+      "intro": "Choose which account and utility destinations appear in the navigation drawer.",
+      "keys": [
+        "pref_drawer_show_profile",
+        "pref_drawer_show_inbox",
+        "pref_drawer_show_drafts",
+        "pref_drawer_show_mod",
+        "pref_drawer_show_search_generic"
+      ],
+      "parent": "Navigation drawer"
+    },
+    {
+      "id": "drawer_go_to",
+      "title": "Go-to shortcuts",
+      "summary": "Community, user, and combined go-to shortcuts",
+      "icon": "ic_search_color_24dp",
+      "fragment_constant": "V4_DRAWER_GO_TO_FRAGMENT",
+      "fragment_class": "DrawerGoToShortcuts",
+      "resource": "pref_drawer_v2",
+      "intro": "Choose which direct navigation shortcuts appear in the drawer.",
+      "keys": [
+        "pref_drawer_show_go_to",
+        "pref_drawer_show_go_to_subreddit",
+        "pref_drawer_show_go_to_user"
+      ],
+      "parent": "Navigation drawer"
+    },
+    {
+      "id": "drawer_quick_toggles",
+      "title": "Quick toggles",
+      "summary": "Dark mode and NSFW controls in the drawer",
+      "icon": "ic_settings_24dp",
+      "fragment_constant": "V4_DRAWER_QUICK_TOGGLES_FRAGMENT",
+      "fragment_class": "DrawerQuickToggles",
+      "resource": "pref_drawer_v2",
+      "intro": "Choose which frequently used display controls appear in the drawer.",
+      "keys": [
+        "pref_drawer_show_night_mode",
+        "pref_drawer_show_nsfw_switch",
+        "pref_drawer_show_blur_switch"
+      ],
+      "parent": "Navigation drawer"
+    },
+    {
+      "id": "drawer_subscriptions",
+      "title": "Subscriptions",
+      "summary": "Subscription list visibility, icons, and favorites",
+      "icon": "ic_subreddit_24dp",
+      "fragment_constant": "V4_DRAWER_SUBSCRIPTIONS_FRAGMENT",
+      "fragment_class": "DrawerSubscriptions",
+      "resource": "pref_drawer_v2",
+      "intro": "Configure the subscription list shown inside the navigation drawer.",
+      "keys": [
+        "pref_subscriptions_drawer",
+        "pref_subscriptions_drawer_show_icon",
+        "pref_subscriptions_only_casual"
+      ],
+      "parent": "Navigation drawer"
+    },
+    {
+      "id": "drawer_account_switcher",
+      "title": "Account switcher",
+      "summary": "Avatar and username visibility",
+      "icon": "ic_person_24dp",
+      "fragment_constant": "V4_DRAWER_ACCOUNT_SWITCHER_FRAGMENT",
+      "fragment_class": "DrawerAccountSwitcher",
+      "resource": "pref_drawer_v2",
+      "intro": "Choose which identity details are visible in the drawer's account switcher.",
+      "keys": [
+        "pref_accounts_show_avatar",
+        "pref_accounts_show_username"
+      ],
+      "parent": "Navigation drawer"
+    },
+    {
+      "id": "drawer_behavior",
+      "title": "Drawer behavior",
+      "summary": "Sticky Settings and which edge opens the drawer",
+      "icon": "ic_toolbar_24dp",
+      "fragment_constant": "V4_DRAWER_BEHAVIOR_FRAGMENT",
+      "fragment_class": "DrawerBehavior",
+      "resource": "pref_drawer_v2",
+      "intro": "Control persistent Settings access and which side opens the navigation drawer.",
+      "keys": [
+        "pref_drawer_sticky_settings",
+        "pref_drawer_end"
+      ],
+      "parent": "Navigation drawer"
+    }
+  ],
+  "exposed_key_count": 30,
+  "withheld_keys": [
+    "pref_drawer_show_friends"
+  ],
+  "max_controls_per_leaf": 6,
+  "classic_fallback": "preserved",
+  "global_search": "available_on_task_hub_and_all_leaf_pages"
+}

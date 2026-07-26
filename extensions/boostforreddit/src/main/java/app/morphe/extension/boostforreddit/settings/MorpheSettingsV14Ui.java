@@ -36,12 +36,19 @@ final class MorpheSettingsV14Ui {
             "MORPHE_BOOST_SETTINGS_V14_SEGMENTED_LISTS_ISSUE106_V1";
     static final String ACCESSIBILITY_MARKER =
             "MORPHE_BOOST_SETTINGS_V14_SELECTION_A11Y_ISSUE106_V1";
+    static final String MATERIAL_DEPTH_MARKER =
+            "MORPHE_BOOST_SETTINGS_MATERIAL_DEPTH_ISSUE121_PHASE2_1_V1";
+    static final String COMPACT_SEGMENT_MARKER =
+            "MORPHE_BOOST_SETTINGS_COMPACT_SEGMENTS_ISSUE121_PHASE2_1_V1";
+    static final String ANDROID_SETTINGS_GUIDANCE_PILOT_MARKER =
+            "MORPHE_BOOST_SETTINGS_ANDROID_GUIDANCE_PILOT_"
+                    + "ISSUE121_PHASE2_2_V1";
 
-    private static final int ROW_SINGLE_DP = 56;
-    private static final int ROW_TWO_LINE_DP = 72;
-    private static final int GROUP_GAP_DP = 4;
-    private static final float OUTER_RADIUS_DP = 18.0f;
-    private static final float INNER_RADIUS_DP = 6.0f;
+    private static final int ROW_SINGLE_DP = 52;
+    private static final int ROW_TWO_LINE_DP = 64;
+    private static final int GROUP_GAP_DP = 1;
+    private static final float OUTER_RADIUS_DP = 20.0f;
+    private static final float INNER_RADIUS_DP = 0.0f;
 
     private MorpheSettingsV14Ui() {
     }
@@ -54,6 +61,103 @@ final class MorpheSettingsV14Ui {
         return group;
     }
 
+    /**
+     * Continuous list container used by the Android Settings guidance pilot.
+     * Grouping is provided by headings and dividers instead of card-per-item
+     * containment.
+     */
+    static LinearLayout standardList(Context context) {
+        LinearLayout list = new LinearLayout(context);
+        list.setOrientation(LinearLayout.VERTICAL);
+        list.setClipChildren(false);
+        list.setClipToPadding(false);
+        return list;
+    }
+
+    static LinearLayout standardListRow(
+            Context context,
+            MorpheSettingsV4Theme.Tokens tokens,
+            boolean hasSupportingText
+    ) {
+        LinearLayout row = new LinearLayout(context);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setMinimumHeight(dp(context, hasSupportingText ? 72 : 56));
+        row.setPadding(
+                dp(context, 16),
+                dp(context, 4),
+                dp(context, 8),
+                dp(context, 4)
+        );
+        row.setClickable(true);
+        row.setFocusable(true);
+        row.setBackground(MorpheSettingsV4Theme.interactive(
+                context,
+                0x00000000,
+                0,
+                tokens.navigationAccent().color
+        ));
+        return row;
+    }
+
+    static LinearLayout standardListLabels(
+            Context context,
+            MorpheSettingsV4Theme.Tokens tokens,
+            String titleValue,
+            String supportingValue
+    ) {
+        LinearLayout labels = new LinearLayout(context);
+        labels.setOrientation(LinearLayout.VERTICAL);
+        labels.setGravity(Gravity.CENTER_VERTICAL);
+
+        TextView title = text(context, titleValue, 16, tokens.textPrimary);
+        title.setMaxLines(2);
+        title.setEllipsize(TextUtils.TruncateAt.END);
+        labels.addView(title);
+
+        if (!TextUtils.isEmpty(supportingValue)) {
+            TextView supporting = text(
+                    context,
+                    supportingValue,
+                    14,
+                    tokens.textSecondary
+            );
+            supporting.setMaxLines(2);
+            supporting.setEllipsize(TextUtils.TruncateAt.END);
+            supporting.setLineSpacing(0, 1.04f);
+            LinearLayout.LayoutParams params = wrapParams();
+            params.topMargin = dp(context, 2);
+            labels.addView(supporting, params);
+        }
+        return labels;
+    }
+
+    static void addStandardListRow(
+            LinearLayout list,
+            View row,
+            MorpheSettingsV4Theme.Tokens tokens
+    ) {
+        if (list.getChildCount() > 0) {
+            View divider = new View(list.getContext());
+            divider.setBackgroundColor(MorpheSettingsV4Theme.withAlpha(
+                    tokens.outline,
+                    42
+            ));
+            LinearLayout.LayoutParams dividerParams =
+                    new LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            Math.max(1, dp(list.getContext(), 0.5f))
+                    );
+            dividerParams.setMarginStart(dp(list.getContext(), 16));
+            dividerParams.setMarginEnd(dp(list.getContext(), 16));
+            list.addView(divider, dividerParams);
+        }
+        list.addView(row, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
+    }
+
     static LinearLayout baseRow(
             Context context,
             MorpheSettingsV4Theme.Tokens tokens
@@ -62,7 +166,7 @@ final class MorpheSettingsV14Ui {
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setMinimumHeight(dp(context, ROW_SINGLE_DP));
-        row.setPadding(dp(context, 16), dp(context, 8), dp(context, 12), dp(context, 8));
+        row.setPadding(dp(context, 16), dp(context, 4), dp(context, 8), dp(context, 4));
         row.setClickable(true);
         row.setFocusable(true);
         row.setBackground(interactiveShape(
@@ -106,6 +210,38 @@ final class MorpheSettingsV14Ui {
         return labels;
     }
 
+    static LinearLayout compactLabels(
+            Context context,
+            MorpheSettingsV4Theme.Tokens tokens,
+            String titleValue,
+            String summaryValue
+    ) {
+        LinearLayout labels = new LinearLayout(context);
+        labels.setOrientation(LinearLayout.VERTICAL);
+        labels.setGravity(Gravity.CENTER_VERTICAL);
+
+        TextView title = text(context, titleValue, 16, tokens.textPrimary);
+        title.setMaxLines(2);
+        title.setEllipsize(TextUtils.TruncateAt.END);
+        labels.addView(title);
+
+        if (!TextUtils.isEmpty(summaryValue)) {
+            TextView summary = text(
+                    context,
+                    summaryValue,
+                    13,
+                    tokens.textSecondary
+            );
+            summary.setMaxLines(2);
+            summary.setEllipsize(TextUtils.TruncateAt.END);
+            summary.setLineSpacing(0, 1.04f);
+            LinearLayout.LayoutParams params = wrapParams();
+            params.topMargin = dp(context, 1);
+            labels.addView(summary, params);
+        }
+        return labels;
+    }
+
     static TextView sectionLabel(
             Context context,
             MorpheSettingsV4Theme.Tokens tokens,
@@ -129,6 +265,17 @@ final class MorpheSettingsV14Ui {
         TextView text = text(context, value, 14, tokens.textSecondary);
         text.setLineSpacing(0, 1.08f);
         text.setPadding(dp(context, 4), dp(context, 8), dp(context, 4), 0);
+        return text;
+    }
+
+    static TextView pageIntro(
+            Context context,
+            MorpheSettingsV4Theme.Tokens tokens,
+            String value
+    ) {
+        TextView text = text(context, value, 15, tokens.textSecondary);
+        text.setLineSpacing(0, 1.08f);
+        text.setPadding(dp(context, 4), 0, dp(context, 4), 0);
         return text;
     }
 
@@ -286,7 +433,7 @@ final class MorpheSettingsV14Ui {
         return MorpheSettingsV4Theme.blend(
                 tokens.surfaceContainer,
                 tokens.secondaryContainer,
-                tokens.dark ? 0.055f : 0.04f
+                tokens.dark ? 0.025f : 0.018f
         );
     }
 
@@ -422,7 +569,7 @@ final class MorpheSettingsV14Ui {
             setMinimumHeight(dp(context, TextUtils.isEmpty(summaryValue)
                     ? ROW_SINGLE_DP
                     : ROW_TWO_LINE_DP));
-            setPadding(dp(context, 16), dp(context, 8), dp(context, 12), dp(context, 8));
+            setPadding(dp(context, 16), dp(context, 4), dp(context, 8), dp(context, 4));
             setClickable(true);
             setFocusable(true);
 

@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "issue": 121,
+  "phase": "2.2/7 Android settings guidance pilot",
+  "claim": "alignment_pilot_not_google_certification",
+  "official_guidance": [
+    {
+      "source": "https://developer.android.com/design/ui/mobile/guides/patterns/settings",
+      "retrieved": "2026-07-24",
+      "applied_rules": [
+        "settings_use_list_or_list_detail_layout",
+        "group_with_headings_and_intrinsic_or_visual_containment",
+        "supporting_text_is_optional_and_explains_status_or_consequence",
+        "icons_clarify_meaning_or_status",
+        "boolean_settings_use_trailing_switches",
+        "subscreen_label_matches_subscreen_title"
+      ]
+    },
+    {
+      "source": "https://developer.android.com/reference/kotlin/androidx/compose/material3/ListItem.composable",
+      "retrieved": "2026-07-24",
+      "applied_rules": [
+        "continuous_vertical_list",
+        "headline_supporting_leading_and_trailing_anatomy",
+        "one_line_and_two_line_templates"
+      ]
+    },
+    {
+      "source": "https://developer.android.com/develop/ui/views/components/settings/customize-your-settings",
+      "retrieved": "2026-07-24",
+      "applied_rules": [
+        "persisted_choice_shows_current_value_in_summary"
+      ]
+    }
+  ],
+  "scope": {
+    "settings_overview": "standard_list_with_meaningful_leading_icons",
+    "root_group_pages": "standard_destination_list_without_redundant_summaries",
+    "task_pages": "standard_destination_list_without_redundant_summaries",
+    "navigation_drawer_hub": "section_headings_and_plain_destination_rows",
+    "navigation_leaf_pages": "standard_preference_rows",
+    "feeds_library": "pilot_summary_cleanup"
+  },
+  "list_anatomy": {
+    "one_line_min_height_dp": 56,
+    "two_line_min_height_dp": 72,
+    "headline_sp": 16,
+    "supporting_sp": 14,
+    "supporting_max_lines": 2,
+    "trailing_boolean_control": "switch",
+    "trailing_destination_control": "chevron"
+  },
+  "containment": {
+    "item_card_background": "forbidden_in_pilot_scope",
+    "rounded_group_container": "forbidden_in_pilot_scope",
+    "grouping": "headings_and_dividers"
+  },
+  "supporting_text": {
+    "allowed_roles": [
+      "current_value",
+      "current_status",
+      "consequence",
+      "dependency_explanation",
+      "clarify_unfamiliar_label"
+    ],
+    "forbidden_roles": [
+      "repeat_title",
+      "generic_category_description",
+      "long_procedural_instruction"
+    ],
+    "feeds_library_visible_summaries": {
+      "pref_drawer_show_home": "Default feed",
+      "pref_drawer_show_frontpage": "Posts from subscriptions"
+    }
+  },
+  "icons": {
+    "settings_overview": "allowed_when_meaningful",
+    "below_overview": "omitted_in_pilot_scope"
+  },
+  "behavior_changes": "none",
+  "preference_key_changes": 0,
+  "route_changes": 0,
+  "withheld_friends_key": "preserved",
+  "classic_fallback": "preserved",
+  "global_search": "preserved"
+}

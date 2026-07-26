@@ -1,0 +1,524 @@
+{
+  "binding_capture": {
+    "archive_sha256": "12e3a8ac2604dec833bbb3d223316e1afc8eddd1aebd40e9518bd6f42c0618ca",
+    "base_apk_sha256": "a68c22d632a5dd1f446c3759a171c7dbb9edab2afc3c2f87e39323f198606742",
+    "source_mpp_sha256": "765bfd3c15487e5021f9e7979cd1aabee600363217beda9a381ff29545fb6280",
+    "v5_contract_sha256": "4c8e081069d7444938c3ff5ad0e451bb3b16183592114a6b8adf77cd1208d3f7"
+  },
+  "dependencies": {
+    "pref_images_fit": "pref_images_deepzoom",
+    "pref_swipe_dismiss_direction_mode_image": "pref_swipe_up_to_dismiss_image"
+  },
+  "issue": 121,
+  "items": [
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_load_readability",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/links_and_browser/link_handling",
+      "storage_type": "boolean",
+      "title": "Preview external links"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_download_folder_per_subreddit",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/downloads_and_cache/download_folders",
+      "storage_type": "boolean",
+      "title": "Community subfolders"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_download_folder_default",
+      "logical_kind": "action_state",
+      "page_id": "v5/media/downloads_and_cache/download_folders",
+      "storage_type": "string",
+      "title": "Default folder"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_download_folder_gif",
+      "logical_kind": "action_state",
+      "page_id": "v5/media/downloads_and_cache/download_folders",
+      "storage_type": "string",
+      "title": "GIFs"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_download_folder_img",
+      "logical_kind": "action_state",
+      "page_id": "v5/media/downloads_and_cache/download_folders",
+      "storage_type": "string",
+      "title": "Images"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_download_folder_mp4",
+      "logical_kind": "action_state",
+      "page_id": "v5/media/downloads_and_cache/download_folders",
+      "storage_type": "string",
+      "title": "Videos"
+    },
+    {
+      "default_value": "glide",
+      "dependency": "",
+      "key": "pref_image_loader",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/images_gifs_and_previews/native_image_behavior",
+      "storage_type": "string",
+      "title": "Image loader"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_images_deepzoom",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/images_gifs_and_previews/native_image_behavior",
+      "storage_type": "boolean",
+      "title": "Load HQ images"
+    },
+    {
+      "default_value": "false",
+      "dependency": "pref_images_deepzoom",
+      "key": "pref_images_fit",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/images_gifs_and_previews/native_image_behavior",
+      "storage_type": "boolean",
+      "title": "Load zoomed in"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_swipe_up_to_dismiss_image",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/images_gifs_and_previews/native_image_behavior",
+      "storage_type": "boolean",
+      "title": "Swipe to dismiss"
+    },
+    {
+      "default_value": "vertical",
+      "dependency": "pref_swipe_up_to_dismiss_image",
+      "key": "pref_swipe_dismiss_direction_mode_image",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/images_gifs_and_previews/native_image_behavior",
+      "storage_type": "string",
+      "title": "Swipe to dismiss direction"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_tap_to_dismiss_image",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/images_gifs_and_previews/native_image_behavior",
+      "storage_type": "boolean",
+      "title": "Tap to dismiss"
+    },
+    {
+      "default_value": "image_viewer",
+      "dependency": "",
+      "key": "morphe_boost_direct_reddit_gif_tap_action",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/images_gifs_and_previews/open_behavior",
+      "storage_type": "string",
+      "title": "Direct Reddit GIF tap action"
+    },
+    {
+      "default_value": "video_viewer",
+      "dependency": "",
+      "key": "morphe_boost_giphy_preview_tap_action",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/images_gifs_and_previews/open_behavior",
+      "storage_type": "string",
+      "title": "Giphy preview tap action"
+    },
+    {
+      "default_value": "image_viewer",
+      "dependency": "",
+      "key": "morphe_boost_static_preview_tap_action",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/images_gifs_and_previews/open_behavior",
+      "storage_type": "string",
+      "title": "Static preview tap action"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "morphe_boost_inline_media_previews_enabled",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/images_gifs_and_previews/preview_behavior",
+      "storage_type": "boolean",
+      "title": "Enable inline media previews"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "morphe_boost_inline_media_preview_show_source_text",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/images_gifs_and_previews/preview_behavior",
+      "storage_type": "boolean",
+      "title": "Show source text with preview"
+    },
+    {
+      "default_value": "center",
+      "dependency": "",
+      "key": "morphe_boost_inline_media_preview_alignment",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/images_gifs_and_previews/preview_layout",
+      "storage_type": "string",
+      "title": "Preview alignment"
+    },
+    {
+      "default_value": "balanced",
+      "dependency": "",
+      "key": "morphe_boost_inline_media_preview_size",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/images_gifs_and_previews/preview_layout",
+      "storage_type": "string",
+      "title": "Preview size"
+    },
+    {
+      "default_value": "0",
+      "dependency": "",
+      "key": "pref_browser",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/links_and_browser/browser",
+      "storage_type": "string",
+      "title": "Default browser"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_domain_exceptions",
+      "logical_kind": "special_preference",
+      "page_id": "v5/media/links_and_browser/link_handling",
+      "storage_type": "none_or_custom",
+      "title": "Domain exceptions"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_link_album",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/links_and_browser/links_to_open_in_app",
+      "storage_type": "boolean",
+      "title": "Albums"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_link_deviant",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/links_and_browser/links_to_open_in_app",
+      "storage_type": "boolean",
+      "title": "Deviant Art"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_link_gif",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/links_and_browser/links_to_open_in_app",
+      "storage_type": "boolean",
+      "title": "Gifs"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_link_image",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/links_and_browser/links_to_open_in_app",
+      "storage_type": "boolean",
+      "title": "Images"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_link_neatclip",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/links_and_browser/links_to_open_in_app",
+      "storage_type": "boolean",
+      "title": "NeatClip"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_link_vreddit",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/links_and_browser/links_to_open_in_app",
+      "storage_type": "boolean",
+      "title": "Reddit videos"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_link_streamable",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/links_and_browser/links_to_open_in_app",
+      "storage_type": "boolean",
+      "title": "Streamable"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_link_xkcd",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/links_and_browser/links_to_open_in_app",
+      "storage_type": "boolean",
+      "title": "XKCD"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_link_video",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/links_and_browser/video_links",
+      "storage_type": "boolean",
+      "title": "Internal Youtube player"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_video_audio_start_muted",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/playback_and_autoplay/audio",
+      "storage_type": "boolean",
+      "title": "Mute audio"
+    },
+    {
+      "default_value": "1",
+      "dependency": "",
+      "key": "pref_autoplay_cards",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/playback_and_autoplay/autoplay",
+      "storage_type": "string",
+      "title": "Autoplay videos"
+    },
+    {
+      "default_value": "boost",
+      "dependency": "",
+      "key": "pref_media_viewer",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/playback_and_autoplay/media_behavior",
+      "storage_type": "string",
+      "title": "Media viewer"
+    },
+    {
+      "default_value": "show",
+      "dependency": "",
+      "key": "pref_media_overlay_visibility",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/playback_and_autoplay/media_behavior",
+      "storage_type": "string",
+      "title": "Overlay elements"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_tap_to_dismiss_youtube_videos",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/playback_and_autoplay/playback_and_autoplay",
+      "storage_type": "boolean",
+      "title": "Tap to dismiss Youtube"
+    },
+    {
+      "default_value": "0",
+      "dependency": "",
+      "key": "pref_video_player",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/media/playback_and_autoplay/playback_and_autoplay",
+      "storage_type": "string",
+      "title": "Video player"
+    }
+  ],
+  "schema": 1,
+  "screens": [
+    {
+      "child_count": 4,
+      "control_count": 0,
+      "page_id": "v5/media",
+      "renderer": "MorpheSettingsV5MediaFragment",
+      "role": "root_group",
+      "title": "Media"
+    },
+    {
+      "child_count": 1,
+      "control_count": 0,
+      "page_id": "v5/media/downloads_and_cache",
+      "renderer": "MorpheSettingsV5MediaFragment",
+      "role": "task_page",
+      "title": "Downloads & cache"
+    },
+    {
+      "child_count": 4,
+      "control_count": 0,
+      "page_id": "v5/media/images_gifs_and_previews",
+      "renderer": "MorpheSettingsV5MediaFragment",
+      "role": "task_page",
+      "title": "Images, GIFs & previews"
+    },
+    {
+      "child_count": 4,
+      "control_count": 0,
+      "page_id": "v5/media/links_and_browser",
+      "renderer": "MorpheSettingsV5MediaFragment",
+      "role": "task_page",
+      "title": "Links & browser"
+    },
+    {
+      "child_count": 4,
+      "control_count": 0,
+      "page_id": "v5/media/playback_and_autoplay",
+      "renderer": "MorpheSettingsV5MediaFragment",
+      "role": "task_page",
+      "title": "Playback & autoplay"
+    },
+    {
+      "child_count": 0,
+      "control_count": 5,
+      "page_id": "v5/media/downloads_and_cache/download_folders",
+      "renderer": "MorpheSettingsV5MediaDownloadFoldersFragment",
+      "role": "leaf_section",
+      "title": "Download folders"
+    },
+    {
+      "child_count": 0,
+      "control_count": 6,
+      "page_id": "v5/media/images_gifs_and_previews/native_image_behavior",
+      "renderer": "MorpheSettingsV5MediaLeafFragment",
+      "role": "leaf_section",
+      "title": "Native image behavior"
+    },
+    {
+      "child_count": 0,
+      "control_count": 3,
+      "page_id": "v5/media/images_gifs_and_previews/open_behavior",
+      "renderer": "MorpheSettingsV5MediaLeafFragment",
+      "role": "leaf_section",
+      "title": "Open behavior"
+    },
+    {
+      "child_count": 0,
+      "control_count": 2,
+      "page_id": "v5/media/images_gifs_and_previews/preview_behavior",
+      "renderer": "MorpheSettingsV5MediaLeafFragment",
+      "role": "leaf_section",
+      "title": "Preview behavior"
+    },
+    {
+      "child_count": 0,
+      "control_count": 2,
+      "page_id": "v5/media/images_gifs_and_previews/preview_layout",
+      "renderer": "MorpheSettingsV5MediaLeafFragment",
+      "role": "leaf_section",
+      "title": "Preview layout"
+    },
+    {
+      "child_count": 0,
+      "control_count": 1,
+      "page_id": "v5/media/links_and_browser/browser",
+      "renderer": "MorpheSettingsV5MediaLeafFragment",
+      "role": "leaf_section",
+      "title": "Browser"
+    },
+    {
+      "child_count": 0,
+      "control_count": 2,
+      "page_id": "v5/media/links_and_browser/link_handling",
+      "renderer": "MorpheSettingsV5MediaLeafFragment",
+      "role": "leaf_section",
+      "title": "Link handling"
+    },
+    {
+      "child_count": 0,
+      "control_count": 8,
+      "page_id": "v5/media/links_and_browser/links_to_open_in_app",
+      "renderer": "MorpheSettingsV5MediaLeafFragment",
+      "role": "leaf_section",
+      "title": "Links to open in app"
+    },
+    {
+      "child_count": 0,
+      "control_count": 1,
+      "page_id": "v5/media/links_and_browser/video_links",
+      "renderer": "MorpheSettingsV5MediaLeafFragment",
+      "role": "leaf_section",
+      "title": "Video links"
+    },
+    {
+      "child_count": 0,
+      "control_count": 1,
+      "page_id": "v5/media/playback_and_autoplay/audio",
+      "renderer": "MorpheSettingsV5MediaLeafFragment",
+      "role": "leaf_section",
+      "title": "Audio"
+    },
+    {
+      "child_count": 0,
+      "control_count": 1,
+      "page_id": "v5/media/playback_and_autoplay/autoplay",
+      "renderer": "MorpheSettingsV5MediaLeafFragment",
+      "role": "leaf_section",
+      "title": "Autoplay"
+    },
+    {
+      "child_count": 0,
+      "control_count": 2,
+      "page_id": "v5/media/playback_and_autoplay/media_behavior",
+      "renderer": "MorpheSettingsV5MediaLeafFragment",
+      "role": "leaf_section",
+      "title": "Media behavior"
+    },
+    {
+      "child_count": 0,
+      "control_count": 2,
+      "page_id": "v5/media/playback_and_autoplay/playback_and_autoplay",
+      "renderer": "MorpheSettingsV5MediaLeafFragment",
+      "role": "leaf_section",
+      "title": "Playback & autoplay"
+    }
+  ],
+  "source_files": [
+    "MorpheSettingsV5Registry.java",
+    "MorpheSettingsV5Navigation.java",
+    "MorpheSettingsV5MediaFragment.java",
+    "MorpheSettingsV5MediaLeafFragment.java",
+    "MorpheSettingsV5MediaMetadata.java",
+    "MorpheSettingsV5MediaDownloadFoldersFragment.java",
+    "MorpheSettingsV5XmlPreferenceFragment.java",
+    "MorpheSettingsV5Search.java"
+  ],
+  "special_handlers": {
+    "download_folder_actions": [
+      "pref_download_folder_default",
+      "pref_download_folder_img",
+      "pref_download_folder_mp4",
+      "pref_download_folder_gif"
+    ],
+    "filter_preferences": [
+      "pref_domain_exceptions"
+    ],
+    "morphe_choice_controls": [
+      "morphe_boost_direct_reddit_gif_tap_action",
+      "morphe_boost_giphy_preview_tap_action",
+      "morphe_boost_static_preview_tap_action",
+      "morphe_boost_inline_media_preview_alignment",
+      "morphe_boost_inline_media_preview_size"
+    ]
+  },
+  "target": {
+    "legacy_routes": 0,
+    "max_controls_per_leaf": 8,
+    "placeholder_pages": 0,
+    "screen_nodes": 18,
+    "visible_by_default": false,
+    "visible_items": 36,
+    "withheld_items": 0
+  },
+  "wave": "Media"
+}

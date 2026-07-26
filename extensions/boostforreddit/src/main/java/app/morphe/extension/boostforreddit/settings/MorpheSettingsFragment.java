@@ -3,6 +3,8 @@ package app.morphe.extension.boostforreddit.settings;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import androidx.preference.PreferenceFragmentCompat;
 
@@ -15,6 +17,7 @@ public final class MorpheSettingsFragment extends PreferenceFragmentCompat {
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+        setHasOptionsMenu(true);
         Context context = requireContext();
         Resources resources = context.getResources();
 
@@ -40,4 +43,19 @@ public final class MorpheSettingsFragment extends PreferenceFragmentCompat {
 
         setPreferencesFromResource(resourceId, rootKey);
     }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        MorpheSettingsV4Search.prepareMenu(this, menu, true);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (MorpheSettingsV4Search.handleMenuItem(this, item)) {
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
 }

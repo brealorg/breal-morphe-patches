@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "issue": 121,
+  "phase": "2.1/7 Material visual foundation",
+  "depth_model": {
+    "root": "large_category_cards",
+    "root_group": "compact_segmented_task_rows",
+    "task_hub": "compact_segmented_task_rows",
+    "intermediate_hub": "semantic_groups_with_icons",
+    "leaf_page": "standard_compact_settings_rows"
+  },
+  "duplicate_content_title": "forbidden_below_root",
+  "geometry": {
+    "row_single_dp": 52,
+    "row_two_line_dp": 64,
+    "group_gap_dp": 1,
+    "outer_radius_dp": 20,
+    "inner_radius_dp": 0,
+    "compact_icon_container_dp": 36,
+    "compact_icon_glyph_dp": 20,
+    "root_icon_container_dp": 44,
+    "root_icon_glyph_dp": 24
+  },
+  "navigation_drawer_groups": {
+    "Destinations": [
+      "Feeds & library",
+      "Account & tools"
+    ],
+    "Shortcuts": [
+      "Go-to shortcuts",
+      "Quick toggles"
+    ],
+    "Personalization": [
+      "Subscriptions",
+      "Account switcher",
+      "Drawer behavior"
+    ]
+  },
+  "behavior_changes": "none",
+  "preference_key_changes": 0,
+  "route_changes": 0,
+  "classic_fallback": "preserved",
+  "global_search": "preserved",
+  "status": "superseded",
+  "superseded_by": "boost-settings-android-guidance-pilot-v1.json",
+  "compliance_claim": "none"
+}

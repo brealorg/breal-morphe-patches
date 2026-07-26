@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
@@ -25,6 +27,7 @@ public final class MorpheSettingsHubFragment extends PreferenceFragmentCompat {
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+        setHasOptionsMenu(true);
         Bundle arguments = getArguments();
         String resourceName = arguments == null
                 ? null
@@ -75,4 +78,19 @@ public final class MorpheSettingsHubFragment extends PreferenceFragmentCompat {
             return true;
         });
     }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        MorpheSettingsV4Search.prepareMenu(this, menu, true);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (MorpheSettingsV4Search.handleMenuItem(this, item)) {
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
 }

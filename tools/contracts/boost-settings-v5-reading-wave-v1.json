@@ -1,0 +1,1065 @@
+{
+  "binding_capture": {
+    "archive_sha256": "3a6fd1ae8faef9ba369e9162926e6b4a054c81a3e194bcd502150d04ed50e594",
+    "base_apk_sha256": "a68c22d632a5dd1f446c3759a171c7dbb9edab2afc3c2f87e39323f198606742",
+    "source_mpp_sha256": "a860dc7e6845b23fe557d4c8aeb06c02486b91f49b5d75d8dd852f2e18123a0f",
+    "v5_contract_sha256": "4c8e081069d7444938c3ff5ad0e451bb3b16183592114a6b8adf77cd1208d3f7"
+  },
+  "dependencies": {
+    "pref_blur_nsfw_images": "pref_load_nsfw_images",
+    "pref_clickable_awards_comments": "pref_show_awards_comments",
+    "pref_clickable_awards_posts": "pref_show_awards_posts",
+    "pref_comments_buttons_collapse_after_action": "pref_comments_buttons",
+    "pref_comments_default_navigation": "pref_comments_highlight_new_comments",
+    "pref_flair_clickable": "pref_info_post_flair",
+    "pref_flair_colors": "pref_info_post_flair",
+    "pref_flair_emojis": "pref_info_post_flair",
+    "pref_hide_read_permanently": "pref_mark_read",
+    "pref_load_nsfw_images": "pref_nsfw",
+    "pref_mark_read_dim_images": "pref_mark_read",
+    "pref_mark_read_on_scroll": "pref_mark_read",
+    "pref_sort_per_sub": "pref_sort_per_subscription",
+    "pref_swipe_sensitivity_percentage": "pref_swipe_back",
+    "pref_swipe_threshold_percentage": "pref_swipe_back",
+    "pref_user_flair_colors": "pref_comments_user_flair",
+    "pref_user_flair_emojis": "pref_comments_user_flair"
+  },
+  "issue": 121,
+  "items": [
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_comments_buttons",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/comment_actions",
+      "storage_type": "boolean",
+      "title": "Buttons always visible"
+    },
+    {
+      "default_value": "35",
+      "dependency": "pref_swipe_back",
+      "key": "pref_swipe_threshold_percentage",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/comment_actions",
+      "storage_type": "integer",
+      "title": "Distance threshold"
+    },
+    {
+      "default_value": "false",
+      "dependency": "pref_comments_buttons",
+      "key": "pref_comments_buttons_collapse_after_action",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/comment_actions",
+      "storage_type": "boolean",
+      "title": "Hide buttons after voting/saving"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_comments_button_save",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/comment_actions",
+      "storage_type": "boolean",
+      "title": "Save"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_comments_floating_button",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/comment_actions",
+      "storage_type": "boolean",
+      "title": "Show floating button"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_info_post_upvote_percentage",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/comment_actions",
+      "storage_type": "boolean",
+      "title": "Show post upvote percentage"
+    },
+    {
+      "default_value": "80",
+      "dependency": "pref_swipe_back",
+      "key": "pref_swipe_sensitivity_percentage",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/comment_actions",
+      "storage_type": "integer",
+      "title": "Swipe sensitivity"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_swipe_back",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/comment_actions",
+      "storage_type": "boolean",
+      "title": "Swipe to close"
+    },
+    {
+      "default_value": "1",
+      "dependency": "",
+      "key": "pref_comments_button_parent",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/comment_actions",
+      "storage_type": "string",
+      "title": "Up button"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_comments_color_pattern",
+      "logical_kind": "special_preference",
+      "page_id": "v5/reading_and_interaction/comments/comment_appearance",
+      "storage_type": "none_or_custom",
+      "title": "Color pattern"
+    },
+    {
+      "default_value": "true",
+      "dependency": "pref_comments_user_flair",
+      "key": "pref_user_flair_emojis",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/comment_appearance",
+      "storage_type": "boolean",
+      "title": "Show emojis"
+    },
+    {
+      "default_value": "false",
+      "dependency": "pref_comments_user_flair",
+      "key": "pref_user_flair_colors",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/comment_appearance",
+      "storage_type": "boolean",
+      "title": "Show flair colors"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_comments_show_avatar",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/comment_appearance",
+      "storage_type": "boolean",
+      "title": "Show user avatar"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_comments_user_flair",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/comment_appearance",
+      "storage_type": "boolean",
+      "title": "Show user flair"
+    },
+    {
+      "default_value": "true",
+      "dependency": "pref_show_awards_comments",
+      "key": "pref_clickable_awards_comments",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/comment_behavior",
+      "storage_type": "boolean",
+      "title": "Clickable awards"
+    },
+    {
+      "default_value": "0",
+      "dependency": "",
+      "key": "pref_default_comment_sorting",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/comment_behavior",
+      "storage_type": "string",
+      "title": "Default sort"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_comments_highlight_mine",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/comment_behavior",
+      "storage_type": "boolean",
+      "title": "Highlight my username"
+    },
+    {
+      "default_value": "1",
+      "dependency": "",
+      "key": "pref_comments_image",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/comment_behavior",
+      "storage_type": "string",
+      "title": "Post media preview size"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_show_awards_comments",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/comment_behavior",
+      "storage_type": "boolean",
+      "title": "Show awards"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_comments_clickable_username",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/comment_behavior",
+      "storage_type": "boolean",
+      "title": "Tap username to view profile"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_suggested_comment_sorting",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/comment_behavior",
+      "storage_type": "boolean",
+      "title": "Use suggested sort"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_comments_scroll_animation",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/thread_navigation",
+      "storage_type": "boolean",
+      "title": "Animate navigation"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_comments_click",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/thread_navigation",
+      "storage_type": "boolean",
+      "title": "Click to collapse comment"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_comments_collapse_automoderator",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/thread_navigation",
+      "storage_type": "boolean",
+      "title": "Collapse AutoModerator"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_comments_collapse_collapsed",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/thread_navigation",
+      "storage_type": "boolean",
+      "title": "Collapse disruptive comments"
+    },
+    {
+      "default_value": "0",
+      "dependency": "pref_comments_highlight_new_comments",
+      "key": "pref_comments_default_navigation",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/thread_navigation",
+      "storage_type": "string",
+      "title": "Default navigation mode"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_comments_animation",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/thread_navigation",
+      "storage_type": "boolean",
+      "title": "Expand/collapse animation"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_comments_full_collapse",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/thread_navigation",
+      "storage_type": "boolean",
+      "title": "Hide text of collapsed comments"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_comments_highlight_new_comments",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/thread_navigation",
+      "storage_type": "boolean",
+      "title": "Highlight new comments"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_comments_load_collapsed",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/thread_navigation",
+      "storage_type": "boolean",
+      "title": "Load collapsed by default"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_comments_navigation_bar",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/thread_navigation",
+      "storage_type": "boolean",
+      "title": "Show navigation bar"
+    },
+    {
+      "default_value": "0",
+      "dependency": "",
+      "key": "pref_indent_style",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/thread_navigation",
+      "storage_type": "string",
+      "title": "Thread level indicator"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_comments_volume_scroll",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/comments/thread_navigation",
+      "storage_type": "boolean",
+      "title": "Volume key navigation"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_manage_drafts",
+      "logical_kind": "action",
+      "page_id": "v5/reading_and_interaction/composing_and_drafts/drafts",
+      "storage_type": "none_or_custom",
+      "title": "Post drafts"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_drafts",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/composing_and_drafts/drafts",
+      "storage_type": "boolean",
+      "title": "Save drafts"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_use_advanced_editor",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/composing_and_drafts/editor",
+      "storage_type": "boolean",
+      "title": "Advanced fullscreen editor"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_imgur_uploads",
+      "logical_kind": "action",
+      "page_id": "v5/reading_and_interaction/composing_and_drafts/uploads",
+      "storage_type": "none_or_custom",
+      "title": "Uploaded images"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_edit_subscriptions",
+      "logical_kind": "action",
+      "page_id": "v5/reading_and_interaction/feeds_and_subscriptions/manage_subscriptions",
+      "storage_type": "none_or_custom",
+      "title": "Subscriptions"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_default_sort",
+      "logical_kind": "action",
+      "page_id": "v5/reading_and_interaction/posts/feed_behavior",
+      "storage_type": "none_or_custom",
+      "title": "Default sort"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_sort_per_subscription",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/posts/feed_behavior",
+      "storage_type": "boolean",
+      "title": "Remember per community"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_frontpage_sort",
+      "logical_kind": "action",
+      "page_id": "v5/reading_and_interaction/posts/feed_behavior",
+      "storage_type": "none_or_custom",
+      "title": "Sort Home posts by"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_post_show_comments_button",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/posts/post_actions",
+      "storage_type": "boolean",
+      "title": "Comments"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_show_hide",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/posts/post_actions",
+      "storage_type": "boolean",
+      "title": "Hide"
+    },
+    {
+      "default_value": "",
+      "dependency": "pref_sort_per_subscription",
+      "key": "pref_sort_per_sub",
+      "logical_kind": "action",
+      "page_id": "v5/reading_and_interaction/posts/post_actions",
+      "storage_type": "none_or_custom",
+      "title": "Manage saved sorts"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_show_read",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/posts/post_actions",
+      "storage_type": "boolean",
+      "title": "Mark read"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_post_show_open_button",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/posts/post_actions",
+      "storage_type": "boolean",
+      "title": "Open in external app"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_post_show_share_button",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/posts/post_actions",
+      "storage_type": "boolean",
+      "title": "Share"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_posts_floating_button",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/posts/post_actions",
+      "storage_type": "boolean",
+      "title": "Show floating button"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_upvote_on_save",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/posts/post_actions",
+      "storage_type": "boolean",
+      "title": "Upvote on save"
+    },
+    {
+      "default_value": "true",
+      "dependency": "pref_show_awards_posts",
+      "key": "pref_clickable_awards_posts",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/posts/post_behavior",
+      "storage_type": "boolean",
+      "title": "Clickable awards"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_info_username",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/posts/post_behavior",
+      "storage_type": "boolean",
+      "title": "Show author"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_show_awards_posts",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/posts/post_behavior",
+      "storage_type": "boolean",
+      "title": "Show awards"
+    },
+    {
+      "default_value": "true",
+      "dependency": "pref_info_post_flair",
+      "key": "pref_flair_emojis",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/posts/post_behavior",
+      "storage_type": "boolean",
+      "title": "Show emojis"
+    },
+    {
+      "default_value": "true",
+      "dependency": "pref_info_post_flair",
+      "key": "pref_flair_colors",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/posts/post_behavior",
+      "storage_type": "boolean",
+      "title": "Show flair colors"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_info_post_flair",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/posts/post_behavior",
+      "storage_type": "boolean",
+      "title": "Show post flair"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_post_clickable_subreddit",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/posts/post_behavior",
+      "storage_type": "boolean",
+      "title": "Tap community to visit"
+    },
+    {
+      "default_value": "false",
+      "dependency": "pref_info_post_flair",
+      "key": "pref_flair_clickable",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/posts/post_behavior",
+      "storage_type": "boolean",
+      "title": "Tap flair to search"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_post_clickable_username",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/posts/post_behavior",
+      "storage_type": "boolean",
+      "title": "Tap username to view profile"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "synncit_config",
+      "logical_kind": "action",
+      "page_id": "v5/reading_and_interaction/posts/reading_state",
+      "storage_type": "none_or_custom",
+      "title": "Configure Synccit"
+    },
+    {
+      "default_value": "false",
+      "dependency": "pref_mark_read",
+      "key": "pref_mark_read_dim_images",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/posts/reading_state",
+      "storage_type": "boolean",
+      "title": "Dim images in read posts"
+    },
+    {
+      "default_value": "false",
+      "dependency": "pref_mark_read",
+      "key": "pref_hide_read_permanently",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/posts/reading_state",
+      "storage_type": "boolean",
+      "title": "Hide read permanently"
+    },
+    {
+      "default_value": "false",
+      "dependency": "pref_mark_read",
+      "key": "pref_mark_read_on_scroll",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/posts/reading_state",
+      "storage_type": "boolean",
+      "title": "Mark as read on scroll"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_mark_read",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/posts/reading_state",
+      "storage_type": "boolean",
+      "title": "Mark posts as read"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_history_delete_read",
+      "logical_kind": "special_preference",
+      "page_id": "v5/reading_and_interaction/posts/reading_state",
+      "storage_type": "none_or_custom",
+      "title": "Reset read posts"
+    },
+    {
+      "default_value": "false",
+      "dependency": "pref_load_nsfw_images",
+      "key": "pref_blur_nsfw_images",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/search_and_filters/content_filters/filter_behavior",
+      "storage_type": "boolean",
+      "title": "Blur images in NSFW posts"
+    },
+    {
+      "default_value": "false",
+      "dependency": "pref_nsfw",
+      "key": "pref_load_nsfw_images",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/search_and_filters/content_filters/filter_behavior",
+      "storage_type": "boolean",
+      "title": "Show images in NSFW posts"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_nsfw",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/search_and_filters/content_filters/filter_behavior",
+      "storage_type": "boolean",
+      "title": "Show NSFW"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_filter_subreddit",
+      "logical_kind": "special_preference",
+      "page_id": "v5/reading_and_interaction/search_and_filters/content_filters/muted_content",
+      "storage_type": "none_or_custom",
+      "title": "Communities"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_filter_domain",
+      "logical_kind": "special_preference",
+      "page_id": "v5/reading_and_interaction/search_and_filters/content_filters/muted_content",
+      "storage_type": "none_or_custom",
+      "title": "Domains"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_filter_flair",
+      "logical_kind": "special_preference",
+      "page_id": "v5/reading_and_interaction/search_and_filters/content_filters/muted_content",
+      "storage_type": "none_or_custom",
+      "title": "Flairs"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_filter_username",
+      "logical_kind": "special_preference",
+      "page_id": "v5/reading_and_interaction/search_and_filters/content_filters/muted_content",
+      "storage_type": "none_or_custom",
+      "title": "Users"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_filter_keyword",
+      "logical_kind": "special_preference",
+      "page_id": "v5/reading_and_interaction/search_and_filters/content_filters/muted_content",
+      "storage_type": "none_or_custom",
+      "title": "Words"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_album",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/search_and_filters/content_filters/post_matching",
+      "storage_type": "boolean",
+      "title": "Albums"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_gif",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/search_and_filters/content_filters/post_matching",
+      "storage_type": "boolean",
+      "title": "Gifs"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_image",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/search_and_filters/content_filters/post_matching",
+      "storage_type": "boolean",
+      "title": "Images"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_link",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/search_and_filters/content_filters/post_matching",
+      "storage_type": "boolean",
+      "title": "Links"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_self",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/search_and_filters/content_filters/post_matching",
+      "storage_type": "boolean",
+      "title": "Text"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_video",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/search_and_filters/content_filters/post_matching",
+      "storage_type": "boolean",
+      "title": "Videos"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_search_advanced_help",
+      "logical_kind": "action",
+      "page_id": "v5/reading_and_interaction/search_and_filters/search/advanced_search",
+      "storage_type": "none_or_custom",
+      "title": "Field search help"
+    },
+    {
+      "default_value": "5",
+      "dependency": "",
+      "key": "pref_default_search_period",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/search_and_filters/search/search_behavior",
+      "storage_type": "string",
+      "title": "Default period"
+    },
+    {
+      "default_value": "0",
+      "dependency": "",
+      "key": "pref_default_search_sorting",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/search_and_filters/search/search_behavior",
+      "storage_type": "string",
+      "title": "Default sort"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "morphe_boost_search_open_keyboard_on_entry",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/search_and_filters/search/search_behavior",
+      "storage_type": "boolean",
+      "title": "Open keyboard when entering Search"
+    },
+    {
+      "default_value": "",
+      "dependency": "",
+      "key": "pref_saved_searches",
+      "logical_kind": "action",
+      "page_id": "v5/reading_and_interaction/search_and_filters/search/suggestions",
+      "storage_type": "none_or_custom",
+      "title": "Saved searches"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_search_show_random",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/search_and_filters/search/suggestions",
+      "storage_type": "boolean",
+      "title": "Show random"
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_search_show_random_nsfw",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/search_and_filters/search/suggestions",
+      "storage_type": "boolean",
+      "title": "Show random NSFW"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_search_show_trending",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/search_and_filters/search/suggestions",
+      "storage_type": "boolean",
+      "title": "Show trending communities"
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_search_show_trending_searches",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/reading_and_interaction/search_and_filters/search/suggestions",
+      "storage_type": "boolean",
+      "title": "Show trending today"
+    }
+  ],
+  "runtime_gate": "not_authorized_until_static_build_and_dev_only_audit",
+  "schema": 1,
+  "screens": [
+    {
+      "child_count": 5,
+      "control_count": 0,
+      "page_id": "v5/reading_and_interaction",
+      "path": "Reading & interaction",
+      "role": "root_group"
+    },
+    {
+      "child_count": 4,
+      "control_count": 0,
+      "page_id": "v5/reading_and_interaction/comments",
+      "path": "Reading & interaction / Comments",
+      "role": "task_page"
+    },
+    {
+      "child_count": 3,
+      "control_count": 0,
+      "page_id": "v5/reading_and_interaction/composing_and_drafts",
+      "path": "Reading & interaction / Composing & drafts",
+      "role": "task_page"
+    },
+    {
+      "child_count": 1,
+      "control_count": 0,
+      "page_id": "v5/reading_and_interaction/feeds_and_subscriptions",
+      "path": "Reading & interaction / Feeds & subscriptions",
+      "role": "task_page"
+    },
+    {
+      "child_count": 4,
+      "control_count": 0,
+      "page_id": "v5/reading_and_interaction/posts",
+      "path": "Reading & interaction / Posts",
+      "role": "task_page"
+    },
+    {
+      "child_count": 2,
+      "control_count": 0,
+      "page_id": "v5/reading_and_interaction/search_and_filters",
+      "path": "Reading & interaction / Search & filters",
+      "role": "task_page"
+    },
+    {
+      "child_count": 0,
+      "control_count": 9,
+      "page_id": "v5/reading_and_interaction/comments/comment_actions",
+      "path": "Reading & interaction / Comments / Comment actions",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 5,
+      "page_id": "v5/reading_and_interaction/comments/comment_appearance",
+      "path": "Reading & interaction / Comments / Comment appearance",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 7,
+      "page_id": "v5/reading_and_interaction/comments/comment_behavior",
+      "path": "Reading & interaction / Comments / Comment behavior",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 12,
+      "page_id": "v5/reading_and_interaction/comments/thread_navigation",
+      "path": "Reading & interaction / Comments / Thread navigation",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 2,
+      "page_id": "v5/reading_and_interaction/composing_and_drafts/drafts",
+      "path": "Reading & interaction / Composing & drafts / Drafts",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 1,
+      "page_id": "v5/reading_and_interaction/composing_and_drafts/editor",
+      "path": "Reading & interaction / Composing & drafts / Editor",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 1,
+      "page_id": "v5/reading_and_interaction/composing_and_drafts/uploads",
+      "path": "Reading & interaction / Composing & drafts / Uploads",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 1,
+      "page_id": "v5/reading_and_interaction/feeds_and_subscriptions/manage_subscriptions",
+      "path": "Reading & interaction / Feeds & subscriptions / Manage subscriptions",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 3,
+      "page_id": "v5/reading_and_interaction/posts/feed_behavior",
+      "path": "Reading & interaction / Posts / Feed behavior",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 8,
+      "page_id": "v5/reading_and_interaction/posts/post_actions",
+      "path": "Reading & interaction / Posts / Post actions",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 9,
+      "page_id": "v5/reading_and_interaction/posts/post_behavior",
+      "path": "Reading & interaction / Posts / Post behavior",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 6,
+      "page_id": "v5/reading_and_interaction/posts/reading_state",
+      "path": "Reading & interaction / Posts / Reading state",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 3,
+      "control_count": 0,
+      "page_id": "v5/reading_and_interaction/search_and_filters/content_filters",
+      "path": "Reading & interaction / Search & filters / Content filters",
+      "role": "intermediate_page"
+    },
+    {
+      "child_count": 3,
+      "control_count": 0,
+      "page_id": "v5/reading_and_interaction/search_and_filters/search",
+      "path": "Reading & interaction / Search & filters / Search",
+      "role": "intermediate_page"
+    },
+    {
+      "child_count": 0,
+      "control_count": 3,
+      "page_id": "v5/reading_and_interaction/search_and_filters/content_filters/filter_behavior",
+      "path": "Reading & interaction / Search & filters / Content filters / Filter behavior",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 5,
+      "page_id": "v5/reading_and_interaction/search_and_filters/content_filters/muted_content",
+      "path": "Reading & interaction / Search & filters / Content filters / Muted content",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 6,
+      "page_id": "v5/reading_and_interaction/search_and_filters/content_filters/post_matching",
+      "path": "Reading & interaction / Search & filters / Content filters / Post matching",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 1,
+      "page_id": "v5/reading_and_interaction/search_and_filters/search/advanced_search",
+      "path": "Reading & interaction / Search & filters / Search / Advanced search",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 3,
+      "page_id": "v5/reading_and_interaction/search_and_filters/search/search_behavior",
+      "path": "Reading & interaction / Search & filters / Search / Search behavior",
+      "role": "leaf_section"
+    },
+    {
+      "child_count": 0,
+      "control_count": 5,
+      "page_id": "v5/reading_and_interaction/search_and_filters/search/suggestions",
+      "path": "Reading & interaction / Search & filters / Search / Suggestions",
+      "role": "leaf_section"
+    }
+  ],
+  "source_files": [
+    "MorpheSettingsV5Registry.java",
+    "MorpheSettingsV5Navigation.java",
+    "MorpheSettingsV5AppearanceFragment.java",
+    "MorpheSettingsV5ReadingFragment.java",
+    "MorpheSettingsV5ReadingLeafFragment.java",
+    "MorpheSettingsV5ReadingMetadata.java",
+    "MorpheSettingsV5XmlPreferenceFragment.java",
+    "MorpheSettingsV5Search.java"
+  ],
+  "special_handlers": {
+    "actions": [
+      "pref_manage_drafts",
+      "pref_imgur_uploads",
+      "pref_edit_subscriptions",
+      "pref_default_sort",
+      "pref_frontpage_sort",
+      "pref_sort_per_sub",
+      "synncit_config",
+      "pref_search_advanced_help",
+      "pref_saved_searches"
+    ],
+    "choices": [
+      "pref_comments_button_parent",
+      "pref_default_comment_sorting",
+      "pref_comments_image",
+      "pref_comments_default_navigation",
+      "pref_indent_style",
+      "pref_default_search_period",
+      "pref_default_search_sorting"
+    ],
+    "color_pattern": [
+      "pref_comments_color_pattern"
+    ],
+    "delete_read": [
+      "pref_history_delete_read"
+    ],
+    "filter_editors": [
+      "pref_filter_subreddit",
+      "pref_filter_domain",
+      "pref_filter_flair",
+      "pref_filter_username",
+      "pref_filter_keyword"
+    ],
+    "seekbars": [
+      "pref_swipe_threshold_percentage",
+      "pref_swipe_sensitivity_percentage"
+    ],
+    "side_effects": [
+      "pref_search_show_trending_searches"
+    ],
+    "source_owned": [
+      "morphe_boost_search_open_keyboard_on_entry"
+    ]
+  },
+  "status": "HIDDEN_COMPLETE_WAVE_STATIC_TARGET",
+  "target": {
+    "legacy_routes": 0,
+    "max_controls_per_leaf": 12,
+    "placeholder_pages": 0,
+    "screen_nodes": 26,
+    "visible_by_default": false,
+    "visible_items": 87,
+    "withheld_items": 0
+  },
+  "wave": "Reading & interaction"
+}

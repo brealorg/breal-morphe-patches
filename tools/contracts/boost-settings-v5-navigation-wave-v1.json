@@ -1,0 +1,492 @@
+{
+  "binding_capture": {
+    "archive_sha256": "38d6836a42121090affca2016b95da80383e20898195e61abae8f6ffe4ea96b1",
+    "base_apk_sha256": "a68c22d632a5dd1f446c3759a171c7dbb9edab2afc3c2f87e39323f198606742",
+    "source_mpp_sha256": "1121fe81f01f6bd7701948ac825f49d4e9873baee4bd0f229ab14307d7abc4f3",
+    "v5_contract_sha256": "4c8e081069d7444938c3ff5ad0e451bb3b16183592114a6b8adf77cd1208d3f7"
+  },
+  "dependencies": {
+    "pref_bottom_navigation_hide_on_scroll": "pref_bottom_navigation",
+    "pref_double_exit": "pref_ask_exit",
+    "pref_subscriptions_drawer_show_icon": "pref_subscriptions_drawer",
+    "pref_subscriptions_only_casual": "pref_subscriptions_drawer"
+  },
+  "issue": 121,
+  "items": [
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_lock_sidebar",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/drawer_behavior",
+      "storage_type": "boolean",
+      "title": "Lock sidebar",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_ask_exit",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/back_and_exit",
+      "storage_type": "boolean",
+      "title": "Confirm exit",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "true",
+      "dependency": "pref_ask_exit",
+      "key": "pref_double_exit",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/back_and_exit",
+      "storage_type": "boolean",
+      "title": "Double tap to exit",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "true",
+      "dependency": "pref_bottom_navigation",
+      "key": "pref_bottom_navigation_hide_on_scroll",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/bottom_navigation",
+      "storage_type": "boolean",
+      "title": "Hide on scroll",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_bottom_navigation",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/bottom_navigation",
+      "storage_type": "boolean",
+      "title": "Show bottom navigation",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_accounts_show_avatar",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/account_switcher",
+      "storage_type": "boolean",
+      "title": "Show avatar",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_accounts_show_username",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/account_switcher",
+      "storage_type": "boolean",
+      "title": "Show username",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_drawer_show_drafts",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/account_and_tools",
+      "storage_type": "boolean",
+      "title": "Drafts",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_drawer_show_history",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/feeds_and_library",
+      "storage_type": "boolean",
+      "title": "History",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_drawer_show_frontpage",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/feeds_and_library",
+      "storage_type": "boolean",
+      "title": "Home feed",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_drawer_show_inbox",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/account_and_tools",
+      "storage_type": "boolean",
+      "title": "Inbox",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_drawer_show_mod",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/account_and_tools",
+      "storage_type": "boolean",
+      "title": "Moderation",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_drawer_show_popular",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/feeds_and_library",
+      "storage_type": "boolean",
+      "title": "Popular",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_drawer_show_profile",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/account_and_tools",
+      "storage_type": "boolean",
+      "title": "Profile",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_drawer_show_saved",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/feeds_and_library",
+      "storage_type": "boolean",
+      "title": "Saved",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_drawer_show_search_generic",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/account_and_tools",
+      "storage_type": "boolean",
+      "title": "Search",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_drawer_show_all",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/feeds_and_library",
+      "storage_type": "boolean",
+      "title": "All",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_drawer_show_friends",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/account_and_tools",
+      "storage_type": "boolean",
+      "title": "Friends",
+      "v5_visibility": "WITHHELD_RUNTIME_UNAVAILABLE",
+      "v5_visibility_reason": "Static implementation exists, but the Friends destination was not proven to return functional Reddit data at runtime."
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_drawer_sticky_settings",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/drawer_behavior",
+      "storage_type": "boolean",
+      "title": "Sticky Settings",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_drawer_end",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/drawer_behavior",
+      "storage_type": "boolean",
+      "title": "Switch side",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_drawer_show_go_to_subreddit",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/go_to_shortcuts",
+      "storage_type": "boolean",
+      "title": "Go to community",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_drawer_show_go_to",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/go_to_shortcuts",
+      "storage_type": "boolean",
+      "title": "Go to dropdown",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_drawer_show_go_to_user",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/go_to_shortcuts",
+      "storage_type": "boolean",
+      "title": "Go to user",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_drawer_show_blur_switch",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/quick_toggles",
+      "storage_type": "boolean",
+      "title": "Blur NSFW",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_drawer_show_night_mode",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/quick_toggles",
+      "storage_type": "boolean",
+      "title": "Dark mode",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "false",
+      "dependency": "",
+      "key": "pref_drawer_show_nsfw_switch",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/quick_toggles",
+      "storage_type": "boolean",
+      "title": "Show NSFW",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_drawer_show_home",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/feeds_and_library",
+      "storage_type": "boolean",
+      "title": "Home",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "true",
+      "dependency": "pref_subscriptions_drawer",
+      "key": "pref_subscriptions_drawer_show_icon",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/subscriptions",
+      "storage_type": "boolean",
+      "title": "Show icons",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_subscriptions_drawer",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/subscriptions",
+      "storage_type": "boolean",
+      "title": "Show in menu",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "false",
+      "dependency": "pref_subscriptions_drawer",
+      "key": "pref_subscriptions_only_casual",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/navigation_drawer/subscriptions",
+      "storage_type": "boolean",
+      "title": "Show only favorites",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "true",
+      "dependency": "",
+      "key": "pref_toolbar",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/toolbar",
+      "storage_type": "boolean",
+      "title": "Hide on scroll",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    },
+    {
+      "default_value": "1",
+      "dependency": "",
+      "key": "pref_toolbar_main_action",
+      "logical_kind": "stored_setting",
+      "page_id": "v5/navigation/toolbar",
+      "storage_type": "string",
+      "title": "Main action",
+      "v5_visibility": "VISIBLE",
+      "v5_visibility_reason": ""
+    }
+  ],
+  "schema": 1,
+  "screens": [
+    {
+      "child_count": 4,
+      "control_count": 0,
+      "page_id": "v5/navigation",
+      "renderer": "MorpheSettingsV5NavigationFragment",
+      "role": "root_group",
+      "title": "Navigation & gestures"
+    },
+    {
+      "child_count": 0,
+      "control_count": 2,
+      "page_id": "v5/navigation/back_and_exit",
+      "renderer": "MorpheSettingsV5NavigationLeafFragment",
+      "role": "leaf_section",
+      "title": "Back & exit"
+    },
+    {
+      "child_count": 0,
+      "control_count": 2,
+      "page_id": "v5/navigation/bottom_navigation",
+      "renderer": "MorpheSettingsV5NavigationLeafFragment",
+      "role": "leaf_section",
+      "title": "Bottom navigation"
+    },
+    {
+      "child_count": 7,
+      "control_count": 0,
+      "page_id": "v5/navigation/navigation_drawer",
+      "renderer": "MorpheSettingsV5NavigationFragment",
+      "role": "intermediate_page",
+      "title": "Navigation drawer"
+    },
+    {
+      "child_count": 0,
+      "control_count": 2,
+      "page_id": "v5/navigation/toolbar",
+      "renderer": "MorpheSettingsV5NavigationLeafFragment",
+      "role": "leaf_section",
+      "title": "Toolbar"
+    },
+    {
+      "child_count": 0,
+      "control_count": 6,
+      "page_id": "v5/navigation/navigation_drawer/account_and_tools",
+      "renderer": "MorpheSettingsV5NavigationLeafFragment",
+      "role": "leaf_section",
+      "title": "Account & tools"
+    },
+    {
+      "child_count": 0,
+      "control_count": 2,
+      "page_id": "v5/navigation/navigation_drawer/account_switcher",
+      "renderer": "MorpheSettingsV5NavigationLeafFragment",
+      "role": "leaf_section",
+      "title": "Account switcher"
+    },
+    {
+      "child_count": 0,
+      "control_count": 3,
+      "page_id": "v5/navigation/navigation_drawer/drawer_behavior",
+      "renderer": "MorpheSettingsV5NavigationLeafFragment",
+      "role": "leaf_section",
+      "title": "Drawer behavior"
+    },
+    {
+      "child_count": 0,
+      "control_count": 6,
+      "page_id": "v5/navigation/navigation_drawer/feeds_and_library",
+      "renderer": "MorpheSettingsV5NavigationLeafFragment",
+      "role": "leaf_section",
+      "title": "Feeds & library"
+    },
+    {
+      "child_count": 0,
+      "control_count": 3,
+      "page_id": "v5/navigation/navigation_drawer/go_to_shortcuts",
+      "renderer": "MorpheSettingsV5NavigationLeafFragment",
+      "role": "leaf_section",
+      "title": "Go-to shortcuts"
+    },
+    {
+      "child_count": 0,
+      "control_count": 3,
+      "page_id": "v5/navigation/navigation_drawer/quick_toggles",
+      "renderer": "MorpheSettingsV5NavigationLeafFragment",
+      "role": "leaf_section",
+      "title": "Quick toggles"
+    },
+    {
+      "child_count": 0,
+      "control_count": 3,
+      "page_id": "v5/navigation/navigation_drawer/subscriptions",
+      "renderer": "MorpheSettingsV5NavigationLeafFragment",
+      "role": "leaf_section",
+      "title": "Subscriptions"
+    }
+  ],
+  "source_files": [
+    "MorpheSettingsV5Registry.java",
+    "MorpheSettingsV5Navigation.java",
+    "MorpheSettingsV5NavigationFragment.java",
+    "MorpheSettingsV5NavigationLeafFragment.java",
+    "MorpheSettingsV5NavigationMetadata.java",
+    "MorpheSettingsV5XmlPreferenceFragment.java",
+    "MorpheSettingsV5Search.java"
+  ],
+  "special_handlers": {
+    "withheld_runtime_unavailable": [
+      "pref_drawer_show_friends"
+    ]
+  },
+  "target": {
+    "legacy_routes": 0,
+    "max_controls_per_leaf": 6,
+    "placeholder_pages": 0,
+    "screen_nodes": 12,
+    "visible_by_default": false,
+    "visible_items": 31,
+    "withheld_items": 1
+  },
+  "wave": "Navigation"
+}

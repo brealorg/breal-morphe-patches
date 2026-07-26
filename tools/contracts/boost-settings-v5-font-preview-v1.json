@@ -1,0 +1,25 @@
+{
+  "canonical_keys": [
+    "pref_title_font",
+    "pref_comments_font"
+  ],
+  "font_option_count": 13,
+  "issue": 121,
+  "requirements": {
+    "canonical_storage_preserved": true,
+    "current_value_summary_renders_selected_typeface": true,
+    "picker_rows_render_candidate_typeface": true,
+    "preference_key_changes": 0,
+    "radio_selection_preserved": true,
+    "readable_font_name_preserved": true,
+    "route_changes": 0
+  },
+  "schema": 1,
+  "scope": "hidden_v5_appearance_typography_font_picker",
+  "source_evidence": {
+    "boost_preference_class": "com.rubenmayayo.reddit.ui.preferences.v2.custom.FontDropDownPreference",
+    "boost_typeface_resolver": "id.b.v0().p4(Context,String)",
+    "entry_array": "font_options",
+    "value_array": "font_values"
+  }
+}
