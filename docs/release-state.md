@@ -119,7 +119,7 @@ missing phases:
 The exact `workflow_dispatch` run of `.github/workflows/release.yml` on `main`
 uses GitHub's repository-scoped App installation token with explicit
 `contents: write`. In that context only, the controller binds authorization to
-the exact repository, event, branch, workflow ref, and dispatch SHA. The
+the exact repository, event, branch, workflow ref, dispatch SHA, and workflow SHA. The
 collaborator-oriented `permissions.push` field returned in repository
 metadata is not treated as authoritative for that installation token. Actual
 release-listing and mutation API responses remain authoritative. Every other

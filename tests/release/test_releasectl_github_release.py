@@ -55,6 +55,7 @@ def protected_main_environment() -> dict[str, str]:
         "GITHUB_WORKFLOW_REF": (
             f"{REPOSITORY}/.github/workflows/release.yml@refs/heads/main"
         ),
+        "GITHUB_WORKFLOW_SHA": release_commit,
     }
 
 
@@ -528,6 +529,7 @@ class GitHubReleaseObserverTests(unittest.TestCase):
             "GITHUB_WORKFLOW_REF": (
                 f"{REPOSITORY}/.github/workflows/release.yml@refs/heads/dev"
             ),
+            "GITHUB_WORKFLOW_SHA": "b" * 40,
         }
 
         for key, invalid_value in invalid_values.items():

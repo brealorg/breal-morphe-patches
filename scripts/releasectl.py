@@ -1944,6 +1944,8 @@ def _is_protected_main_actions_release_context(
             active_environment.get("GITHUB_REF_NAME") == "main",
             active_environment.get("GITHUB_SHA") == identity.release_commit,
             active_environment.get("GITHUB_WORKFLOW_REF") == expected_workflow_ref,
+            active_environment.get("GITHUB_WORKFLOW_SHA")
+            == identity.release_commit,
         )
     )
 
