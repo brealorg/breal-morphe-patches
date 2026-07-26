@@ -258,7 +258,7 @@ assert 'LEGACY_V2_ENABLED_KEY,' in v4
 assert '.putBoolean(ENABLED_KEY, true)' in v4
 assert 'intent.getStringExtra(EXTRA_SHOW_FRAGMENT)' in v4
 assert 'intent.putExtra(EXTRA_SHOW_FRAGMENT, FRAGMENT_NAME);' in v4
-assert 'MorpheSettingsV4Fragment' in v4
+assert 'MorpheSettingsV5RootFragment' in v4
 assert 'THEME_MODE_KEY = "pref_theme_mode_type"' in v4
 assert 'SYSTEM_THEME_MODE = "system"' in v4
 assert 'forceSystemThemeMode(preferences);' in v4
@@ -268,7 +268,9 @@ assert 'extends Fragment' in v4_fragment
 assert 'new ScrollView(context)' in v4_fragment
 assert 'new EditText(context)' in v4_fragment
 assert 'renderSearchResults' in v4_fragment
-assert 'hideMenuItem(menu, "action_generic_search")' in v4_fragment
+assert 'MorpheSettingsV4Search.prepareMenu(' in v4_fragment
+assert 'MorpheSettingsV4Search.handleMenuItem(' in v4_fragment
+assert 'hideMenuItem(menu, "action_generic_search")' not in v4_fragment
 assert 'openClassicSettings' in v4_fragment
 assert 'view -> openLeaf(leaf, null)' in v4_fragment
 assert 'MorpheSettingsV14Ui.addSegmentedRow(' in v4_fragment
@@ -305,8 +307,8 @@ assert 'private void addGroupedRow(LinearLayout group, LinearLayout row)' in v4_
 assert 'private void addGroupDivider(LinearLayout group)' in v4_appearance
 assert 'return MorpheSettingsV14Ui.baseRow(context, tokens);' in v4_appearance
 assert 'MorpheSettingsV14Ui.addSegmentedRow(group, row, tokens);' in v4_appearance
-assert 'ROW_SINGLE_DP = 56' in v14_ui
-assert 'ROW_TWO_LINE_DP = 72' in v14_ui
+assert 'ROW_SINGLE_DP = 52' in v14_ui
+assert 'ROW_TWO_LINE_DP = 64' in v14_ui
 assert 'row.setMinimumHeight(dp(context, ROW_SINGLE_DP));' in v14_ui
 assert 'addHeader(content);' not in v4_appearance
 assert 'createIconContainer(' not in v4_appearance
@@ -494,17 +496,42 @@ for forbidden_call in [
 assert 'androidx.compose' not in v4_fonts
 assert 'ComposeView' not in v4_fonts
 
+root_group_ids = [
+    "root_morphe",
+    "root_appearance",
+    "root_reading_interaction",
+    "root_navigation",
+    "root_media",
+    "root_notifications_account",
+    "root_data_app",
+]
+for root_group_id in root_group_ids:
+    assert f'"{root_group_id}"' in v4_catalog, root_group_id
+
 category_ids = [
-    "appearance_layout",
-    "posts_comments",
-    "navigation",
-    "media_links",
+    "theme_colors",
+    "community_header",
+    "post_layout",
+    "typography",
+    "display_motion",
+    "posts",
+    "comments",
     "search_filters",
-    "notifications",
-    "data_storage",
-    "account_privacy",
-    "app_legacy",
-    "about",
+    "feeds_subscriptions",
+    "composing_drafts",
+    "navigation",
+    "playback_autoplay",
+    "images_previews",
+    "links_browser",
+    "downloads_cache",
+    "notifications_inbox",
+    "reddit_account",
+    "history_privacy_recovery",
+    "storage_bandwidth",
+    "backup_restore",
+    "app_behavior_compatibility",
+    "settings_experience",
+    "about_support",
 ]
 for category_id in category_ids:
     assert f'"{category_id}"' in v4_catalog, category_id
@@ -579,9 +606,27 @@ assert 'CLASSIC_APPEARANCE_FRAGMENT' in v4_catalog
 assert 'addV4AppearanceSearchItems(result, seen);' in v4_catalog
 assert 'addV4PostViewsSearchItems(result, seen);' in v4_catalog
 assert 'addV4FontsSearchItems(result, seen);' in v4_catalog
-assert 'Leaf.fragment("Appearance", "Dynamic color, app icon, and system bars"' in v4_catalog
-assert 'Leaf.fragment("Post views", "Cards, lists, thumbnails, and density"' in v4_catalog
-assert 'Leaf.fragment("Fonts", "Font family, size, and style"' in v4_catalog
+assert re.search(
+    r'Leaf\.fragment\(\s*"Theme & colors",\s*'
+    r'"Theme, colors, app icon, and system bars",\s*'
+    r'"ic_color_lens_24dp",\s*V4_APPEARANCE_FRAGMENT,\s*null\s*\)',
+    v4_catalog,
+    re.S,
+)
+assert re.search(
+    r'Leaf\.fragment\(\s*"Post layout",\s*'
+    r'"Cards, compact layouts, saved views, and tablet layout",\s*'
+    r'"ic_view_carousel_24dp",\s*V4_POST_VIEWS_FRAGMENT,\s*null\s*\)',
+    v4_catalog,
+    re.S,
+)
+assert re.search(
+    r'Leaf\.fragment\(\s*"Typography",\s*'
+    r'"Post and comment fonts with live previews",\s*'
+    r'"ic_format_size_24dp",\s*V4_FONTS_FRAGMENT,\s*null\s*\)',
+    v4_catalog,
+    re.S,
+)
 assert '"Appearance & layout · Fonts"' in v4_catalog
 assert 'PreferenceFragmentFontsCompat' not in v4_catalog
 assert 'PreferenceFragmentViewsCompat' not in v4_catalog
