@@ -104,6 +104,18 @@ jobs:
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
           fingerprint: ${{ vars.GPG_FINGERPRINT }}
 
+      - name: Configure release Git identity
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          test "$(git config --local user.name)" = "github-actions[bot]"
+          test "$(git config --local user.email)" = "41898282+github-actions[bot]@users.noreply.github.com"
+          git var GIT_COMMITTER_IDENT
+
       - name: Publish from protected main
         env:
           GPG_FINGERPRINT: ${{ vars.GPG_FINGERPRINT }}

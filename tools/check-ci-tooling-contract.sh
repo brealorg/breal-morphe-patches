@@ -41,10 +41,32 @@ for raw_path in sys.argv[1:]:
     else:
         consumer_index = text.index("./tools/check-project-contracts.sh")
     assert install_index < consumer_index, f"ripgrep installed too late: {path}"
+
+release_text = Path(sys.argv[2]).read_text(encoding="utf-8")
+identity_required = (
+    "- name: Configure release Git identity",
+    'git config --local user.name "github-actions[bot]"',
+    'git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"',
+    'test "$(git config --local user.name)" = "github-actions[bot]"',
+    'test "$(git config --local user.email)" = "41898282+github-actions[bot]@users.noreply.github.com"',
+    "git var GIT_COMMITTER_IDENT",
+)
+for marker in identity_required:
+    assert release_text.count(marker) == 1, (
+        f"expected exactly one release Git identity marker {marker!r}"
+    )
+
+import_index = release_text.index("- name: Import GPG key")
+identity_index = release_text.index("- name: Configure release Git identity")
+publish_index = release_text.index("- name: Publish from protected main")
+assert import_index < identity_index < publish_index, (
+    "release Git identity must be configured after GPG import and before publish"
+)
 PY_CHECK
 
 echo 'PROJECT_RUNNER_RIPGREP_PREFLIGHT=PASS'
 echo 'RELEASE_FEED_SMOKE_PROVISIONS_RIPGREP=PASS'
 echo 'RELEASE_FEED_MPP_SHA_GATE=PASS'
 echo 'RELEASE_WORKFLOW_PROVISIONS_RIPGREP=PASS'
+echo 'RELEASE_WORKFLOW_GIT_IDENTITY=PASS'
 echo 'RESULT=MORPHE_CI_TOOLING_CONTRACT_OK'
