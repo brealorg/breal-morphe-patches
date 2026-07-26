@@ -10,7 +10,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class CodeBlockHtmlNormalizer {
-    public static final String MARKER = "MORPHE_CODEBLOCK_HTML_NORMALIZER_V6_RAW_HTML_MALFORMED_CODE_CLOSE";
+    public static final String MARKER = "MORPHE_CODEBLOCK_HTML_NORMALIZER_V7_MALFORMED_PARENTHESIZED_LINKS";
+    public static final String V6_MARKER = "MORPHE_CODEBLOCK_HTML_NORMALIZER_V6_RAW_HTML_MALFORMED_CODE_CLOSE";
     public static final String PREVIOUS_MARKER = "MORPHE_CODEBLOCK_HTML_NORMALIZER_V4_FENCED_SELFTEXT_ACTUAL_SHAPE";
     public static final String V3_MARKER = "MORPHE_CODEBLOCK_HTML_NORMALIZER_V3_FENCED_SELFTEXT";
     public static final String V2_MARKER = "MORPHE_CODEBLOCK_HTML_NORMALIZER_V2_SEGMENTED";
@@ -23,6 +24,9 @@ public final class CodeBlockHtmlNormalizer {
     private static final Pattern CODE_PATTERN =
             Pattern.compile("(?is)<code>(.*?)</code>");
 
+    private static final Pattern MALFORMED_PARENTHESIZED_LINK_PATTERN =
+            Pattern.compile("(?i)<a href=\"(https?://[^\"]+)\">(https?://[^<]+)</a>(#[^<\\s)]+)\\)");
+
     private CodeBlockHtmlNormalizer() {
     }
 
@@ -32,6 +36,11 @@ public final class CodeBlockHtmlNormalizer {
         }
 
         try {
+            String malformedLinks = normalizeMalformedParenthesizedLinks(html);
+            if (malformedLinks != null) {
+                html = malformedLinks;
+            }
+
             String plainTextFenced = normalizePlainTextFencedCodeBlocks(html);
             if (plainTextFenced != null) {
                 return plainTextFenced;
@@ -62,6 +71,57 @@ public final class CodeBlockHtmlNormalizer {
     }
 
 
+
+    private static String normalizeMalformedParenthesizedLinks(String html) {
+        Matcher matcher = MALFORMED_PARENTHESIZED_LINK_PATTERN.matcher(html);
+        StringBuffer out = new StringBuffer();
+        boolean changed = false;
+
+        while (matcher.find()) {
+            String href = matcher.group(1);
+            String visibleUrl = matcher.group(2);
+            String duplicatedFragment = matcher.group(3);
+
+            if (!visibleUrl.startsWith(href)) {
+                matcher.appendReplacement(out, Matcher.quoteReplacement(matcher.group(0)));
+                continue;
+            }
+
+            String visibleSuffix = visibleUrl.substring(href.length());
+            boolean exactRedditShape = visibleSuffix.equals(")" + duplicatedFragment);
+            boolean hrefMissingExactlyOneCloseParen =
+                    countCharacter(href, '(') == countCharacter(href, ')') + 1;
+            boolean visibleUrlParenthesesBalanced =
+                    countCharacter(visibleUrl, '(') == countCharacter(visibleUrl, ')');
+
+            if (!exactRedditShape
+                    || !hrefMissingExactlyOneCloseParen
+                    || !visibleUrlParenthesesBalanced) {
+                matcher.appendReplacement(out, Matcher.quoteReplacement(matcher.group(0)));
+                continue;
+            }
+
+            String replacement =
+                    "<a href=\"" + visibleUrl + "\">" + visibleUrl + "</a>";
+            matcher.appendReplacement(out, Matcher.quoteReplacement(replacement));
+            changed = true;
+        }
+
+        matcher.appendTail(out);
+        return changed ? out.toString() : null;
+    }
+
+    private static int countCharacter(String value, char needle) {
+        int count = 0;
+
+        for (int i = 0; i < value.length(); i++) {
+            if (value.charAt(i) == needle) {
+                count++;
+            }
+        }
+
+        return count;
+    }
 
     private static String normalizeActualRawHtmlMalformedCodeBlock(String html) {
         if (html == null || html.indexOf(FENCE) < 0) {

@@ -17,7 +17,7 @@ private const val CODEBLOCK_NORMALIZER_DESCRIPTOR =
 @Suppress("unused")
 val fixCodeBlockRenderingPatch = bytecodePatch(
     name = "Fix Boost code block rendering",
-    description = "Preserves Reddit code blocks by normalizing multiline <code> HTML and malformed fenced selftext to Boost\'s native <pre> renderer path.",
+    description = "Preserves Reddit code blocks and repairs malformed legacy HTML links with parenthesized URLs before Boost renders them.",
     default = true
 ) {
     dependsOn(sharedExtensionPatch)
