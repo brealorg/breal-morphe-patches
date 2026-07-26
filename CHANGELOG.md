@@ -1,6 +1,12 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.96](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-95...morphe-patches-96) (2026-07-26)
+
+* **Boost for Reddit:** Features
+
+- Add task-based Material Settings V5 navigation with global search and a classic fallback.
+
 ## [1.4.95](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-94...morphe-patches-95) (2026-07-25)
 
 * **Boost for Reddit:** Bug Fixes

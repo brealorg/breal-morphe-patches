@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.4.95",
+  "version": "1.4.96",
   "patches": [
     {
       "name": "Add Boost Search bottom navigation",
@@ -147,7 +147,7 @@
     },
     {
       "name": "Boost Morphe settings",
-      "description": "Adds dedicated Morphe settings and Morphe-owned Material-style Settings v4 pages with a classic fallback.",
+      "description": "Adds dedicated Morphe settings and task-based Material Settings V5 navigation with global search and a classic fallback.",
       "default": false,
       "dependencies": [
         "BytecodePatch",

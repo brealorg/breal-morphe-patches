@@ -72,14 +72,14 @@ The repository shorthand shown at the top is the preferred Manager setup. Raw
 
 | Field | Value |
 |---|---|
-| Version | `1.4.95` |
-| Release tag | `morphe-patches-95` |
-| Asset | `patches-1.4.95.mpp` |
-| SHA256 | `5c998b8bc159c4ab8fbb077a72bf1b758285b9512ffab76eead0a63c077eb7bd` |
+| Version | `1.4.96` |
+| Release tag | `morphe-patches-96` |
+| Asset | `patches-1.4.96.mpp` |
+| SHA256 | `1a94a3d39f269f53852cd38aa30fd5c11140b59779677980a576eb47e00932d5` |
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-95/patches-1.4.95.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-96/patches-1.4.96.mpp` |
 
-SHA256: `5c998b8bc159c4ab8fbb077a72bf1b758285b9512ffab76eead0a63c077eb7bd`
+SHA256: `1a94a3d39f269f53852cd38aa30fd5c11140b59779677980a576eb47e00932d5`
 ## What this bundle does
 
 The current bundle is focused on practical hotfixes for tested app versions, especially Boost for Reddit behavior on newer Android versions.
@@ -126,7 +126,7 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.95` • `main` • 52 unique patches • 104 package entries
+> **Patch source version:** `1.4.96` • `main` • 52 unique patches • 104 package entries
 
 <details>
 <summary><strong>Boost for Reddit</strong> • 43 patches</summary>
@@ -145,7 +145,7 @@ Included Imgur patches:
 | [Animate media in Boost gallery previews](#animate-media-in-boost-gallery-previews) | Autoplays selected Reddit gallery GIF and video media while preserving Boost's poster, data preferences, and full-screen media route. |  |
 | [Automatically undelete Imgur images](#automatically-undelete-imgur-images) |  |  |
 | [Automatically undelete Reddit content](#automatically-undelete-reddit-content) |  |  |
-| [Boost Morphe settings](#boost-morphe-settings) | Adds dedicated Morphe settings and Morphe-owned Material-style Settings v4 pages with a classic fallback. |  |
+| [Boost Morphe settings](#boost-morphe-settings) | Adds dedicated Morphe settings and task-based Material Settings V5 navigation with global search and a classic fallback. |  |
 | [Boost search default discovery](#boost-search-default-discovery) | Starts Boost search on an instant cached active-subreddit landing with Reddit-native labels. |  |
 | [Custom Synccit URL](#custom-synccit-url) | Allows Boost to use a custom self-hosted Synccit API endpoint. | • Synccit API URL |
 | [Disable ads](#disable-ads) |  |  |
@@ -539,16 +539,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.95` is prepared and locally verified with:
+Release `1.4.96` is prepared and locally verified with:
 
-- Release tag `morphe-patches-95`.
+- Release tag `morphe-patches-96`.
 - Local built MPP SHA256 matching README.
-`5c998b8bc159c4ab8fbb077a72bf1b758285b9512ffab76eead0a63c077eb7bd`
-- `patches-bundle.json` returning version `1.4.95`.
-- `patches-bundle.json` pointing to the `morphe-patches-95` asset.
+`1a94a3d39f269f53852cd38aa30fd5c11140b59779677980a576eb47e00932d5`
+- `patches-bundle.json` returning version `1.4.96`.
+- `patches-bundle.json` pointing to the `morphe-patches-96` asset.
 - Expected release asset:
-`patches-1.4.95.mpp`
-- `5c998b8bc159c4ab8fbb077a72bf1b758285b9512ffab76eead0a63c077eb7bd  patches-1.4.95.mpp`
+`patches-1.4.96.mpp`
+- `1a94a3d39f269f53852cd38aa30fd5c11140b59779677980a576eb47e00932d5  patches-1.4.96.mpp`
 
 ## Development notes
 
