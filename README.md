@@ -75,11 +75,11 @@ The repository shorthand shown at the top is the preferred Manager setup. Raw
 | Version | `1.4.98` |
 | Release tag | `morphe-patches-98` |
 | Asset | `patches-1.4.98.mpp` |
-| SHA256 | `af53ce35c7bd7177505c016b9c513e5fca495d5cca471299892006ca0b65765a` |
+| SHA256 | `2b9a8bddc114f1d30f2122c37b6e01b28307525d9d813f83e6cfdaec33b88106` |
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
 | Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-98/patches-1.4.98.mpp` |
 
-SHA256: `af53ce35c7bd7177505c016b9c513e5fca495d5cca471299892006ca0b65765a`
+SHA256: `2b9a8bddc114f1d30f2122c37b6e01b28307525d9d813f83e6cfdaec33b88106`
 ## What this bundle does
 
 The current bundle is focused on practical hotfixes for tested app versions, especially Boost for Reddit behavior on newer Android versions.
@@ -543,12 +543,12 @@ Release `1.4.98` is prepared and locally verified with:
 
 - Release tag `morphe-patches-98`.
 - Local built MPP SHA256 matching README.
-`af53ce35c7bd7177505c016b9c513e5fca495d5cca471299892006ca0b65765a`
+`2b9a8bddc114f1d30f2122c37b6e01b28307525d9d813f83e6cfdaec33b88106`
 - `patches-bundle.json` returning version `1.4.98`.
 - `patches-bundle.json` pointing to the `morphe-patches-98` asset.
 - Expected release asset:
 `patches-1.4.98.mpp`
-- `af53ce35c7bd7177505c016b9c513e5fca495d5cca471299892006ca0b65765a  patches-1.4.98.mpp`
+- `2b9a8bddc114f1d30f2122c37b6e01b28307525d9d813f83e6cfdaec33b88106  patches-1.4.98.mpp`
 
 ## Development notes
 
