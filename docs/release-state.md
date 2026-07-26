@@ -116,6 +116,16 @@ missing phases:
 7. draft publication;
 8. final authoritative remote verification.
 
+The exact `workflow_dispatch` run of `.github/workflows/release.yml` on `main`
+uses GitHub's repository-scoped App installation token with explicit
+`contents: write`. In that context only, the controller binds authorization to
+the exact repository, event, branch, workflow ref, and dispatch SHA. The
+collaborator-oriented `permissions.push` field returned in repository
+metadata is not treated as authoritative for that installation token. Actual
+release-listing and mutation API responses remain authoritative. Every other
+caller retains the existing `permissions.push=true` gate so draft-release
+visibility must be established before mutation.
+
 Existing matching state is a no-op. An existing tag at another commit,
 duplicate or mismatching assets, an unexpected digest, or divergent refs cause
 `INCONSISTENT_ABORT`. The controller never force-moves a tag and never uploads

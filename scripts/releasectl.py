@@ -22,7 +22,7 @@ import subprocess
 import sys
 import tempfile
 import zipfile
-from typing import Any, Protocol, Sequence
+from typing import Any, Mapping, Protocol, Sequence
 
 
 _SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -1914,6 +1914,40 @@ def _github_api_get_args(endpoint: str, *, paginate: bool = False) -> tuple[str,
     return tuple(args)
 
 
+def _is_protected_main_actions_release_context(
+    repository: str,
+    identity: ReleaseIdentity,
+    *,
+    environment: Mapping[str, str] | None = None,
+) -> bool:
+    """Recognize only the repository's exact protected-main release workflow.
+
+    GitHub's ``GITHUB_TOKEN`` is a GitHub App installation token. Repository
+    metadata can therefore report the collaborator-oriented ``permissions.push``
+    field as false even when the workflow job has explicit ``contents: write``.
+    The exception is intentionally bound to the exact release workflow, event,
+    repository, branch, dispatch commit, and workflow commit.
+    """
+
+    active_environment = os.environ if environment is None else environment
+    expected_workflow_ref = (
+        f"{repository}/.github/workflows/release.yml@refs/heads/main"
+    )
+
+    return all(
+        (
+            active_environment.get("GITHUB_ACTIONS") == "true",
+            active_environment.get("GITHUB_EVENT_NAME") == "workflow_dispatch",
+            active_environment.get("GITHUB_REPOSITORY", "").casefold()
+            == repository.casefold(),
+            active_environment.get("GITHUB_REF") == "refs/heads/main",
+            active_environment.get("GITHUB_REF_NAME") == "main",
+            active_environment.get("GITHUB_SHA") == identity.release_commit,
+            active_environment.get("GITHUB_WORKFLOW_REF") == expected_workflow_ref,
+        )
+    )
+
+
 def _parse_repository_access(
     stdout: str,
     repository: str,
@@ -1944,11 +1978,6 @@ def _parse_repository_access(
         errors.append("GitHub repository metadata permissions.push must be boolean")
         return None
 
-    if not can_push:
-        errors.append(
-            "authenticated GitHub viewer lacks push permission; draft release "
-            "visibility cannot be guaranteed"
-        )
     return can_push
 
 
@@ -1957,6 +1986,7 @@ def observe_github_release(
     identity: ReleaseIdentity,
     *,
     runner: GhRunner | None = None,
+    environment: Mapping[str, str] | None = None,
 ) -> GitHubReleaseObservationResult:
     """Observe GitHub Release metadata using a read-only REST API listing.
 
@@ -1989,6 +2019,11 @@ def observe_github_release(
     errors: list[str] = []
     warnings: list[str] = []
 
+    protected_main_actions_context = (
+        _is_protected_main_actions_release_context(
+            normalized_repository, identity, environment=environment
+        )
+    )
     repository_result = active_runner.run(
         _github_api_get_args(f"repos/{normalized_repository}")
     )
@@ -2012,7 +2047,12 @@ def observe_github_release(
         normalized_repository,
         errors=errors,
     )
-    if errors or viewer_can_push is not True:
+    if viewer_can_push is False and not protected_main_actions_context:
+        errors.append(
+            "authenticated GitHub viewer lacks push permission; draft release "
+            "visibility cannot be guaranteed"
+        )
+    if errors or viewer_can_push is None:
         return GitHubReleaseObservationResult(
             repository=normalized_repository,
             viewer_can_push=viewer_can_push,
@@ -2028,13 +2068,19 @@ def observe_github_release(
             warnings=tuple(warnings),
         )
 
+    if viewer_can_push is False:
+        warnings.append(
+            "repository metadata permissions.push is not authoritative for the "
+            "exact protected-main GitHub Actions installation-token context"
+        )
+
     endpoint = f"repos/{normalized_repository}/releases?per_page=100"
     result = active_runner.run(_github_api_get_args(endpoint, paginate=True))
 
     if result.returncode != 0:
         return GitHubReleaseObservationResult(
             repository=normalized_repository,
-            viewer_can_push=True,
+            viewer_can_push=viewer_can_push,
             github=GitHubReleaseObservations(),
             release_id=None,
             is_immutable=None,
@@ -2044,6 +2090,7 @@ def observe_github_release(
             signature_asset_ids=(),
             observations_complete=False,
             errors=(_gh_error("GitHub release listing", result),),
+            warnings=tuple(warnings),
         )
 
     releases = _parse_release_pages(result.stdout, errors=errors)
@@ -2065,7 +2112,7 @@ def observe_github_release(
     if errors or len(matches) > 1:
         return GitHubReleaseObservationResult(
             repository=normalized_repository,
-            viewer_can_push=True,
+            viewer_can_push=viewer_can_push,
             github=GitHubReleaseObservations(),
             release_id=None,
             is_immutable=None,
@@ -2081,7 +2128,7 @@ def observe_github_release(
     if not matches:
         return GitHubReleaseObservationResult(
             repository=normalized_repository,
-            viewer_can_push=True,
+            viewer_can_push=viewer_can_push,
             github=GitHubReleaseObservations(),
             release_id=None,
             is_immutable=None,
@@ -2091,7 +2138,7 @@ def observe_github_release(
             signature_asset_ids=(),
             observations_complete=True,
             errors=(),
-            warnings=(),
+            warnings=tuple(warnings),
         )
 
     parsed = _validate_matching_release(
@@ -2102,7 +2149,7 @@ def observe_github_release(
     )
     return GitHubReleaseObservationResult(
         repository=normalized_repository,
-        viewer_can_push=True,
+        viewer_can_push=viewer_can_push,
         github=parsed.github,
         release_id=parsed.release_id,
         is_immutable=parsed.is_immutable,

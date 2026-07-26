@@ -43,6 +43,21 @@ def identity() -> ReleaseIdentity:
     )
 
 
+def protected_main_environment() -> dict[str, str]:
+    release_commit = identity().release_commit
+    return {
+        "GITHUB_ACTIONS": "true",
+        "GITHUB_EVENT_NAME": "workflow_dispatch",
+        "GITHUB_REPOSITORY": REPOSITORY,
+        "GITHUB_REF": "refs/heads/main",
+        "GITHUB_REF_NAME": "main",
+        "GITHUB_SHA": release_commit,
+        "GITHUB_WORKFLOW_REF": (
+            f"{REPOSITORY}/.github/workflows/release.yml@refs/heads/main"
+        ),
+    }
+
+
 def asset(
     asset_id: int,
     name: str,
@@ -147,8 +162,15 @@ class RejectingRunner:
 
 
 class GitHubReleaseObserverTests(unittest.TestCase):
-    def observe(self, runner: StaticGhRunner):
-        return observe_github_release(REPOSITORY, identity(), runner=runner)
+    def observe(
+        self,
+        runner: StaticGhRunner,
+        *,
+        environment: dict[str, str] | None = None,
+    ):
+        return observe_github_release(
+            REPOSITORY, identity(), runner=runner, environment=environment
+        )
 
     def test_h01_published_release_metadata_and_digest(self) -> None:
         result = self.observe(StaticGhRunner(pages([release()])))
@@ -464,6 +486,113 @@ class GitHubReleaseObserverTests(unittest.TestCase):
         self.assertEqual(env["LC_ALL"], "C")
         self.assertFalse(kwargs["check"])
         self.assertNotIn("shell", kwargs)
+
+    def test_h27_exact_protected_main_actions_context_accepts_installation_token(
+        self,
+    ) -> None:
+        metadata = json.dumps(
+            {
+                "full_name": REPOSITORY,
+                "permissions": {"pull": True, "push": False, "admin": False},
+            }
+        )
+        runner = StaticGhRunner(pages([]), repository_stdout=metadata)
+
+        result = self.observe(
+            runner,
+            environment=protected_main_environment(),
+        )
+
+        self.assertTrue(result.observations_complete)
+        self.assertFalse(result.viewer_can_push)
+        self.assertFalse(result.github.present)
+        self.assertEqual(len(runner.calls), 2)
+        self.assertTrue(
+            any("installation-token context" in warning for warning in result.warnings)
+        )
+
+    def test_h28_inexact_actions_context_keeps_push_permission_gate(self) -> None:
+        metadata = json.dumps(
+            {
+                "full_name": REPOSITORY,
+                "permissions": {"pull": True, "push": False, "admin": False},
+            }
+        )
+        invalid_values = {
+            "GITHUB_ACTIONS": "false",
+            "GITHUB_EVENT_NAME": "push",
+            "GITHUB_REPOSITORY": "brealorg/another-repository",
+            "GITHUB_REF": "refs/heads/dev",
+            "GITHUB_REF_NAME": "dev",
+            "GITHUB_SHA": "b" * 40,
+            "GITHUB_WORKFLOW_REF": (
+                f"{REPOSITORY}/.github/workflows/release.yml@refs/heads/dev"
+            ),
+        }
+
+        for key, invalid_value in invalid_values.items():
+            with self.subTest(key=key):
+                environment = protected_main_environment()
+                environment[key] = invalid_value
+                runner = StaticGhRunner(pages([]), repository_stdout=metadata)
+
+                result = self.observe(runner, environment=environment)
+
+                self.assertFalse(result.observations_complete)
+                self.assertFalse(result.viewer_can_push)
+                self.assertEqual(len(runner.calls), 1)
+                self.assertTrue(
+                    any(
+                        "draft release visibility" in error
+                        for error in result.errors
+                    )
+                )
+
+    def test_h29_missing_permissions_still_fail_in_exact_actions_context(
+        self,
+    ) -> None:
+        metadata = json.dumps({"full_name": REPOSITORY})
+        runner = StaticGhRunner(pages([]), repository_stdout=metadata)
+
+        result = self.observe(
+            runner,
+            environment=protected_main_environment(),
+        )
+
+        self.assertFalse(result.observations_complete)
+        self.assertIsNone(result.viewer_can_push)
+        self.assertEqual(len(runner.calls), 1)
+        self.assertTrue(
+            any("permissions object" in error for error in result.errors)
+        )
+
+    def test_h30_release_listing_failure_still_fails_in_exact_actions_context(
+        self,
+    ) -> None:
+        metadata = json.dumps(
+            {
+                "full_name": REPOSITORY,
+                "permissions": {"pull": True, "push": False, "admin": False},
+            }
+        )
+        runner = StaticGhRunner(
+            "",
+            listing_returncode=1,
+            listing_stderr="release listing denied",
+            repository_stdout=metadata,
+        )
+
+        result = self.observe(
+            runner,
+            environment=protected_main_environment(),
+        )
+
+        self.assertFalse(result.observations_complete)
+        self.assertFalse(result.viewer_can_push)
+        self.assertEqual(len(runner.calls), 2)
+        self.assertTrue(
+            any("release listing denied" in error for error in result.errors)
+        )
 
 
 if __name__ == "__main__":
