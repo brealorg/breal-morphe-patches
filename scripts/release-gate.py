@@ -108,6 +108,14 @@ def main() -> int:
     parser.add_argument("--marker", action="append", default=[], help="Binary/text marker that must exist anywhere in the releasable MPP.")
     parser.add_argument("--stale", action="append", default=[], help="Old value that must not exist in release metadata files.")
     parser.add_argument("--skip-staged-check", action="store_true", help="Do not check for staged build artifacts.")
+    parser.add_argument(
+        "--skip-readme-sha",
+        action="store_true",
+        help=(
+            "Skip only the README-to-built-MPP SHA equality check. "
+            "This is reserved for code-only release-feed CI changes."
+        ),
+    )
     args = parser.parse_args()
 
     root = Path.cwd()
@@ -187,7 +195,14 @@ def main() -> int:
         actual_sha = sha256_file(mpp_path)
         readme_sha = read_readme_sha(readme)
 
-        req(readme_sha == actual_sha, f"README SHA does not match built MPP. README={readme_sha}, actual={actual_sha}")
+        if args.skip_readme_sha:
+            print("README_SHA_GATE=SKIPPED_CODE_ONLY_CHANGE")
+        else:
+            req(
+                readme_sha == actual_sha,
+                "README SHA does not match built MPP. "
+                f"README={readme_sha}, actual={actual_sha}",
+            )
 
         try:
             with zipfile.ZipFile(mpp_path) as z:
