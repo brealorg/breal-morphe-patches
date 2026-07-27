@@ -499,32 +499,233 @@ public final class InlineGiphyCommentPreview {
         }
     }
 
-    private static String removePreviewSourceUrlFromHtml(String html, String sourceUrl) {
-        if (html == null || sourceUrl == null || sourceUrl.length() == 0) return html;
+    private static final String ISSUE120_LINK_SAFETY_MARKER =
+            "MORPHE_BOOST_ISSUE120_LINK_SAFETY_V1";
+
+    private static String removePreviewSourceUrlFromHtml(
+            String html,
+            String sourceUrl
+    ) {
+        if (html == null || sourceUrl == null || sourceUrl.length() == 0) {
+            return html;
+        }
 
         String result = html;
-        String[] variants = sourceUrlVariants(sourceUrl);
 
-        for (String href : variants) {
-            if (href == null || href.length() == 0) continue;
-            for (String label : variants) {
-                if (label == null || label.length() == 0) continue;
-                result = removeExactAnchor(result, href, label);
-            }
-        }
+        String beforeAnchorCleanup = result;
+        result = removeSourceEquivalentAnchors(result, sourceUrl, false);
+        result = removeSourceEquivalentAnchors(result, sourceUrl, true);
+        boolean sourceEquivalentAnchorRemoved =
+                !stringEquals(beforeAnchorCleanup, result);
 
-        for (String candidate : variants) {
+        String beforeBareTextCleanup = result;
+        String[] fullVariants = sourceUrlVariants(sourceUrl);
+        String[] strippedVariants = sourceUrlVariants(
+                stripHttpSchemeForIssue120(sourceUrl)
+        );
+
+        for (String candidate : fullVariants) {
             if (candidate == null || candidate.length() == 0) continue;
-            result = result.replace(candidate, "");
+            result = removeTextOutsideHtmlMarkup(result, candidate);
         }
+
+        for (String candidate : strippedVariants) {
+            if (candidate == null || candidate.length() == 0) continue;
+            result = removeTextOutsideHtmlMarkup(result, candidate);
+        }
+
+        boolean bareSourceTextRemoved =
+                !stringEquals(beforeBareTextCleanup, result);
+
+        Log.d(
+                LOG_TAG,
+                ISSUE120_LINK_SAFETY_MARKER
+                        + ": sourceEquivalentAnchorRemoved="
+                        + sourceEquivalentAnchorRemoved
+                        + " bareSourceTextRemoved="
+                        + bareSourceTextRemoved
+        );
 
         result = cleanupHtmlAfterSourceRemoval(result);
         if (isBlankHtml(result)) {
-            // TableTextView.setTextHtml("") returns without clearing old content. Use zero-width space.
             return "&#8203;";
         }
 
         return result;
+    }
+
+
+    private static String removeSourceEquivalentAnchors(
+            String html,
+            String sourceUrl,
+            boolean encoded
+    ) {
+        if (html == null || sourceUrl == null || sourceUrl.length() == 0) {
+            return html;
+        }
+
+        try {
+            String patternText = encoded
+                    ? "(?is)&lt;a\\b(?:(?!&gt;).)*?&gt;(.*?)&lt;/a\\s*&gt;"
+                    : "(?is)<a\\b[^>]*>(.*?)</a\\s*>";
+
+            Matcher matcher = Pattern.compile(patternText).matcher(html);
+            StringBuffer output = new StringBuffer();
+            boolean changed = false;
+
+            while (matcher.find()) {
+                String replacement;
+                if (isSourceEquivalentLabel(matcher.group(1), sourceUrl)) {
+                    replacement = " ";
+                    changed = true;
+                } else {
+                    replacement = matcher.group(0);
+                }
+
+                matcher.appendReplacement(
+                        output,
+                        Matcher.quoteReplacement(replacement)
+                );
+            }
+
+            if (!changed) {
+                return html;
+            }
+
+            matcher.appendTail(output);
+            return output.toString();
+        } catch (Throwable ignored) {
+            return html;
+        }
+    }
+
+    private static boolean isSourceEquivalentLabel(
+            String htmlFragment,
+            String sourceUrl
+    ) {
+        String normalizedLabel = normalizeIssue120AnchorLabel(htmlFragment);
+        if (normalizedLabel == null || normalizedLabel.length() == 0) {
+            return false;
+        }
+
+        String[] fullVariants = sourceUrlVariants(sourceUrl);
+        for (String candidate : fullVariants) {
+            if (candidate != null && normalizedLabel.equals(candidate)) {
+                return true;
+            }
+        }
+
+        String[] strippedVariants = sourceUrlVariants(
+                stripHttpSchemeForIssue120(sourceUrl)
+        );
+        for (String candidate : strippedVariants) {
+            if (candidate != null && normalizedLabel.equals(candidate)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static String normalizeIssue120AnchorLabel(String value) {
+        if (value == null) return null;
+
+        return value
+                .replaceAll("(?is)<[^>]+>", "")
+                .replaceAll("(?is)&lt;(?:(?!&gt;).)*?&gt;", "")
+                .replaceAll("(?i)&amp;", "&")
+                .replaceAll("(?i)&quot;", "\"")
+                .replaceAll("(?i)&#34;", "\"")
+                .replaceAll("(?i)&#x22;", "\"")
+                .replaceAll("(?i)&#39;", "'")
+                .replaceAll("(?i)&#x27;", "'")
+                .replaceAll("(?i)&nbsp;", " ")
+                .trim();
+    }
+
+    private static String stripHttpSchemeForIssue120(String value) {
+        if (value == null) return null;
+
+        if (value.regionMatches(true, 0, "https://", 0, 8)) {
+            return value.substring(8);
+        }
+
+        if (value.regionMatches(true, 0, "http://", 0, 7)) {
+            return value.substring(7);
+        }
+
+        return value;
+    }
+
+    private static String removeTextOutsideHtmlMarkup(
+            String html,
+            String sourceText
+    ) {
+        if (
+                html == null
+                        || sourceText == null
+                        || sourceText.length() == 0
+        ) {
+            return html;
+        }
+
+        String lowerHtml = html.toLowerCase(java.util.Locale.US);
+        StringBuilder output = new StringBuilder(html.length());
+        int index = 0;
+
+        while (index < html.length()) {
+            int rawTagStart = html.indexOf('<', index);
+            int encodedTagStart = lowerHtml.indexOf("&lt;", index);
+
+            int tagStart;
+            boolean encoded;
+            if (rawTagStart < 0) {
+                tagStart = encodedTagStart;
+                encoded = true;
+            } else if (encodedTagStart < 0) {
+                tagStart = rawTagStart;
+                encoded = false;
+            } else if (rawTagStart <= encodedTagStart) {
+                tagStart = rawTagStart;
+                encoded = false;
+            } else {
+                tagStart = encodedTagStart;
+                encoded = true;
+            }
+
+            if (tagStart < 0) {
+                output.append(
+                        html.substring(index).replace(sourceText, "")
+                );
+                break;
+            }
+
+            if (tagStart > index) {
+                output.append(
+                        html.substring(index, tagStart).replace(sourceText, "")
+                );
+            }
+
+            final int tagEnd;
+            final int tagEndLength;
+            if (encoded) {
+                tagEnd = lowerHtml.indexOf("&gt;", tagStart + 4);
+                tagEndLength = 4;
+            } else {
+                tagEnd = html.indexOf('>', tagStart + 1);
+                tagEndLength = 1;
+            }
+
+            if (tagEnd < 0) {
+                output.append(html.substring(tagStart));
+                break;
+            }
+
+            output.append(html, tagStart, tagEnd + tagEndLength);
+            index = tagEnd + tagEndLength;
+        }
+
+        return output.toString();
     }
 
     private static String removeExactAnchor(String html, String href, String label) {
