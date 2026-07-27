@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.99](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-98...morphe-patches-99) (2026-07-28)
+
+* **Boost for Reddit:** Bug Fixes Preserve descriptive Imgur comment links when inline previews are rendered. Prevent preview source cleanup from producing empty link destinations.
+
 ## [1.4.98](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-97...morphe-patches-98) (2026-07-27)
 
 * **Boost for Reddit:** Bug Fixes Restore Boost's native Subscriptions long-press sort menu.
