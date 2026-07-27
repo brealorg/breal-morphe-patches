@@ -31,6 +31,50 @@ def run(cmd: list[str]) -> None:
     subprocess.run(cmd, check=True)
 
 
+# MORPHE_RELEASE_JAVA17_PREFLIGHT_V1
+RELEASE_JAVA_SPECIFICATION_VERSION = "17"
+
+
+def detect_java_specification_version() -> str:
+    try:
+        completed = subprocess.run(
+            ["java", "-XshowSettings:properties", "-version"],
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+    except FileNotFoundError as exc:
+        raise SystemExit(
+            "Release preparation requires Java 17, but java was not found. "
+            "No files changed."
+        ) from exc
+
+    output = completed.stdout + "\n" + completed.stderr
+    match = re.search(
+        r"(?m)^\s*java\.specification\.version\s*=\s*([^\s]+)\s*$",
+        output,
+    )
+    if completed.returncode != 0 or not match:
+        raise SystemExit(
+            "Release preparation could not determine the active Java "
+            "specification version. No files changed."
+        )
+    return match.group(1)
+
+
+def require_release_java_17() -> None:
+    detected = detect_java_specification_version()
+    if detected != RELEASE_JAVA_SPECIFICATION_VERSION:
+        raise SystemExit(
+            "Release preparation requires Java 17 because the MPP digest is "
+            f"JDK-sensitive; detected Java {detected}. No files changed."
+        )
+    print("RELEASE_JAVA_SPECIFICATION_VERSION=17")
+    print("RELEASE_JAVA_PREFLIGHT=PASS")
+
+
 def parse_gradle_version(path: Path) -> str:
     text = read(path)
     match = re.search(r"(?m)^\s*version\s*=\s*([^\s#]+)\s*$", text)
@@ -302,6 +346,8 @@ def main() -> int:
     parser.add_argument("--skip-gate", action="store_true", help="Do not run scripts/release-gate.py after preparing.")
     parser.add_argument("--dry-run", action="store_true", help="Print intended values without changing files or building.")
     args = parser.parse_args()
+
+    require_release_java_17()
 
     gradle_path = ROOT / "gradle.properties"
     bundle_path = ROOT / "patches-bundle.json"

@@ -29,6 +29,23 @@ _SHA1_RE = re.compile(r"^[0-9a-f]{40}$")
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
+class ReleaseInputValidationError(RuntimeError):
+    # Caller-supplied release input is invalid before release mutation.
+    pass
+
+
+class ArtifactDigestMismatch(RuntimeError):
+    # A protected-main rebuild differs from the committed release digest.
+
+    def __init__(self, expected: str, actual: str) -> None:
+        self.expected = expected
+        self.actual = actual
+        super().__init__(
+            "built MPP digest mismatch: "
+            f"expected={expected}, actual={actual}"
+        )
+
+
 class ReleaseState(str, Enum):
     NOT_FINALIZED = "NOT_FINALIZED"
     LOCAL_FINALIZED = "LOCAL_FINALIZED"
@@ -3547,6 +3564,8 @@ class WorkflowExecutionResult:
     already_satisfied: bool = False
     error: str | None = None
     next_command: str | None = None
+    actual_mpp_sha256: str | None = None
+    failure_category: str | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return _jsonable(self)
@@ -3851,12 +3870,16 @@ def _render_workflow_text(result: WorkflowExecutionResult) -> str:
         f"NEXT_ACTION={result.next_action.value}",
         f"RELEASE_COMMIT={result.release_commit or 'UNKNOWN'}",
         f"MPP_SHA256={result.mpp_sha256 or 'UNKNOWN'}",
+        f"EXPECTED_MPP_SHA256={result.mpp_sha256 or 'UNKNOWN'}",
+        f"ACTUAL_MPP_SHA256={result.actual_mpp_sha256 or 'UNKNOWN'}",
         f"TRANSACTION_LOG={result.transaction_log}",
         f"INNER_RESULT={result.result}",
         f"POSTCHECK_RESULT={result.postcheck_result}",
         f"FINAL_STATE={result.state.value}",
         f"ALREADY_SATISFIED={_yes_no(result.already_satisfied)}",
     ]
+    if result.failure_category:
+        lines.append(f"FAILURE_CATEGORY={result.failure_category}")
     if result.next_command:
         lines.append(f"NEXT_COMMAND={result.next_command}")
     if result.error:
@@ -3872,19 +3895,24 @@ def _workflow_failure(
     transaction_log: Path,
     error: str,
     state: ReleaseState = ReleaseState.INCONSISTENT_ABORT,
+    next_action: NextAction = NextAction.MANUAL_DIAGNOSIS,
     release_commit: str | None = None,
     mpp_sha256: str | None = None,
+    actual_mpp_sha256: str | None = None,
+    failure_category: str = "RELEASE_WORKFLOW_FAILED",
 ) -> WorkflowExecutionResult:
     return WorkflowExecutionResult(
         command=command,
         result=result_token,
         state=state,
-        next_action=NextAction.MANUAL_DIAGNOSIS,
+        next_action=next_action,
         release_commit=release_commit,
         mpp_sha256=mpp_sha256,
         transaction_log=str(transaction_log),
         postcheck_result="FAIL",
         error=error,
+        actual_mpp_sha256=actual_mpp_sha256,
+        failure_category=failure_category,
     )
 
 
@@ -4050,9 +4078,7 @@ def _prepare_protected_main_local_release(
         raise RuntimeError(f"canonical MPP is unavailable: {mpp_path}")
     actual_sha = _sha256_file(mpp_path)
     if actual_sha != identity.mpp_sha256:
-        raise RuntimeError(
-            "built MPP digest does not match the SHA committed through the release pull request"
-        )
+        raise ArtifactDigestMismatch(identity.mpp_sha256, actual_sha)
     _run_mutation(
         runner,
         repo_root,
@@ -4267,6 +4293,41 @@ def _publish_draft_release(
     )
 
 
+def _release_notes_validation_failure(
+    label: str,
+    result: MutationCommandResult,
+) -> ReleaseInputValidationError:
+    detail = result.stderr.strip() or result.stdout.strip() or "no diagnostic output"
+    return ReleaseInputValidationError(
+        f"{label} failed with exit {result.returncode}: {detail}"
+    )
+
+
+def _validate_human_release_notes(
+    repo_root: Path,
+    version: str,
+    release_notes_file: Path,
+    runner: MutationRunner,
+) -> None:
+    result = runner.run(
+        repo_root,
+        (
+            "python3",
+            "scripts/validate-release-notes.py",
+            "--notes-file",
+            str(release_notes_file),
+            "--version",
+            version,
+            "--human-input-only",
+        ),
+    )
+    if result.returncode != 0:
+        raise _release_notes_validation_failure(
+            "human release notes validation",
+            result,
+        )
+
+
 def _compose_and_validate_release_notes(
     repo_root: Path,
     identity: ReleaseIdentity,
@@ -4290,8 +4351,7 @@ def _compose_and_validate_release_notes(
         + f"- MPP SHA256: `{identity.mpp_sha256}`.\n",
         encoding="utf-8",
     )
-    _run_mutation(
-        runner,
+    result = runner.run(
         repo_root,
         (
             "python3", "scripts/validate-release-notes.py",
@@ -4302,8 +4362,12 @@ def _compose_and_validate_release_notes(
             "--sha256", identity.mpp_sha256,
             "--require-sha",
         ),
-        label="release notes validation",
     )
+    if result.returncode != 0:
+        raise _release_notes_validation_failure(
+            "release notes validation",
+            result,
+        )
     return notes_path
 
 
@@ -5117,10 +5181,19 @@ def publish_release_workflow(
     active_runner = runner or SubprocessMutationRunner()
     repo_root = _resolve_mutation_repo_root(repo_path, active_runner)
     log_path = transaction_log_path(repo_root, tag)
+    identity: ReleaseIdentity | None = None
     try:
         notes_source = Path(release_notes_file).expanduser().resolve()
         if not notes_source.is_file() or notes_source.is_symlink():
-            raise RuntimeError(f"release notes file is unavailable: {notes_source}")
+            raise ReleaseInputValidationError(
+                f"release notes file is unavailable: {notes_source}"
+            )
+        _validate_human_release_notes(
+            repo_root,
+            version,
+            notes_source,
+            active_runner,
+        )
         if protected_main_commit is not None:
             if mpp_sha256 is not None:
                 raise RuntimeError(
@@ -5308,15 +5381,57 @@ def publish_release_workflow(
             )
         raise RuntimeError("release workflow exceeded the maximum resume iteration count")
     except (OSError, RuntimeError, ValueError) as exc:
+        release_commit = (
+            identity.release_commit
+            if identity is not None
+            else protected_main_commit
+        )
+        expected_sha = (
+            identity.mpp_sha256
+            if identity is not None
+            else (mpp_sha256.strip().lower() if mpp_sha256 else None)
+        )
+        actual_sha: str | None = None
+        failure_category = "RELEASE_WORKFLOW_FAILED"
+        failure_state = ReleaseState.INCONSISTENT_ABORT
+        failure_next_action = NextAction.MANUAL_DIAGNOSIS
+
+        if isinstance(exc, ReleaseInputValidationError):
+            failure_category = "INPUT_VALIDATION_FAILED"
+            failure_state = ReleaseState.NOT_FINALIZED
+            failure_next_action = NextAction.PUBLISH
+        elif isinstance(exc, ArtifactDigestMismatch):
+            failure_category = "ARTIFACT_MISMATCH"
+            failure_state = ReleaseState.NOT_FINALIZED
+            actual_sha = exc.actual
+
         append_transaction_entry(
-            log_path, command=command_name, phase="ABORT", status="FAILED",
-            version=version, tag=tag, details={"error": str(exc)},
+            log_path,
+            command=command_name,
+            phase="ABORT",
+            status="FAILED",
+            version=version,
+            tag=tag,
+            release_commit=release_commit,
+            mpp_sha256=expected_sha,
+            details={
+                "error": str(exc),
+                "failure_category": failure_category,
+                "expected_mpp_sha256": expected_sha,
+                "actual_mpp_sha256": actual_sha,
+            },
         )
         return _workflow_failure(
             command=command_name,
             result_token="MORPHE_RELEASE_PUBLISH_EXISTING_FAIL",
             transaction_log=log_path,
             error=str(exc),
+            state=failure_state,
+            next_action=failure_next_action,
+            release_commit=release_commit,
+            mpp_sha256=expected_sha,
+            actual_mpp_sha256=actual_sha,
+            failure_category=failure_category,
         )
 
 def _identity_from_args(args: argparse.Namespace) -> ReleaseIdentity:

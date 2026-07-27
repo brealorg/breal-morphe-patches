@@ -4,12 +4,25 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version already committed through a pull request, for example 1.4.95'
+        description: 'Release version already committed through a pull request, for example 1.4.99'
         required: true
         type: string
-      release_notes:
-        description: 'Human-readable GitHub Release notes: title, app/area, Changes, User impact'
+      app_area:
+        description: 'Affected app or area, for example Boost for Reddit. The heading is generated automatically.'
         required: true
+        type: string
+      changes:
+        description: 'Concrete changes, one item per line. Bullets and headings are generated automatically.'
+        required: true
+        type: string
+      user_impact:
+        description: 'User-visible impact in plain text. The heading is generated automatically.'
+        required: true
+        type: string
+      issue_number:
+        description: 'Optional GitHub issue number without #'
+        required: false
+        default: ''
         type: string
       confirm:
         description: 'Type MORPHE_RELEASE_FROM_PROTECTED_MAIN'
@@ -29,7 +42,10 @@ jobs:
       packages: read
     env:
       VERSION: ${{ inputs.version }}
-      RELEASE_NOTES: ${{ inputs.release_notes }}
+      APP_AREA: ${{ inputs.app_area }}
+      CHANGES: ${{ inputs.changes }}
+      USER_IMPACT: ${{ inputs.user_impact }}
+      ISSUE_NUMBER: ${{ inputs.issue_number }}
       CONFIRM: ${{ inputs.confirm }}
       RELEASE_COMMIT: ${{ github.sha }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -44,14 +60,14 @@ jobs:
           test "$GITHUB_REF_NAME" = "main"
           test "$CONFIRM" = "MORPHE_RELEASE_FROM_PROTECTED_MAIN"
           [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
-          test -n "$RELEASE_NOTES"
+          test -n "$APP_AREA"
+          test -n "$CHANGES"
+          test -n "$USER_IMPACT"
+          test -z "$ISSUE_NUMBER" || [[ "$ISSUE_NUMBER" =~ ^[0-9]+$ ]]
 
           TAG="morphe-patches-${VERSION##*.}"
-          NOTES_FILE="$RUNNER_TEMP/release-notes-$VERSION.md"
-          printf '%s\n' "$RELEASE_NOTES" > "$NOTES_FILE"
 
           echo "TAG=$TAG" >> "$GITHUB_ENV"
-          echo "NOTES_FILE=$NOTES_FILE" >> "$GITHUB_ENV"
           echo "VERSION=$VERSION"
           echo "TAG=$TAG"
           echo "RELEASE_COMMIT=$RELEASE_COMMIT"
@@ -62,11 +78,41 @@ jobs:
           ref: main
           fetch-depth: 0
 
+      - name: Compose and validate release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          NOTES_FILE="$RUNNER_TEMP/release-notes-$VERSION.md"
+
+          ARGS=(
+            python3 scripts/compose-release-notes.py
+            --version "$VERSION"
+            --app-area "$APP_AREA"
+            --changes "$CHANGES"
+            --user-impact "$USER_IMPACT"
+            --output "$NOTES_FILE"
+          )
+
+          if test -n "$ISSUE_NUMBER"; then
+            ARGS+=(--issue-number "$ISSUE_NUMBER")
+          fi
+
+          "${ARGS[@]}"
+
+          python3 scripts/validate-release-notes.py \
+            --notes-file "$NOTES_FILE" \
+            --version "$VERSION" \
+            --human-input-only
+
+          echo "NOTES_FILE=$NOTES_FILE" >> "$GITHUB_ENV"
+          echo "RELEASE_NOTES_INPUT_VALIDATION=PASS"
+
       - name: Setup Java
         uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '17.0.19+10'
 
       - name: Install ripgrep
         shell: bash
