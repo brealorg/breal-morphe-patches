@@ -10,22 +10,6 @@ PY
 
 echo "VERSION=$VERSION"
 
-./tools/check-project-contracts.sh
-
-./tools/check-patches-list-feed.sh --write "$VERSION"
-git diff --exit-code -- patches-list.json
-
-./gradlew :patches:buildAndroid --no-daemon
-
-MPP="$(tools/boost-resolve-mpp.sh --version "$VERSION")"
-echo "MPP=$MPP"
-
-test -n "$MPP"
-test -f "$MPP"
-
-TAG="morphe-patches-${VERSION##*.}"
-echo "TAG=$TAG"
-
 GATE_MODE="FULL_RELEASE"
 GATE_REASON="BASE_SHA_UNAVAILABLE_FAIL_CLOSED"
 BASE_SHA="${RELEASE_FEED_BASE_SHA:-}"
@@ -54,6 +38,33 @@ fi
 
 echo "RELEASE_FEED_GATE_MODE=$GATE_MODE"
 echo "RELEASE_FEED_GATE_REASON=$GATE_REASON"
+
+./tools/check-project-contracts.sh
+
+./tools/check-patches-list-feed.sh --write "$VERSION"
+
+if test "$GATE_MODE" = "CODE_ONLY"; then
+  if git diff --quiet -- patches-list.json; then
+    echo "PATCHES_LIST_DRIFT=NONE_CODE_ONLY_CHANGE"
+  else
+    echo "PATCHES_LIST_DRIFT=EXPECTED_CODE_ONLY_CHANGE"
+    git --no-pager diff -- patches-list.json
+  fi
+else
+  git diff --exit-code -- patches-list.json
+  echo "PATCHES_LIST_DRIFT=NONE_FULL_RELEASE"
+fi
+
+./gradlew :patches:buildAndroid --no-daemon
+
+MPP="$(tools/boost-resolve-mpp.sh --version "$VERSION")"
+echo "MPP=$MPP"
+
+test -n "$MPP"
+test -f "$MPP"
+
+TAG="morphe-patches-${VERSION##*.}"
+echo "TAG=$TAG"
 
 RELEASE_GATE_ARGS=(
   scripts/release-gate.py

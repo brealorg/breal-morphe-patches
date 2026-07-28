@@ -181,6 +181,26 @@ class ReleaseFeedChangeClassifierSourceContract(unittest.TestCase):
             "RELEASE_GATE_ARGS+=(--skip-readme-sha)",
             feed,
         )
+        self.assertLess(
+            feed.index("scripts/classify-release-feed-change.py"),
+            feed.index("./tools/check-patches-list-feed.sh --write"),
+        )
+        self.assertIn(
+            'if test "$GATE_MODE" = "CODE_ONLY"; then',
+            feed,
+        )
+        self.assertIn(
+            "PATCHES_LIST_DRIFT=EXPECTED_CODE_ONLY_CHANGE",
+            feed,
+        )
+        self.assertIn(
+            'git diff --exit-code -- patches-list.json',
+            feed,
+        )
+        self.assertIn(
+            "PATCHES_LIST_DRIFT=NONE_FULL_RELEASE",
+            feed,
+        )
         self.assertIn('"--skip-readme-sha"', gate)
         self.assertIn(
             "README_SHA_GATE=SKIPPED_CODE_ONLY_CHANGE",
