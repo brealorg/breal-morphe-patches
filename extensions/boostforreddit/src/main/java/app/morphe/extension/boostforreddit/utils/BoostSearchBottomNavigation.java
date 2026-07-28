@@ -96,6 +96,8 @@ public final class BoostSearchBottomNavigation {
             "MORPHE_BOOST_NATIVE_PROFILE_LONGPRESS_ISSUE97_V2";
     private static final String NATIVE_SUBSCRIPTIONS_LONG_PRESS_MARKER =
             "MORPHE_BOOST_NATIVE_SUBSCRIPTIONS_LONGPRESS_ISSUE135_V1";
+    private static final String CURRENT_SUBREDDIT_SUBSCRIPTIONS_MARKER =
+            "MORPHE_BOOST_SUBSCRIPTIONS_CURRENT_SUBREDDIT_ISSUE141_V2_NATIVE_J6";
     private static final String NAVIGATION_VISIBILITY_STATE_MARKER =
             "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_VISIBILITY_STATE_V1";
     private static final String ACTIVITY_STACK_STATE_MARKER =
@@ -4973,7 +4975,71 @@ public final class BoostSearchBottomNavigation {
         }
     }
 
+    private static boolean openSubscriptionsFromCurrentSubreddit(
+            Activity activity
+    ) {
+        if (
+                activity == null
+                        || !SUBREDDIT_ACTIVITY.equals(
+                                activity.getClass().getName()
+                        )
+        ) {
+            return false;
+        }
+
+        try {
+            /*
+             * Authoritative Boost 1.12.12 smali:
+             *
+             * SubredditActivity.j6() builds GoToGenericActivity through
+             * i.a(Context, false), attaches the current
+             * SubmissionsActivity.u SubscriptionViewModel as
+             * "target_subscription", starts it for result with request 0x8f,
+             * and applies Boost's native transition.
+             *
+             * GoToGenericActivity applies Boost's own preference gate before
+             * scrolling to that target. Do not duplicate that policy here.
+             */
+            Method route = findMethod(
+                    activity.getClass(),
+                    "j6"
+            );
+
+            if (route == null) {
+                throw new NoSuchMethodException(
+                        "SubredditActivity.j6"
+                );
+            }
+
+            route.setAccessible(true);
+            route.invoke(activity);
+
+            Log.i(
+                    TAG,
+                    "Current subreddit Subscriptions route marker="
+                            + CURRENT_SUBREDDIT_SUBSCRIPTIONS_MARKER
+                            + " handled=true"
+                            + " activity="
+                            + activity.getClass().getName()
+            );
+
+            return true;
+        } catch (Throwable error) {
+            Log.w(
+                    TAG,
+                    "Current subreddit Subscriptions route failed marker="
+                            + CURRENT_SUBREDDIT_SUBSCRIPTIONS_MARKER,
+                    error
+            );
+            return false;
+        }
+    }
+
     private static boolean openSubscriptions(Activity activity) {
+        if (openSubscriptionsFromCurrentSubreddit(activity)) {
+            return true;
+        }
+
         try {
             Class<?> utility = Class.forName(
                     NAVIGATION_UTILITY,
