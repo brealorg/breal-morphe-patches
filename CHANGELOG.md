@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.101](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-100...morphe-patches-101) (2026-07-29)
+
+* **Boost for Reddit:** Fix a crash when opening Add account in Boost for Reddit. Package the runtime extension required by the Spoof client URL hook.
+
 ## [1.4.100](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-99...morphe-patches-100) (2026-07-28)
 
 * **Boost for Reddit:** Preserve the current subreddit when opening Subscriptions from a subreddit. Honor Boost's Scroll to current subreddit preference through the native route.
