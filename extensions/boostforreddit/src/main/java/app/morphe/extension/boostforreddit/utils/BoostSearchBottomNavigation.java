@@ -96,6 +96,8 @@ public final class BoostSearchBottomNavigation {
             "MORPHE_BOOST_NATIVE_PROFILE_LONGPRESS_ISSUE97_V2";
     private static final String NATIVE_SUBSCRIPTIONS_LONG_PRESS_MARKER =
             "MORPHE_BOOST_NATIVE_SUBSCRIPTIONS_LONGPRESS_ISSUE135_V1";
+    private static final String SUBREDDIT_SELECTION_MARKER =
+            "MORPHE_BOOST_SUBREDDIT_BOTTOM_NAV_SELECTION_ISSUE134_V1";
     private static final String CURRENT_SUBREDDIT_SUBSCRIPTIONS_MARKER =
             "MORPHE_BOOST_SUBSCRIPTIONS_CURRENT_SUBREDDIT_ISSUE141_V2_NATIVE_J6";
     private static final String NAVIGATION_VISIBILITY_STATE_MARKER =
@@ -3072,6 +3074,22 @@ public final class BoostSearchBottomNavigation {
             return resourceId(
                     activity,
                     "item_search",
+                    "id"
+            );
+        }
+
+        if (SUBREDDIT_ACTIVITY.equals(activityName)) {
+            Log.i(
+                    TAG,
+                    "Subreddit selects Subscriptions marker="
+                            + SUBREDDIT_SELECTION_MARKER
+                            + " activity="
+                            + activityName
+            );
+
+            return resourceId(
+                    activity,
+                    "item_subs",
                     "id"
             );
         }
