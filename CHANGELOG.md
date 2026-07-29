@@ -1,6 +1,12 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.103](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-102...morphe-patches-103) (2026-07-29)
+
+* **Boost for Reddit:** Bug Fixes
+
+• Opening a subreddit now activates the Subscriptions tab in Boost's bottom navigation.
+
 ## [1.4.102](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-101...morphe-patches-102) (2026-07-29)
 
 * **Boost for Reddit:** Keep Boost's sticky Settings footer visible above system navigation.
