@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.102](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-101...morphe-patches-102) (2026-07-29)
+
+* **Boost for Reddit:** Keep Boost's sticky Settings footer visible above system navigation.
+
 ## [1.4.101](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-100...morphe-patches-101) (2026-07-29)
 
 * **Boost for Reddit:** Fix a crash when opening Add account in Boost for Reddit. Package the runtime extension required by the Spoof client URL hook.
