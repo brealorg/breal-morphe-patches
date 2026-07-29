@@ -42,7 +42,7 @@ public final class BoostSystemBarInsetsFix {
     private static final String MAIN_NAV_BAR_SURFACE_OVERLAY_MARKER_V4 = "MORPHE_BOOST_MAIN_NAV_BAR_SURFACE_OVERLAY_V4";
     private static final String EXTENDED_ACTIVITY_SURFACE_SCOPE_MARKER_V5 = "MORPHE_BOOST_EXTENDED_ACTIVITY_SURFACE_SCOPE_V5";
     private static final String DRAWER_STICKY_FOOTER_CLEARANCE_MARKER =
-            "MORPHE_BOOST_DRAWER_STICKY_FOOTER_CLEARANCE_V10031";
+            "MORPHE_BOOST_DRAWER_STICKY_FOOTER_CLEARANCE_ISSUE150_V5_SYSTEM_INSET";
     private static final String MORPHE_SETTINGS_V4_SYSTEM_BAR_OWNER_MARKER =
             "MORPHE_BOOST_SETTINGS_V4_SYSTEM_BAR_OWNER_ISSUE106_V2";
     private static final String MORPHE_SETTINGS_V4_NAVIGATION_SURFACE_MARKER =
@@ -57,6 +57,8 @@ public final class BoostSystemBarInsetsFix {
     private static final WeakHashMap<View, Boolean> WATCHERS = new WeakHashMap<>();
     private static final WeakHashMap<View, Integer> STICKY_FOOTER_CLEARANCE =
             new WeakHashMap<>();
+    private static final WeakHashMap<View, Float>
+            STICKY_FOOTER_ORIGINAL_TRANSLATION_Y = new WeakHashMap<>();
     private static final WeakHashMap<Activity, MorpheSettingsV4SystemBars>
             MORPHE_SETTINGS_V4_SYSTEM_BARS = new WeakHashMap<>();
 
@@ -173,69 +175,164 @@ public final class BoostSystemBarInsetsFix {
         View decor = window == null ? null : window.getDecorView();
         if (decor == null) return;
 
-        View navigationContainer = decor.findViewWithTag(
-                DECOR_NAVIGATION_CONTAINER_TAG
-        );
+        if (stickyFooter.getVisibility() != View.VISIBLE) {
+            restoreDrawerStickyFooterClearance(stickyFooter);
+            return;
+        }
 
         if (
-                navigationContainer == null
-                        || navigationContainer.getVisibility() != View.VISIBLE
-                        || navigationContainer.getHeight() <= 0
+                !stickyFooter.isAttachedToWindow()
                         || stickyFooter.getHeight() <= 0
         ) {
             return;
         }
 
+        int systemInset = Math.max(
+                0,
+                getEffectiveNavigationBottomInset(
+                        stickyFooter,
+                        getBestCurrentInsets(stickyFooter)
+                )
+        );
+
+        View navigationContainer = decor.findViewWithTag(
+                DECOR_NAVIGATION_CONTAINER_TAG
+        );
+        boolean navigationAvailable =
+                navigationContainer != null
+                        && navigationContainer.getVisibility() == View.VISIBLE
+                        && navigationContainer.getHeight() > 0;
+
+        Integer previousValue =
+                STICKY_FOOTER_CLEARANCE.get(stickyFooter);
+        int previousClearance =
+                previousValue == null
+                        ? 0
+                        : Math.max(0, previousValue);
+
+        Float originalValue =
+                STICKY_FOOTER_ORIGINAL_TRANSLATION_Y.get(stickyFooter);
+        float originalTranslationY;
+
+        if (originalValue == null) {
+            originalTranslationY =
+                    stickyFooter.getTranslationY() + previousClearance;
+            STICKY_FOOTER_ORIGINAL_TRANSLATION_Y.put(
+                    stickyFooter,
+                    originalTranslationY
+            );
+        } else {
+            originalTranslationY = originalValue;
+        }
+
         int[] footerLocation = new int[2];
-        int[] navigationLocation = new int[2];
         stickyFooter.getLocationOnScreen(footerLocation);
-        navigationContainer.getLocationOnScreen(navigationLocation);
 
-        int footerBottom = footerLocation[1] + stickyFooter.getHeight();
-        int navigationTop = navigationLocation[1];
-        int overlap = Math.max(0, footerBottom - navigationTop);
+        int footerBottom =
+                footerLocation[1] + stickyFooter.getHeight();
+        int navigationTop = -1;
+        int signedNavigationOverlap = 0;
+        int navigationClearance = 0;
 
-        saveOriginalPadding(stickyFooter);
-        Padding original = ORIGINAL_PADDING.get(stickyFooter);
-        if (original == null) return;
+        if (navigationAvailable) {
+            int[] navigationLocation = new int[2];
+            navigationContainer.getLocationOnScreen(navigationLocation);
+            navigationTop = navigationLocation[1];
+            signedNavigationOverlap = footerBottom - navigationTop;
+            navigationClearance = Math.max(
+                    0,
+                    Math.min(
+                            navigationContainer.getHeight(),
+                            previousClearance + signedNavigationOverlap
+                    )
+            );
+        }
 
-        int targetBottomPadding = original.bottom + overlap;
-        Integer previousClearance = STICKY_FOOTER_CLEARANCE.get(stickyFooter);
+        int targetClearance = Math.max(
+                systemInset,
+                navigationClearance
+        );
+
+        if (targetClearance <= 0) {
+            restoreDrawerStickyFooterClearance(stickyFooter);
+            return;
+        }
+
+        float targetTranslationY =
+                originalTranslationY - targetClearance;
 
         if (
-                stickyFooter.getPaddingLeft() == original.left
-                        && stickyFooter.getPaddingTop() == original.top
-                        && stickyFooter.getPaddingRight() == original.right
-                        && stickyFooter.getPaddingBottom() == targetBottomPadding
-                        && previousClearance != null
-                        && previousClearance == overlap
+                Float.compare(
+                        stickyFooter.getTranslationY(),
+                        targetTranslationY
+                ) == 0
+                        && previousClearance == targetClearance
         ) {
             return;
         }
 
-        stickyFooter.setPadding(
-                original.left,
-                original.top,
-                original.right,
-                targetBottomPadding
-        );
-        stickyFooter.requestLayout();
+        stickyFooter.setTranslationY(targetTranslationY);
         stickyFooter.invalidate();
-        STICKY_FOOTER_CLEARANCE.put(stickyFooter, overlap);
+        STICKY_FOOTER_CLEARANCE.put(
+                stickyFooter,
+                targetClearance
+        );
 
         Log.i(
                 TAG,
                 "drawer sticky footer clearance marker="
                         + DRAWER_STICKY_FOOTER_CLEARANCE_MARKER
-                        + " overlap="
-                        + overlap
-                        + " originalBottomPadding="
-                        + original.bottom
-                        + " targetBottomPadding="
-                        + targetBottomPadding
+                        + " mode=translation-system-inset"
+                        + " systemInset="
+                        + systemInset
+                        + " navigationAvailable="
+                        + navigationAvailable
+                        + " navigationClearance="
+                        + navigationClearance
+                        + " signedNavigationOverlap="
+                        + signedNavigationOverlap
+                        + " previousClearance="
+                        + previousClearance
+                        + " targetClearance="
+                        + targetClearance
+                        + " originalTranslationY="
+                        + originalTranslationY
+                        + " targetTranslationY="
+                        + targetTranslationY
+                        + " footerTopBefore="
+                        + footerLocation[1]
+                        + " footerBottomBefore="
+                        + footerBottom
+                        + " expectedFooterBottomAfter="
+                        + (footerBottom - targetClearance)
+                        + " navigationTop="
+                        + navigationTop
                         + " activity="
                         + activity.getClass().getName()
         );
+    }
+
+    private static void restoreDrawerStickyFooterClearance(
+            View stickyFooter
+    ) {
+        if (stickyFooter == null) return;
+
+        Float originalTranslationY =
+                STICKY_FOOTER_ORIGINAL_TRANSLATION_Y.get(stickyFooter);
+        if (originalTranslationY == null) return;
+
+        if (
+                Float.compare(
+                        stickyFooter.getTranslationY(),
+                        originalTranslationY
+                ) != 0
+        ) {
+            stickyFooter.setTranslationY(originalTranslationY);
+            stickyFooter.invalidate();
+        }
+
+        STICKY_FOOTER_CLEARANCE.remove(stickyFooter);
+        STICKY_FOOTER_ORIGINAL_TRANSLATION_Y.remove(stickyFooter);
     }
 
     private static boolean shouldApply(Activity activity) {
@@ -304,11 +401,23 @@ public final class BoostSystemBarInsetsFix {
 
         int bottomInset = getEffectiveNavigationBottomInset(view, insets);
 
+        int targetBottomPadding =
+                original.bottom + Math.max(0, bottomInset);
+
+        if (
+                view.getPaddingLeft() == original.left
+                        && view.getPaddingTop() == original.top
+                        && view.getPaddingRight() == original.right
+                        && view.getPaddingBottom() == targetBottomPadding
+        ) {
+            return;
+        }
+
         view.setPadding(
                 original.left,
                 original.top,
                 original.right,
-                original.bottom + Math.max(0, bottomInset)
+                targetBottomPadding
         );
 
         view.requestLayout();
