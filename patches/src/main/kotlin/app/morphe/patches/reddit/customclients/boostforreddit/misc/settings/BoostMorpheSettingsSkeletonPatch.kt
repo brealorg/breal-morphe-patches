@@ -56,7 +56,9 @@ private val boostMorpheSettingsResourcesPatch = resourcePatch(
             writer.write(
                 """
                 <?xml version="1.0" encoding="utf-8"?>
-                <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+                <PreferenceScreen
+                    xmlns:android="http://schemas.android.com/apk/res/android"
+                    xmlns:app="http://schemas.android.com/apk/res-auto">
                     <PreferenceCategory android:title="Media previews">
                         <CheckBoxPreference
                             android:key="morphe_boost_inline_media_previews_enabled"
@@ -85,6 +87,18 @@ private val boostMorpheSettingsResourcesPatch = resourcePatch(
                             android:title="Show source text with preview"
                             android:summary="Keep the original link text visible with the preview."
                             android:defaultValue="false" />
+                    </PreferenceCategory>
+
+                    <PreferenceCategory android:title="Image viewer">
+                        <androidx.preference.SeekBarPreference
+                            android:key="morphe_boost_image_dismiss_sensitivity"
+                            android:title="Swipe image away faster"
+                            android:summary="Default 100 enables quick flicks and a moderate 10% drag threshold. 50 keeps Boost&#39;s 15% threshold with quick flicks; 12 restores original Boost behavior."
+                            android:defaultValue="100"
+                            android:min="12"
+                            android:max="100"
+                            app:min="12"
+                            app:showSeekBarValue="true" />
                     </PreferenceCategory>
 
                     <PreferenceCategory android:title="Open behavior">
