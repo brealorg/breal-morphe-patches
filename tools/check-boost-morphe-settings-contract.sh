@@ -102,6 +102,7 @@ preference_keys = [
     "morphe_boost_inline_media_preview_size",
     "morphe_boost_inline_media_preview_alignment",
     "morphe_boost_inline_media_preview_show_source_text",
+    "morphe_boost_image_dismiss_sensitivity",
     "morphe_boost_direct_reddit_gif_tap_action",
     "morphe_boost_giphy_preview_tap_action",
     "morphe_boost_static_preview_tap_action",
@@ -113,6 +114,24 @@ preference_keys = [
 
 for key in preference_keys:
     assert settings.count(f'android:key="{key}"') == 1, key
+
+image_dismiss_key = "morphe_boost_image_dismiss_sensitivity"
+image_dismiss = re.search(
+    rf'<androidx\.preference\.SeekBarPreference\s+'
+    rf'[^>]*android:key="{image_dismiss_key}"[^>]*/>',
+    settings,
+    re.S,
+)
+assert image_dismiss is not None
+image_dismiss_xml = image_dismiss.group(0)
+assert 'android:title="Swipe image away faster"' in image_dismiss_xml
+assert 'android:defaultValue="100"' in image_dismiss_xml
+assert 'android:min="12"' in image_dismiss_xml
+assert 'android:max="100"' in image_dismiss_xml
+assert 'app:min="12"' in image_dismiss_xml
+assert 'app:showSeekBarValue="true"' in image_dismiss_xml
+assert "Default 100 enables quick flicks" in image_dismiss_xml
+assert "12 restores original Boost behavior" in image_dismiss_xml
 
 toggle_key = "morphe_boost_settings_v4_enabled"
 assert settings.count(f'android:key="{toggle_key}"') == 1
@@ -135,6 +154,7 @@ categories = re.findall(
 )
 assert categories == [
     "Media previews",
+    "Image viewer",
     "Open behavior",
     "Search",
     "Display &amp; performance",
