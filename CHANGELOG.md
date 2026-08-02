@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.104](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-103...morphe-patches-104) (2026-08-02)
+
+* **Boost for Reddit:** Fix Boost bottom navigation reselect handling.
+
 ## [1.4.103](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-102...morphe-patches-103) (2026-07-29)
 
 * **Boost for Reddit:** Bug Fixes

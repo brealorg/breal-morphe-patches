@@ -72,14 +72,14 @@ The repository shorthand shown at the top is the preferred Manager setup. Raw
 
 | Field | Value |
 |---|---|
-| Version | `1.4.103` |
-| Release tag | `morphe-patches-103` |
-| Asset | `patches-1.4.103.mpp` |
-| SHA256 | `9764c0bcf4984bdbdd49b61762a74c14639c575f33179772e931632d7561b908` |
+| Version | `1.4.104` |
+| Release tag | `morphe-patches-104` |
+| Asset | `patches-1.4.104.mpp` |
+| SHA256 | `c54f224e5bfd6cd2acc78d55a805cc60305c0f0b08634fffe4b9cdd1b12af4cf` |
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-103/patches-1.4.103.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-104/patches-1.4.104.mpp` |
 
-SHA256: `9764c0bcf4984bdbdd49b61762a74c14639c575f33179772e931632d7561b908`
+SHA256: `c54f224e5bfd6cd2acc78d55a805cc60305c0f0b08634fffe4b9cdd1b12af4cf`
 ## What this bundle does
 
 The current bundle is focused on practical hotfixes for tested app versions, especially Boost for Reddit behavior on newer Android versions.
@@ -126,10 +126,10 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.103` • `main` • 52 unique patches • 104 package entries
+> **Patch source version:** `1.4.104` • `main` • 53 unique patches • 105 package entries
 
 <details>
-<summary><strong>Boost for Reddit</strong> • 43 patches</summary>
+<summary><strong>Boost for Reddit</strong> • 44 patches</summary>
 
 
 
@@ -183,6 +183,7 @@ Included Imgur patches:
 | [Standardize Boost Inbox and Profile bottom navigation](#standardize-boost-inbox-and-profile-bottom-navigation) | Applies the canonical five-destination Material bottom-navigation contract after Inbox and Profile complete lifecycle setup. |  |
 | [Support keyboard GIF insertion](#support-keyboard-gif-insertion) | Enables keyboard GIF/image rich content insertion through Android receive-content when a public URL is available. |  |
 | [Theme Boost settings icons](#theme-boost-settings-icons) | Uses the active theme primary text color for Boost preference icons. |  |
+| [Tune Boost image dismissal](#tune-boost-image-dismissal) | Adds image-viewer-only quick-flick dismissal with a moderate distance option without changing GIF, video, or general navigation gestures. |  |
 
 </details>
 
@@ -539,16 +540,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.103` is prepared and locally verified with:
+Release `1.4.104` is prepared and locally verified with:
 
-- Release tag `morphe-patches-103`.
+- Release tag `morphe-patches-104`.
 - Local built MPP SHA256 matching README.
-`9764c0bcf4984bdbdd49b61762a74c14639c575f33179772e931632d7561b908`
-- `patches-bundle.json` returning version `1.4.103`.
-- `patches-bundle.json` pointing to the `morphe-patches-103` asset.
+`c54f224e5bfd6cd2acc78d55a805cc60305c0f0b08634fffe4b9cdd1b12af4cf`
+- `patches-bundle.json` returning version `1.4.104`.
+- `patches-bundle.json` pointing to the `morphe-patches-104` asset.
 - Expected release asset:
-`patches-1.4.103.mpp`
-- `9764c0bcf4984bdbdd49b61762a74c14639c575f33179772e931632d7561b908  patches-1.4.103.mpp`
+`patches-1.4.104.mpp`
+- `c54f224e5bfd6cd2acc78d55a805cc60305c0f0b08634fffe4b9cdd1b12af4cf  patches-1.4.104.mpp`
 
 ## Development notes
 
