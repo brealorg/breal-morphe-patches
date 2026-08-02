@@ -1,6 +1,6 @@
 {
-  "created_at": "2026-08-02T21:29:00",
-  "description": "Fix Boost bottom navigation reselect handling.\n",
+  "created_at": "2026-08-02T21:53:46",
+  "description": "Enable configurable quick-flick dismissal in Boost image viewers.\nFix Boost bottom navigation reselect handling.\n",
   "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-104/patches-1.4.104.mpp",
   "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-104/patches-1.4.104.mpp.asc",
   "version": "1.4.104"
