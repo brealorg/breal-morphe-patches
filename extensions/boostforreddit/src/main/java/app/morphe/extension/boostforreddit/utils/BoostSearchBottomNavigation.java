@@ -4524,11 +4524,7 @@ public final class BoostSearchBottomNavigation {
                                     (MenuItem) args[0];
 
                             boolean handled =
-                                    dispatchHomeGoToTop(
-                                            activity,
-                                            item
-                                    )
-                                    || handleItem(
+                                    handleReselectedItem(
                                             activity,
                                             item
                                     );
@@ -4690,6 +4686,93 @@ public final class BoostSearchBottomNavigation {
         }
 
         return handled;
+    }
+
+    private static boolean handleReselectedItem(
+            Activity activity,
+            MenuItem item
+    ) {
+        if (activity == null || item == null) {
+            return false;
+        }
+
+        int selectedId = item.getItemId();
+
+        int homeId = resourceId(activity, "item_home", "id");
+        int searchId = resourceId(activity, "item_search", "id");
+        int subscriptionsId = resourceId(
+                activity,
+                "item_subs",
+                "id"
+        );
+        int inboxId = resourceId(activity, "item_inbox", "id");
+        int profileId = resourceId(
+                activity,
+                "item_profile",
+                "id"
+        );
+
+        int currentItemId =
+                selectedItemIdForActivity(activity, -1);
+        String activityName = activity.getClass().getName();
+        final String stateMachineMarker =
+                "MORPHE_BOOST_BOTTOM_NAV_STATE_MACHINE_ISSUE163_V1";
+
+        if (
+                currentItemId == 0
+                        || selectedId != currentItemId
+        ) {
+            Log.w(
+                    TAG,
+                    "Bottom navigation invalid reselect ignored marker="
+                            + stateMachineMarker
+                            + " activity="
+                            + activityName
+                            + " currentItemId="
+                            + currentItemId
+                            + " selectedId="
+                            + selectedId
+            );
+            return false;
+        }
+
+        Log.i(
+                TAG,
+                "Bottom navigation reselect transition marker="
+                        + stateMachineMarker
+                        + " activity="
+                        + activityName
+                        + " selectedId="
+                        + selectedId
+        );
+
+        if (selectedId == homeId) {
+            return dispatchHomeGoToTop(activity, item);
+        }
+
+        if (selectedId == searchId) {
+            return focusSearchInput(activity);
+        }
+
+        if (selectedId == subscriptionsId) {
+            if (SUBREDDIT_ACTIVITY.equals(activityName)) {
+                return completeStaticTabTransition(
+                        activity,
+                        openSubscriptions(activity)
+                );
+            }
+
+            return true;
+        }
+
+        if (
+                selectedId == inboxId
+                        || selectedId == profileId
+        ) {
+            return true;
+        }
+
+        return false;
     }
 
     private static boolean handleItem(
