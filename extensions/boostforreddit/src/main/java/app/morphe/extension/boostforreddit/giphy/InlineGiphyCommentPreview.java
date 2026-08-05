@@ -82,7 +82,8 @@ public final class InlineGiphyCommentPreview {
             Pattern.compile("https?://(?:external-preview|preview)\\.redd\\.it/[^\\s\"'<>]+", Pattern.CASE_INSENSITIVE);
 
     private static final Pattern DIRECT_STATIC_IMAGE_URL_PATTERN =
-            Pattern.compile("https?://(?:i\\.imgur\\.com|i\\.redd\\.it)/[^\\s\"'<>]+?\\.(?:png|jpe?g|webp)(?:\\?[^\\s\"'<>)]*)?", Pattern.CASE_INSENSITIVE);
+            Pattern.compile("https?://(?:i\\.imgur\\.com|i\\.ibb\\.co|image\\.ibb\\.co|i\\.redd\\.it)/[^\\s\"'<>]+?\\.(?:png|jpe?g|webp)(?:\\?[^\\s\"'<>)]*)?", Pattern.CASE_INSENSITIVE);
+
 
     private static final Pattern DIRECT_GIF_URL_PATTERN =
             Pattern.compile("https?://[^\\s\"'<>]+?\\.gif(?:\\?[^\\s\"'<>)]*)?", Pattern.CASE_INSENSITIVE);
@@ -2151,6 +2152,7 @@ public final class InlineGiphyCommentPreview {
             }
             return new PreviewSource(url, url);
         }
+
 
         Matcher staticImage = DIRECT_STATIC_IMAGE_URL_PATTERN.matcher(normalized);
         while (staticImage.find()) {

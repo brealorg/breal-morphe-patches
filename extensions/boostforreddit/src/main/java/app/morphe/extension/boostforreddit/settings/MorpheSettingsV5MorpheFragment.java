@@ -8,7 +8,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+
+import app.morphe.extension.boostforreddit.upload.ExternalImageUploadSettings;
 
 import app.morphe.extension.boostforreddit.utils.BoostSystemBarInsetsFix;
 
@@ -25,6 +28,8 @@ public final class MorpheSettingsV5MorpheFragment
     private static final String RESOURCE_NAME =
             "morphe_boost_settings_skeleton";
     private static final String BOOST_PACKAGE = "com.rubenmayayo.reddit";
+    private static final String IMAGE_HOSTING_KEY =
+            "morphe_boost_image_hosting_settings";
 
     private MorpheSettingsV4Theme.Tokens tokens;
 
@@ -61,7 +66,15 @@ public final class MorpheSettingsV5MorpheFragment
     @Override
     public void onResume() {
         super.onResume();
+        refreshImageHostingSummary();
         styleHost();
+    }
+
+    private void refreshImageHostingSummary() {
+        Preference preference = findPreference(IMAGE_HOSTING_KEY);
+        if (preference != null) {
+            preference.setSummary(ExternalImageUploadSettings.summary());
+        }
     }
 
     @Override

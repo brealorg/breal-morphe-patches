@@ -127,6 +127,15 @@ private val boostMorpheSettingsResourcesPatch = resourcePatch(
                             android:defaultValue="image_viewer" />
                     </PreferenceCategory>
 
+                    <PreferenceCategory android:title="Media uploads">
+                        <Preference
+                            android:icon="@drawable/ic_photo_outline_24dp"
+                            android:key="morphe_boost_image_hosting_settings"
+                            android:title="Image hosting"
+                            android:summary="Images added to text: Imgur — default"
+                            android:fragment="app.morphe.extension.boostforreddit.settings.MorpheSettingsV5ImageHostingFragment" />
+                    </PreferenceCategory>
+
                     <PreferenceCategory android:title="Search">
                         <CheckBoxPreference
                             android:key="morphe_boost_search_open_keyboard_on_entry"

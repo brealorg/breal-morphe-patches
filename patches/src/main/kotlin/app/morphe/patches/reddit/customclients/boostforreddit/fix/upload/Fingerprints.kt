@@ -10,9 +10,17 @@ import app.morphe.patcher.Fingerprint
 
 private const val BOOST_REMOTE_CONFIG_CLASS = "Lsb/a;"
 
+internal val editorImagePreviewFormattingBarSetEditTextFingerprint = Fingerprint(
+    definingClass = "Lcom/rubenmayayo/reddit/ui/customviews/FormattingBar;",
+    name = "setEditText",
+    returnType = "V",
+    parameters = listOf("Landroid/widget/EditText;"),
+)
+
 internal val submitGallerySubmissionKindFingerprint = Fingerprint(
     custom = { method, classDef ->
-        classDef.type == "Lcom/rubenmayayo/reddit/ui/submit/v2/SubmitGalleryFragment;" &&
+        classDef.type ==
+            "Lcom/rubenmayayo/reddit/ui/submit/v2/SubmitGalleryFragment;" &&
             method.name == "R1"
     }
 )
@@ -47,4 +55,17 @@ internal val nativeRedditSubmitAsImageKindFingerprint = Fingerprint(
     returnType = "Z",
     parameters = emptyList(),
     strings = listOf("submit_reddit_as_image_kind"),
+)
+
+internal val mediaUploaderFactoryFingerprint = Fingerprint(
+    definingClass = "Lde/c;",
+    name = "d",
+    returnType = "Lde/b;",
+    parameters = listOf("Ljava/lang/String;"),
+    strings = listOf(
+        "imgur_free",
+        "imgur_paid",
+        "vgy",
+        "reddit",
+    ),
 )

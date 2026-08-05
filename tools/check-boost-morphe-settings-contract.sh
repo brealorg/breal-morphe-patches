@@ -106,6 +106,7 @@ preference_keys = [
     "morphe_boost_direct_reddit_gif_tap_action",
     "morphe_boost_giphy_preview_tap_action",
     "morphe_boost_static_preview_tap_action",
+    "morphe_boost_image_hosting_settings",
     "morphe_boost_search_open_keyboard_on_entry",
     "morphe_boost_prefer_high_refresh_rate",
     "morphe_boost_reddit_undelete_enabled",
@@ -156,11 +157,31 @@ assert categories == [
     "Media previews",
     "Image viewer",
     "Open behavior",
+    "Media uploads",
     "Search",
     "Display &amp; performance",
     "Recovery &amp; archives",
     "Settings",
 ]
+
+image_hosting = re.search(
+    r'<Preference\s+'
+    r'[^>]*android:key="morphe_boost_image_hosting_settings"[^>]*/>',
+    settings,
+    re.S,
+)
+assert image_hosting is not None
+image_hosting_xml = image_hosting.group(0)
+assert 'android:title="Image hosting"' in image_hosting_xml
+assert (
+    'android:summary="Images added to text: Imgur — default"'
+    in image_hosting_xml
+)
+assert (
+    'android:fragment="app.morphe.extension.boostforreddit.settings.'
+    'MorpheSettingsV5ImageHostingFragment"'
+    in image_hosting_xml
+)
 
 legacy_start = settings.index('get("res/xml/pref_headers_v2.xml")')
 v2_start = settings.index('"morphe_boost_settings_layout_v2" to')
