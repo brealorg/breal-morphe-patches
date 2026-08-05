@@ -72,14 +72,14 @@ The repository shorthand shown at the top is the preferred Manager setup. Raw
 
 | Field | Value |
 |---|---|
-| Version | `1.4.104` |
-| Release tag | `morphe-patches-104` |
-| Asset | `patches-1.4.104.mpp` |
-| SHA256 | `c54f224e5bfd6cd2acc78d55a805cc60305c0f0b08634fffe4b9cdd1b12af4cf` |
+| Version | `1.4.105` |
+| Release tag | `morphe-patches-105` |
+| Asset | `patches-1.4.105.mpp` |
+| SHA256 | `b61656beb309e0373cd7c8163d2f191f789b2c23c4bcae1c129ae9c0debed41f` |
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-104/patches-1.4.104.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-105/patches-1.4.105.mpp` |
 
-SHA256: `c54f224e5bfd6cd2acc78d55a805cc60305c0f0b08634fffe4b9cdd1b12af4cf`
+SHA256: `b61656beb309e0373cd7c8163d2f191f789b2c23c4bcae1c129ae9c0debed41f`
 ## What this bundle does
 
 The current bundle is focused on practical hotfixes for tested app versions, especially Boost for Reddit behavior on newer Android versions.
@@ -126,7 +126,7 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.104` • `main` • 53 unique patches • 105 package entries
+> **Patch source version:** `1.4.105` • `main` • 53 unique patches • 105 package entries
 
 <details>
 <summary><strong>Boost for Reddit</strong> • 44 patches</summary>
@@ -156,7 +156,7 @@ Included Imgur patches:
 | [Fix Boost comments Lemmy-style toolbar UI](#fix-boost-comments-lemmy-style-toolbar-ui) | Removes the duplicate native comments title by disabling the SlidrTheme window title/actionbar layer while preserving Boost's selected light/dark theme, toolbar title, and dynamic sort subtitle. |  |
 | [Fix Boost FAB nested scroll](#fix-boost-fab-nested-scroll) | Synchronizes Boost FAB hide/show with collapsing-header and nested-scroll motion. |  |
 | [Fix Boost image widget click target](#fix-boost-image-widget-click-target) | Prevents Boost's image widget from opening a stale post by making the CommentsActivity PendingIntent data unique per widget update. |  |
-| [Fix Boost native image upload](#fix-boost-native-image-upload) | Forces Boost's single-image submit flow to use Reddit's native image submission kind instead of creating external uploaded-media link posts. |  |
+| [Fix Boost native image upload](#fix-boost-native-image-upload) | Routes Boost editor images, image posts, and galleries through Reddit's bundled native uploader instead of Imgur while retaining the original gallery submission-kind safeguard. GIF and video upload behavior is unchanged. |  |
 | [Fix Boost navigation bar overlap](#fix-boost-navigation-bar-overlap) | Adds runtime system bar inset handling for Boost bottom controls and drawer content on Android 15+ target SDK builds. |  |
 | [Fix Boost target SDK 35 compatibility](#fix-boost-target-sdk-35-compatibility) | Sets Boost for Reddit's target SDK to 35 and fixes BillingClient receiver registration for newer Android versions. |  |
 | [Fix Boost YouTube playback fallback](#fix-boost-youtube-playback-fallback) | Opens the original YouTube link externally when Boost's legacy embedded YouTube player is unavailable. |  |
@@ -540,16 +540,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.104` is prepared and locally verified with:
+Release `1.4.105` is prepared and locally verified with:
 
-- Release tag `morphe-patches-104`.
+- Release tag `morphe-patches-105`.
 - Local built MPP SHA256 matching README.
-`c54f224e5bfd6cd2acc78d55a805cc60305c0f0b08634fffe4b9cdd1b12af4cf`
-- `patches-bundle.json` returning version `1.4.104`.
-- `patches-bundle.json` pointing to the `morphe-patches-104` asset.
+`b61656beb309e0373cd7c8163d2f191f789b2c23c4bcae1c129ae9c0debed41f`
+- `patches-bundle.json` returning version `1.4.105`.
+- `patches-bundle.json` pointing to the `morphe-patches-105` asset.
 - Expected release asset:
-`patches-1.4.104.mpp`
-- `c54f224e5bfd6cd2acc78d55a805cc60305c0f0b08634fffe4b9cdd1b12af4cf  patches-1.4.104.mpp`
+`patches-1.4.105.mpp`
+- `b61656beb309e0373cd7c8163d2f191f789b2c23c4bcae1c129ae9c0debed41f  patches-1.4.105.mpp`
 
 ## Development notes
 
