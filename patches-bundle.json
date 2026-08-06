@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-08-05T23:50:47",
-  "description": "Use Reddit's native uploader for Boost editor images, single-image posts, and galleries instead of Imgur.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-105/patches-1.4.105.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-105/patches-1.4.105.mpp.asc",
-  "version": "1.4.105"
+  "created_at": "2026-08-06T10:58:37",
+  "description": "Keep Reddit native for image posts and galleries; use Imgur by default and ImgBB optionally for comment and text-post images with inline previews.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-106/patches-1.4.106.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-106/patches-1.4.106.mpp.asc",
+  "version": "1.4.106"
 }

@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.106](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-105...morphe-patches-106) (2026-08-06)
+
+* **Boost for Reddit:** Keep Reddit native for image posts and galleries; use Imgur by default and ImgBB optionally for comment and text-post images with inline previews.
+
 ## [1.4.105](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-104...morphe-patches-105) (2026-08-05)
 
 * **Boost for Reddit:** Use Reddit's native uploader for Boost editor images, single-image posts, and galleries instead of Imgur.
