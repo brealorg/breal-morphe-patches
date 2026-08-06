@@ -22,6 +22,9 @@ private const val COMMENT_VIEW_HOLDER_DESCRIPTOR =
 private const val INLINE_GIPHY_EXTENSION_DESCRIPTOR =
     "Lapp/morphe/extension/boostforreddit/giphy/InlineGiphyCommentPreview;"
 
+private const val STABLE_INLINE_PREVIEW_HEIGHT_DESCRIPTOR =
+    "Lapp/morphe/extension/boostforreddit/giphy/StableInlinePreviewHeight;"
+
 private const val TABLE_TEXT_VIEW_DESCRIPTOR =
     "Lcom/rubenmayayo/reddit/ui/customviews/TableTextView;"
 
@@ -40,7 +43,7 @@ val inlineGiphyCommentPreviewPatch = bytecodePatch(
                 0,
                 """
                     invoke-static {p0, p1}, $INLINE_GIPHY_EXTENSION_DESCRIPTOR->cleanCommentHtml(Ljava/lang/Object;Ljava/lang/Object;)V
-                    invoke-static {p0, p1, p5}, $INLINE_GIPHY_EXTENSION_DESCRIPTOR->bind(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+                    invoke-static {p0, p1, p5}, $STABLE_INLINE_PREVIEW_HEIGHT_DESCRIPTOR->bind(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
                     """
             )
 
