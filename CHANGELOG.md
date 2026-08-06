@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.107](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-106...morphe-patches-107) (2026-08-06)
+
+* **Boost for Reddit:** Preserve inline-image row height while Boost recycles comments, preventing image-heavy threads from jumping during upward scrolling.
+
 ## [1.4.106](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-105...morphe-patches-106) (2026-08-06)
 
 * **Boost for Reddit:** Keep Reddit native for image posts and galleries; use Imgur by default and ImgBB optionally for comment and text-post images with inline previews.
