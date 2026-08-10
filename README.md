@@ -72,14 +72,14 @@ The repository shorthand shown at the top is the preferred Manager setup. Raw
 
 | Field | Value |
 |---|---|
-| Version | `1.4.107` |
-| Release tag | `morphe-patches-107` |
-| Asset | `patches-1.4.107.mpp` |
-| SHA256 | `a942f3d5277a0e7e1a387f07806b0c303716c05fc108a10f10a73ea968bfea5a` |
+| Version | `1.4.108` |
+| Release tag | `morphe-patches-108` |
+| Asset | `patches-1.4.108.mpp` |
+| SHA256 | `ef7a5f1fb9a217c147ad5f6a40d344dda2e8a7f73b896df078872ca052cf056b` |
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-107/patches-1.4.107.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-108/patches-1.4.108.mpp` |
 
-SHA256: `a942f3d5277a0e7e1a387f07806b0c303716c05fc108a10f10a73ea968bfea5a`
+SHA256: `ef7a5f1fb9a217c147ad5f6a40d344dda2e8a7f73b896df078872ca052cf056b`
 ## What this bundle does
 
 The current bundle is focused on practical hotfixes for tested app versions, especially Boost for Reddit behavior on newer Android versions.
@@ -126,7 +126,7 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.107` • `main` • 53 unique patches • 105 package entries
+> **Patch source version:** `1.4.108` • `main` • 53 unique patches • 105 package entries
 
 <details>
 <summary><strong>Boost for Reddit</strong> • 44 patches</summary>
@@ -540,16 +540,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.107` is prepared and locally verified with:
+Release `1.4.108` is prepared and locally verified with:
 
-- Release tag `morphe-patches-107`.
+- Release tag `morphe-patches-108`.
 - Local built MPP SHA256 matching README.
-`a942f3d5277a0e7e1a387f07806b0c303716c05fc108a10f10a73ea968bfea5a`
-- `patches-bundle.json` returning version `1.4.107`.
-- `patches-bundle.json` pointing to the `morphe-patches-107` asset.
+`ef7a5f1fb9a217c147ad5f6a40d344dda2e8a7f73b896df078872ca052cf056b`
+- `patches-bundle.json` returning version `1.4.108`.
+- `patches-bundle.json` pointing to the `morphe-patches-108` asset.
 - Expected release asset:
-`patches-1.4.107.mpp`
-- `a942f3d5277a0e7e1a387f07806b0c303716c05fc108a10f10a73ea968bfea5a  patches-1.4.107.mpp`
+`patches-1.4.108.mpp`
+- `ef7a5f1fb9a217c147ad5f6a40d344dda2e8a7f73b896df078872ca052cf056b  patches-1.4.108.mpp`
 
 ## Development notes
 

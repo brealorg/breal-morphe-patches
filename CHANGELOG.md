@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.108](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-107...morphe-patches-108) (2026-08-11)
+
+* **Boost for Reddit:** Harden Boost bottom-navigation semantic state recovery for Search results, reselect routing, Back navigation and cross-activity navigation.
+
 ## [1.4.107](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-106...morphe-patches-107) (2026-08-06)
 
 * **Boost for Reddit:** Preserve inline-image row height while Boost recycles comments, preventing image-heavy threads from jumping during upward scrolling.
