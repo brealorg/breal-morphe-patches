@@ -181,7 +181,7 @@ SELECTION_GUARD_LINE="$(
 SUBREDDIT_SCOPE_LINE="$(
     rg -n -F \
         'attachSubredditSearchScope(' \
-        "$SOURCE" |
+        <<< "$SEARCH_ROUTE_BLOCK" |
         tail -1 |
         cut -d: -f1
 )"
@@ -189,7 +189,7 @@ SUBREDDIT_SCOPE_LINE="$(
 START_ACTIVITY_LINE="$(
     rg -n -m1 -F \
         'activity.startActivity(intent);' \
-        "$SOURCE" |
+        <<< "$SEARCH_ROUTE_BLOCK" |
         cut -d: -f1
 )"
 
