@@ -58,3 +58,13 @@ internal val inboxCountUpdateFingerprint = Fingerprint(
             method.name == "N3"
     },
 )
+
+internal val searchAbstractSubredditsErrorCallbackFingerprint = Fingerprint(
+    returnType = "V",
+    parameters = listOf("Ljava/lang/Exception;"),
+    custom = { method, classDef ->
+        classDef.type ==
+            "Lcom/rubenmayayo/reddit/ui/search/SearchAbstractActivity\$e;" &&
+            method.name == "a"
+    },
+)

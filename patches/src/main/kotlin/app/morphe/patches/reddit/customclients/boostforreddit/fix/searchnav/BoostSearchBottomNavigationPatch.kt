@@ -15,6 +15,12 @@ private const val MATERIAL_BOTTOM_NAVIGATION =
 private const val EXTENSION_CLASS_DESCRIPTOR =
     "Lapp/morphe/extension/boostforreddit/utils/BoostSearchBottomNavigation;"
 
+private const val SEARCH_ABSTRACT_SUBREDDITS_ERROR_CALLBACK_DESCRIPTOR =
+    "Lcom/rubenmayayo/reddit/ui/search/SearchAbstractActivity\$e;"
+
+private const val SEARCH_ABSTRACT_ACTIVITY_DESCRIPTOR =
+    "Lcom/rubenmayayo/reddit/ui/search/SearchAbstractActivity;"
+
 private val addSearchBottomNavigationHostPatch = resourcePatch(
     name = "Add Boost Search bottom navigation host",
     description = "Adds Boost's native Material bottom-navigation host to the generic Search layout.",
@@ -121,5 +127,20 @@ val boostSearchBottomNavigationPatch = bytecodePatch(
                 """.trimIndent(),
             )
         }
+
+
+
+        searchAbstractSubredditsErrorCallbackFingerprint.method.addInstructions(
+            0,
+            """
+                iget-object v0, p0, $SEARCH_ABSTRACT_SUBREDDITS_ERROR_CALLBACK_DESCRIPTOR->a:$SEARCH_ABSTRACT_ACTIVITY_DESCRIPTOR
+                invoke-virtual {v0}, Landroid/app/Activity;->isFinishing()Z
+                move-result v0
+                if-eqz v0, :morphe_search_subreddits_error_live
+                return-void
+                :morphe_search_subreddits_error_live
+            """.trimIndent(),
+        )
+
     }
 }

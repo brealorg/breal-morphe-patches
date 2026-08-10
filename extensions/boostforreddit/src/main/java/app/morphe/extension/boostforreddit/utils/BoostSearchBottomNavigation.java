@@ -64,6 +64,10 @@ public final class BoostSearchBottomNavigation {
             "MORPHE_BOOST_SEARCH_FRESH_ACTIVITY_ISSUE86_V2";
     private static final String SEARCH_RESELECT_MARKER =
             "MORPHE_BOOST_SEARCH_RESELECT_ISSUE86_V1";
+    private static final String RESELECT_RECOVERY_MARKER =
+            "MORPHE_BOOST_BOTTOM_NAV_RESELECT_RECOVERY_ISSUE169_V2";
+    private static final String FOREIGN_PROFILE_ROUTE_MARKER =
+            "MORPHE_BOOST_FOREIGN_PROFILE_TO_OWN_PROFILE_ROUTE_V1";
     private static volatile String UNIFIED_MATERIAL_MARKER =
             "MORPHE_BOOST_UNIFIED_MATERIAL_BOTTOM_NAV_V771";
     private static final String CANONICAL_NAV_BASE_MARKER =
@@ -149,6 +153,15 @@ public final class BoostSearchBottomNavigation {
     private static final long UNDERLAY_RETRY_DELAY_MS = 75L;
     private static final String DECOR_UNDERLAY_TAG =
             "morphe_boost_bottom_navigation_decor_underlay";
+    private static final String NATIVE_LONG_PRESS_CROSS_ACTIVITY_MARKER =
+            "MORPHE_BOOST_NATIVE_LONGPRESS_CROSS_ACTIVITY_V1";
+    private static final String PROFILE_LONG_PRESS_DIALOG_BRIDGE_MARKER =
+            "MORPHE_BOOST_PROFILE_LONGPRESS_DIALOG_BRIDGE_V2";
+    private static final int PROFILE_SELECTOR_TITLE_RESOURCE_ID =
+            0x7f130157;
+    private static final Object PROFILE_SELECTION_LOCK =
+            new Object();
+    private static volatile Integer PENDING_PROFILE_SELECTION_INDEX;
     private static final String TAG = "MorpheSearchNav";
     private static final int SEARCH_INITIAL_FOCUS_RETRY_LIMIT = 24;
     private static final long SEARCH_INITIAL_FOCUS_RETRY_DELAY_MS =
@@ -163,6 +176,8 @@ public final class BoostSearchBottomNavigation {
 
     private static final String SEARCH_ACTIVITY =
             "com.rubenmayayo.reddit.ui.search.SearchGenericActivity";
+    private static final String SEARCH_SUBMISSIONS_ACTIVITY =
+            "com.rubenmayayo.reddit.ui.submissions.search.SearchSubmissionsActivity";
     private static final String GO_TO_ACTIVITY =
             "com.rubenmayayo.reddit.ui.search.GoToGenericActivity";
 
@@ -2382,6 +2397,530 @@ public final class BoostSearchBottomNavigation {
         }
     }
 
+    private static void dismissProfileSelectorDialog(
+            Object dialog
+    ) {
+        if (dialog == null) {
+            return;
+        }
+
+        try {
+            Method dismiss = findMethod(
+                    dialog.getClass(),
+                    "dismiss"
+            );
+
+            if (dismiss == null) {
+                throw new NoSuchMethodException(
+                        "Profile selector dialog dismiss"
+                );
+            }
+
+            dismiss.setAccessible(true);
+            dismiss.invoke(dialog);
+        } catch (Throwable error) {
+            Log.w(
+                    TAG,
+                    "Profile selector dialog dismiss failed marker="
+                            + PROFILE_LONG_PRESS_DIALOG_BRIDGE_MARKER,
+                    error
+            );
+        }
+    }
+
+    private static boolean invokeProfileAddAccount(
+            Activity activity
+    ) {
+        if (activity == null) {
+            return false;
+        }
+
+        try {
+            Class<?> utility = Class.forName(
+                    NAVIGATION_UTILITY,
+                    false,
+                    activity.getClassLoader()
+            );
+
+            Method route = utility.getDeclaredMethod(
+                    "l0",
+                    Activity.class
+            );
+            route.setAccessible(true);
+            route.invoke(null, activity);
+
+            Log.i(
+                    TAG,
+                    "Profile selector Add account dispatched marker="
+                            + PROFILE_LONG_PRESS_DIALOG_BRIDGE_MARKER
+                            + " nativeAction=i.l0(Activity)"
+                            + " activity="
+                            + activity.getClass().getName()
+            );
+            return true;
+        } catch (Throwable error) {
+            Log.e(
+                    TAG,
+                    "Profile selector Add account failed marker="
+                            + PROFILE_LONG_PRESS_DIALOG_BRIDGE_MARKER,
+                    error
+            );
+            return false;
+        }
+    }
+
+    private static String profileSelectorUserName(
+            Object user
+    ) {
+        if (user == null) {
+            return null;
+        }
+
+        try {
+            Field name = findField(
+                    user.getClass(),
+                    "name"
+            );
+
+            if (name == null) {
+                return null;
+            }
+
+            name.setAccessible(true);
+            Object value = name.get(user);
+
+            return value instanceof String
+                    ? (String) value
+                    : null;
+        } catch (Throwable error) {
+            Log.w(
+                    TAG,
+                    "Profile selector username lookup failed marker="
+                            + PROFILE_LONG_PRESS_DIALOG_BRIDGE_MARKER,
+                    error
+            );
+            return null;
+        }
+    }
+
+    private static boolean queueProfileSelection(
+            Activity activity,
+            int accountIndex
+    ) {
+        if (activity == null) {
+            return false;
+        }
+
+        synchronized (PROFILE_SELECTION_LOCK) {
+            PENDING_PROFILE_SELECTION_INDEX =
+                    Integer.valueOf(accountIndex);
+        }
+
+        try {
+            Class<?> destination = Class.forName(
+                    MAIN_ACTIVITY,
+                    false,
+                    activity.getClassLoader()
+            );
+
+            Intent intent = new Intent(
+                    activity,
+                    destination
+            );
+            intent.addFlags(
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP
+                            | Intent.FLAG_ACTIVITY_SINGLE_TOP
+            );
+
+            activity.startActivity(intent);
+            activity.overridePendingTransition(
+                    0,
+                    0
+            );
+
+            Log.i(
+                    TAG,
+                    "Profile selector native account switch queued marker="
+                            + PROFILE_LONG_PRESS_DIALOG_BRIDGE_MARKER
+                            + " accountIndex="
+                            + accountIndex
+                            + " from="
+                            + activity.getClass().getName()
+                            + " destination="
+                            + MAIN_ACTIVITY
+            );
+            return true;
+        } catch (Throwable error) {
+            synchronized (PROFILE_SELECTION_LOCK) {
+                PENDING_PROFILE_SELECTION_INDEX = null;
+            }
+
+            Log.e(
+                    TAG,
+                    "Profile selector native account switch queue failed marker="
+                            + PROFILE_LONG_PRESS_DIALOG_BRIDGE_MARKER
+                            + " accountIndex="
+                            + accountIndex,
+                    error
+            );
+            return false;
+        }
+    }
+
+    private static void schedulePendingProfileSelection(
+            final Activity activity
+    ) {
+        if (
+                activity == null
+                        || !MAIN_ACTIVITY.equals(
+                                activity.getClass().getName()
+                        )
+        ) {
+            return;
+        }
+
+        final Integer accountIndex;
+
+        synchronized (PROFILE_SELECTION_LOCK) {
+            accountIndex = PENDING_PROFILE_SELECTION_INDEX;
+            PENDING_PROFILE_SELECTION_INDEX = null;
+        }
+
+        if (accountIndex == null) {
+            return;
+        }
+
+        final View decor = activity
+                .getWindow()
+                .getDecorView();
+
+        decor.post(new Runnable() {
+            @Override
+            public void run() {
+                if (
+                        activity.isFinishing()
+                                || activity.isDestroyed()
+                ) {
+                    Log.w(
+                            TAG,
+                            "Profile selector pending native switch abandoned marker="
+                                    + PROFILE_LONG_PRESS_DIALOG_BRIDGE_MARKER
+                                    + " accountIndex="
+                                    + accountIndex
+                    );
+                    return;
+                }
+
+                try {
+                    Method selection = findMethod(
+                            activity.getClass(),
+                            "L2",
+                            int.class
+                    );
+
+                    if (selection == null) {
+                        throw new NoSuchMethodException(
+                                "BottomNavBaseActivity.L2(int)"
+                        );
+                    }
+
+                    selection.setAccessible(true);
+                    selection.invoke(
+                            activity,
+                            accountIndex.intValue()
+                    );
+
+                    Log.i(
+                            TAG,
+                            "Profile selector native account switch consumed marker="
+                                    + PROFILE_LONG_PRESS_DIALOG_BRIDGE_MARKER
+                                    + " nativeAction=e.L2(int)"
+                                    + " accountIndex="
+                                    + accountIndex
+                                    + " activity="
+                                    + activity.getClass().getName()
+                    );
+                } catch (Throwable error) {
+                    Log.e(
+                            TAG,
+                            "Profile selector native account switch consume failed marker="
+                                    + PROFILE_LONG_PRESS_DIALOG_BRIDGE_MARKER
+                                    + " accountIndex="
+                                    + accountIndex,
+                            error
+                    );
+                }
+            }
+        });
+    }
+
+    private static boolean invokeProfileLongPressFallback(
+            final Activity activity
+    ) {
+        if (activity == null) {
+            return false;
+        }
+
+        try {
+            final ClassLoader classLoader =
+                    activity.getClassLoader();
+            final Class<?> callbackClass = Class.forName(
+                    "com.rubenmayayo.reddit.ui.customviews.dialogs.UserSelectorView$a",
+                    false,
+                    classLoader
+            );
+            final Object[] dialogHolder =
+                    new Object[1];
+
+            Object callback = Proxy.newProxyInstance(
+                    classLoader,
+                    new Class<?>[]{callbackClass},
+                    new InvocationHandler() {
+                        @Override
+                        public Object invoke(
+                                Object proxy,
+                                Method method,
+                                Object[] arguments
+                        ) {
+                            String methodName =
+                                    method.getName();
+
+                            if ("toString".equals(methodName)) {
+                                return "MorpheProfileSelectorCallback";
+                            }
+
+                            if ("hashCode".equals(methodName)) {
+                                return Integer.valueOf(
+                                        System.identityHashCode(proxy)
+                                );
+                            }
+
+                            if ("equals".equals(methodName)) {
+                                return Boolean.valueOf(
+                                        arguments != null
+                                                && arguments.length == 1
+                                                && proxy == arguments[0]
+                                );
+                            }
+
+                            if ("C0".equals(methodName)) {
+                                dismissProfileSelectorDialog(
+                                        dialogHolder[0]
+                                );
+                                invokeProfileAddAccount(activity);
+                                return null;
+                            }
+
+                            if ("h".equals(methodName)) {
+                                Object user =
+                                        arguments != null
+                                                && arguments.length > 0
+                                                ? arguments[0]
+                                                : null;
+                                int accountIndex =
+                                        arguments != null
+                                                && arguments.length > 1
+                                                && arguments[1]
+                                                    instanceof Number
+                                                ? ((Number) arguments[1])
+                                                    .intValue()
+                                                : -1;
+                                String selectedUsername =
+                                        profileSelectorUserName(user);
+                                String activeUsername =
+                                        currentUsername(activity);
+
+                                dismissProfileSelectorDialog(
+                                        dialogHolder[0]
+                                );
+
+                                if (
+                                        user == null
+                                                && !isLoggedIn(activity)
+                                ) {
+                                    Log.i(
+                                            TAG,
+                                            "Profile selector anonymous account already active marker="
+                                                    + PROFILE_LONG_PRESS_DIALOG_BRIDGE_MARKER
+                                    );
+                                    return null;
+                                }
+
+                                if (
+                                        selectedUsername != null
+                                                && selectedUsername.equals(
+                                                    activeUsername
+                                                )
+                                ) {
+                                    Log.i(
+                                            TAG,
+                                            "Profile selector selected account already active marker="
+                                                    + PROFILE_LONG_PRESS_DIALOG_BRIDGE_MARKER
+                                                    + " username="
+                                                    + selectedUsername
+                                    );
+                                    return null;
+                                }
+
+                                queueProfileSelection(
+                                        activity,
+                                        accountIndex
+                                );
+                                return null;
+                            }
+
+                            return null;
+                        }
+                    }
+            );
+
+            Class<?> selectorClass = Class.forName(
+                    "com.rubenmayayo.reddit.ui.customviews.dialogs.UserSelectorView",
+                    false,
+                    classLoader
+            );
+
+            Constructor<?> selectorConstructor =
+                    selectorClass.getDeclaredConstructor(
+                            Context.class,
+                            boolean.class,
+                            boolean.class
+                    );
+            selectorConstructor.setAccessible(true);
+
+            Object selector = selectorConstructor.newInstance(
+                    activity,
+                    true,
+                    true
+            );
+
+            if (!(selector instanceof View)) {
+                throw new IllegalStateException(
+                        "UserSelectorView is not an Android View"
+                );
+            }
+
+            Method setCallback = selectorClass.getDeclaredMethod(
+                    "setCallback",
+                    callbackClass
+            );
+            setCallback.setAccessible(true);
+            setCallback.invoke(
+                    selector,
+                    callback
+            );
+
+            Class<?> builderClass = Class.forName(
+                    "m1.f$e",
+                    false,
+                    classLoader
+            );
+
+            Constructor<?> builderConstructor =
+                    builderClass.getDeclaredConstructor(
+                            Context.class
+                    );
+            builderConstructor.setAccessible(true);
+            Object builder =
+                    builderConstructor.newInstance(activity);
+
+            Method setTitle = builderClass.getDeclaredMethod(
+                    "Z",
+                    int.class
+            );
+            setTitle.setAccessible(true);
+            setTitle.invoke(
+                    builder,
+                    PROFILE_SELECTOR_TITLE_RESOURCE_ID
+            );
+
+            Method setCustomView =
+                    builderClass.getDeclaredMethod(
+                            "o",
+                            View.class,
+                            boolean.class
+                    );
+            setCustomView.setAccessible(true);
+            setCustomView.invoke(
+                    builder,
+                    (View) selector,
+                    false
+            );
+
+            Method show = builderClass.getDeclaredMethod(
+                    "W"
+            );
+            show.setAccessible(true);
+            dialogHolder[0] =
+                    show.invoke(builder);
+
+            if (dialogHolder[0] == null) {
+                throw new IllegalStateException(
+                        "Native profile selector dialog unavailable"
+                );
+            }
+
+            Log.i(
+                    TAG,
+                    "native Profile long-press dialog bridge shown marker="
+                            + PROFILE_LONG_PRESS_DIALOG_BRIDGE_MARKER
+                            + " nativePattern=e.B3/UserSelectorView+callback"
+                            + " activity="
+                            + activity.getClass().getName()
+            );
+            return true;
+        } catch (Throwable error) {
+            Log.e(
+                    TAG,
+                    "native Profile long-press dialog bridge failed marker="
+                            + PROFILE_LONG_PRESS_DIALOG_BRIDGE_MARKER,
+                    error
+            );
+            return false;
+        }
+    }
+
+    private static boolean invokeSubscriptionsLongPressFallback(
+            Activity activity
+    ) {
+        if (activity == null) {
+            return false;
+        }
+
+        try {
+            Class<?> utility = Class.forName(
+                    NAVIGATION_UTILITY,
+                    false,
+                    activity.getClassLoader()
+            );
+
+            Method route = utility.getDeclaredMethod(
+                    "t0",
+                    Activity.class
+            );
+            route.setAccessible(true);
+            route.invoke(null, activity);
+
+            Log.i(
+                    TAG,
+                    "native Subscriptions long-press cross-activity action marker="
+                            + NATIVE_LONG_PRESS_CROSS_ACTIVITY_MARKER
+                            + " nativeAction=i.t0(Activity)"
+                            + " activity="
+                            + activity.getClass().getName()
+            );
+            return true;
+        } catch (Throwable error) {
+            Log.e(
+                    TAG,
+                    "native Subscriptions long-press cross-activity action failed marker="
+                            + NATIVE_LONG_PRESS_CROSS_ACTIVITY_MARKER,
+                    error
+            );
+            return false;
+        }
+    }
+
     private static void scheduleNativeProfileLongPress(
             final Activity activity,
             final View navigation
@@ -2448,10 +2987,28 @@ public final class BoostSearchBottomNavigation {
                     );
 
                     if (!baseActivityClass.isInstance(activity)) {
-                        throw new IllegalStateException(
-                                "Activity is not Boost base activity: "
-                                        + activity.getClass().getName()
+                        profileItem.setOnLongClickListener(
+                                new View.OnLongClickListener() {
+                                    @Override
+                                    public boolean onLongClick(View view) {
+                                        return invokeProfileLongPressFallback(
+                                                activity
+                                        );
+                                    }
+                                }
                         );
+                        profileItem.setLongClickable(true);
+
+                        Log.i(
+                                TAG,
+                                "native Profile long-press cross-activity fallback attached marker="
+                                        + NATIVE_LONG_PRESS_CROSS_ACTIVITY_MARKER
+                                        + " activity="
+                                        + activity.getClass().getName()
+                                        + " attempts="
+                                        + attempts
+                        );
+                        return;
                     }
 
                     Class<?> listenerClass = Class.forName(
@@ -2600,10 +3157,28 @@ public final class BoostSearchBottomNavigation {
                     );
 
                     if (!baseActivityClass.isInstance(activity)) {
-                        throw new IllegalStateException(
-                                "Activity is not Boost base activity: "
-                                        + activity.getClass().getName()
+                        subscriptionsItem.setOnLongClickListener(
+                                new View.OnLongClickListener() {
+                                    @Override
+                                    public boolean onLongClick(View view) {
+                                        return invokeSubscriptionsLongPressFallback(
+                                                activity
+                                        );
+                                    }
+                                }
                         );
+                        subscriptionsItem.setLongClickable(true);
+
+                        Log.i(
+                                TAG,
+                                "native Subscriptions long-press cross-activity fallback attached marker="
+                                        + NATIVE_LONG_PRESS_CROSS_ACTIVITY_MARKER
+                                        + " activity="
+                                        + activity.getClass().getName()
+                                        + " attempts="
+                                        + attempts
+                        );
+                        return;
                     }
 
                     Class<?> listenerClass = Class.forName(
@@ -2898,6 +3473,7 @@ public final class BoostSearchBottomNavigation {
                 activity,
                 0
         );
+        schedulePendingProfileSelection(activity);
     }
 
     public static void standardizeSubreddit(
@@ -3070,7 +3646,12 @@ public final class BoostSearchBottomNavigation {
             );
         }
 
-        if (SEARCH_ACTIVITY.equals(activityName)) {
+        if (
+                SEARCH_ACTIVITY.equals(activityName)
+                        || SEARCH_SUBMISSIONS_ACTIVITY.equals(
+                                activityName
+                        )
+        ) {
             return resourceId(
                     activity,
                     "item_search",
@@ -4490,7 +5071,7 @@ public final class BoostSearchBottomNavigation {
                                             method.getName()
                                     )
                             ) {
-                                return "MorpheSubredditReselectedListener";
+                                return "MorpheBottomNavigationReselectedListener";
                             }
 
                             if (
@@ -4531,7 +5112,7 @@ public final class BoostSearchBottomNavigation {
 
                             Log.i(
                                     TAG,
-                                    "Subreddit reselect routed marker="
+                                    "Bottom navigation reselect routed marker="
                                             + CANONICAL_NAV_MARKER
                                             + " itemId="
                                             + item.getItemId()
@@ -4688,6 +5269,102 @@ public final class BoostSearchBottomNavigation {
         return handled;
     }
 
+    private static boolean isForeignUserProfileActivity(
+            Activity activity
+    ) {
+        if (
+                activity == null
+                        || !USER_ACTIVITY.equals(
+                                activity.getClass().getName()
+                        )
+        ) {
+            return false;
+        }
+
+        try {
+            String ownUsername = currentUsername(activity);
+
+            if (
+                    ownUsername == null
+                            || ownUsername.trim().length() == 0
+            ) {
+                Log.w(
+                        TAG,
+                        "Foreign Profile detection unavailable marker="
+                                + FOREIGN_PROFILE_ROUTE_MARKER
+                                + " reason=current-username-unavailable"
+                );
+                return false;
+            }
+
+            String shownUsername = null;
+            Field usernameField = findField(
+                    activity.getClass(),
+                    "x"
+            );
+
+            if (usernameField != null) {
+                usernameField.setAccessible(true);
+                Object value = usernameField.get(activity);
+
+                if (value instanceof String) {
+                    shownUsername = ((String) value).trim();
+                }
+            }
+
+            if (
+                    shownUsername == null
+                            || shownUsername.length() == 0
+            ) {
+                Intent intent = activity.getIntent();
+
+                if (intent != null) {
+                    String value = intent.getStringExtra("username");
+
+                    if (value != null) {
+                        shownUsername = value.trim();
+                    }
+                }
+            }
+
+            if (
+                    shownUsername == null
+                            || shownUsername.length() == 0
+            ) {
+                Log.w(
+                        TAG,
+                        "Foreign Profile detection unavailable marker="
+                                + FOREIGN_PROFILE_ROUTE_MARKER
+                                + " reason=shown-username-unavailable"
+                );
+                return false;
+            }
+
+            boolean foreign =
+                    !ownUsername.trim().equalsIgnoreCase(
+                            shownUsername
+                    );
+
+            Log.i(
+                    TAG,
+                    "UserActivity Profile ownership marker="
+                            + FOREIGN_PROFILE_ROUTE_MARKER
+                            + " foreign="
+                            + foreign
+            );
+
+            return foreign;
+        } catch (Throwable error) {
+            Log.w(
+                    TAG,
+                    "Foreign Profile detection failed marker="
+                            + FOREIGN_PROFILE_ROUTE_MARKER,
+                    error
+            );
+            return false;
+        }
+    }
+
     private static boolean handleReselectedItem(
             Activity activity,
             MenuItem item
@@ -4724,7 +5401,9 @@ public final class BoostSearchBottomNavigation {
         ) {
             Log.w(
                     TAG,
-                    "Bottom navigation invalid reselect ignored marker="
+                    "Bottom navigation reselect reclassified as selection marker="
+                            + RESELECT_RECOVERY_MARKER
+                            + " stateMachineMarker="
                             + stateMachineMarker
                             + " activity="
                             + activityName
@@ -4733,7 +5412,12 @@ public final class BoostSearchBottomNavigation {
                             + " selectedId="
                             + selectedId
             );
-            return false;
+            boolean handled = handleItem(activity, item);
+            return preserveSourceSelectionAfterRoute(
+                    activity,
+                    item,
+                    handled
+            );
         }
 
         Log.i(
@@ -4751,6 +5435,19 @@ public final class BoostSearchBottomNavigation {
         }
 
         if (selectedId == searchId) {
+            if (SEARCH_SUBMISSIONS_ACTIVITY.equals(activityName)) {
+                Log.i(
+                        TAG,
+                        "Search results reselect opens Search entry marker="
+                                + RESELECT_RECOVERY_MARKER
+                                + " activity="
+                                + activityName
+                );
+                return completeStaticTabTransition(
+                        activity,
+                        openSearch(activity)
+                );
+            }
             return focusSearchInput(activity);
         }
 
@@ -4763,6 +5460,23 @@ public final class BoostSearchBottomNavigation {
             }
 
             return true;
+        }
+
+        if (
+                selectedId == profileId
+                        && isForeignUserProfileActivity(activity)
+        ) {
+            Log.i(
+                    TAG,
+                    "Foreign Profile reselect routes to own Profile marker="
+                            + FOREIGN_PROFILE_ROUTE_MARKER
+                            + " activity="
+                            + activityName
+            );
+            return completeStaticTabTransition(
+                    activity,
+                    openProfile(activity)
+            );
         }
 
         if (
@@ -4794,6 +5508,23 @@ public final class BoostSearchBottomNavigation {
                         )
         ) {
             return focusSearchInput(activity);
+        }
+
+        if (
+                selectedId == profileId
+                        && isForeignUserProfileActivity(activity)
+        ) {
+            Log.i(
+                    TAG,
+                    "Foreign Profile selection routes to own Profile marker="
+                            + FOREIGN_PROFILE_ROUTE_MARKER
+                            + " activity="
+                            + activity.getClass().getName()
+            );
+            return completeStaticTabTransition(
+                    activity,
+                    openProfile(activity)
+            );
         }
 
         int currentItemId =
