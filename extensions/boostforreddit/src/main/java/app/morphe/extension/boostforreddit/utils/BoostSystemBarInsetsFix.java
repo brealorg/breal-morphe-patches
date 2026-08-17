@@ -52,6 +52,8 @@ public final class BoostSystemBarInsetsFix {
     private static final String COMMENTS_ACTIVITY_NAME = "com.rubenmayayo.reddit.ui.comments.CommentsActivity";
     private static final String IMAGE_VIEWER_LOADING_INSET_MARKER =
             "MORPHE_BOOST_IMAGE_VIEWER_LOADING_INSET_ISSUE170_V1";
+    private static final String IMAGE_VIEWER_SAFE_AREA_MARKER =
+            "MORPHE_BOOST_IMAGE_VIEWER_SAFE_AREA_ISSUE171_V1";
     private static final String TAG = "MorpheInsetsFix";
 
     private static final WeakHashMap<Application, Boolean> INSTALLED = new WeakHashMap<>();
@@ -99,24 +101,25 @@ public final class BoostSystemBarInsetsFix {
         try {
             if (!shouldApply(activity)) return;
 
-            View bottomBar = findViewByName(activity, "bottom_bar");
-            if (bottomBar != null) {
-                applyBottomInsetPadding(bottomBar, false);
-            }
-
             String className = activity.getClass().getName();
             if (className.endsWith(".ui.activities.MediaImageActivity")) {
-                View loadingProgress = findViewByName(activity, "loading_shit");
-                if (loadingProgress != null) {
-                    applyBottomInsetPadding(loadingProgress, false);
+                View content = activity.findViewById(android.R.id.content);
+                if (content != null) {
+                    applySafeAreaPadding(content);
                     Log.i(
                             TAG,
-                            "image viewer loading inset marker="
-                                    + IMAGE_VIEWER_LOADING_INSET_MARKER
+                            "image viewer safe area marker="
+                                    + IMAGE_VIEWER_SAFE_AREA_MARKER
                                     + " activity="
                                     + className
                     );
                 }
+                return;
+            }
+
+            View bottomBar = findViewByName(activity, "bottom_bar");
+            if (bottomBar != null) {
+                applyBottomInsetPadding(bottomBar, false);
             }
         } catch (Throwable ignored) {
         }
@@ -395,6 +398,117 @@ public final class BoostSystemBarInsetsFix {
                 }
             }
         });
+    }
+
+    private static void applySafeAreaPadding(final View view) {
+        if (view == null) return;
+
+        saveOriginalPadding(view);
+
+        view.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
+            @Override
+            public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
+                try {
+                    applySafeAreaPaddingNow(v, insets);
+                } catch (Throwable ignored) {
+                }
+                return insets;
+            }
+        });
+
+        view.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    applySafeAreaPaddingNow(view, getBestCurrentInsets(view));
+                    view.requestApplyInsets();
+                } catch (Throwable ignored) {
+                }
+            }
+        });
+    }
+
+    private static void applySafeAreaPaddingNow(View view, WindowInsets insets) {
+        if (view == null) return;
+
+        saveOriginalPadding(view);
+
+        Padding original = ORIGINAL_PADDING.get(view);
+        if (original == null) return;
+
+        WindowInsets effectiveInsets =
+                insets != null ? insets : getBestCurrentInsets(view);
+
+        int leftInset = 0;
+        int topInset = 0;
+        int rightInset = 0;
+        int bottomInset = 0;
+
+        if (effectiveInsets != null) {
+            if (Build.VERSION.SDK_INT >= 30) {
+                Insets safeInsets = effectiveInsets.getInsets(
+                        WindowInsets.Type.systemBars()
+                                | WindowInsets.Type.displayCutout()
+                );
+                if (safeInsets != null) {
+                    leftInset = safeInsets.left;
+                    topInset = safeInsets.top;
+                    rightInset = safeInsets.right;
+                    bottomInset = safeInsets.bottom;
+                }
+            } else {
+                leftInset = effectiveInsets.getSystemWindowInsetLeft();
+                topInset = effectiveInsets.getSystemWindowInsetTop();
+                rightInset = effectiveInsets.getSystemWindowInsetRight();
+                bottomInset = effectiveInsets.getSystemWindowInsetBottom();
+
+                if (Build.VERSION.SDK_INT >= 28) {
+                    android.view.DisplayCutout cutout =
+                            effectiveInsets.getDisplayCutout();
+                    if (cutout != null) {
+                        leftInset = Math.max(
+                                leftInset,
+                                cutout.getSafeInsetLeft()
+                        );
+                        topInset = Math.max(
+                                topInset,
+                                cutout.getSafeInsetTop()
+                        );
+                        rightInset = Math.max(
+                                rightInset,
+                                cutout.getSafeInsetRight()
+                        );
+                        bottomInset = Math.max(
+                                bottomInset,
+                                cutout.getSafeInsetBottom()
+                        );
+                    }
+                }
+            }
+        }
+
+        int targetLeft = original.left + Math.max(0, leftInset);
+        int targetTop = original.top + Math.max(0, topInset);
+        int targetRight = original.right + Math.max(0, rightInset);
+        int targetBottom = original.bottom + Math.max(0, bottomInset);
+
+        if (
+                view.getPaddingLeft() == targetLeft
+                        && view.getPaddingTop() == targetTop
+                        && view.getPaddingRight() == targetRight
+                        && view.getPaddingBottom() == targetBottom
+        ) {
+            return;
+        }
+
+        view.setPadding(
+                targetLeft,
+                targetTop,
+                targetRight,
+                targetBottom
+        );
+        view.requestLayout();
+        view.invalidate();
     }
 
     private static void saveOriginalPadding(View view) {
