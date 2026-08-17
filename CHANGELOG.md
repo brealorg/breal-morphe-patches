@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.110](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-109...morphe-patches-110) (2026-08-17)
+
+* **Boost for Reddit:** Fix Boost Image Viewer safe-area layout so images stay clear of system bars and display cutouts.
+
 ## [1.4.109](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-108...morphe-patches-109) (2026-08-17)
 
 * **Boost for Reddit:** Fix Boost image viewer loading progress overlapping Android's 3-button navigation bar.

@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-08-17T13:23:36",
-  "description": "Fix Boost image viewer loading progress overlapping Android's 3-button navigation bar.\n",
-  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-109/patches-1.4.109.mpp",
-  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-109/patches-1.4.109.mpp.asc",
-  "version": "1.4.109"
+  "created_at": "2026-08-17T17:02:08",
+  "description": "Fix Boost Image Viewer safe-area layout so images stay clear of system bars and display cutouts.\n",
+  "download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-110/patches-1.4.110.mpp",
+  "signature_download_url": "https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-110/patches-1.4.110.mpp.asc",
+  "version": "1.4.110"
 }
