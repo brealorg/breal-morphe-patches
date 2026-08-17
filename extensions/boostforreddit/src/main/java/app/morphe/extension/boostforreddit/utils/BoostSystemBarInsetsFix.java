@@ -50,6 +50,8 @@ public final class BoostSystemBarInsetsFix {
     private static final String DECOR_NAVIGATION_CONTAINER_TAG =
             "morphe_boost_decor_owned_navigation_container";
     private static final String COMMENTS_ACTIVITY_NAME = "com.rubenmayayo.reddit.ui.comments.CommentsActivity";
+    private static final String IMAGE_VIEWER_LOADING_INSET_MARKER =
+            "MORPHE_BOOST_IMAGE_VIEWER_LOADING_INSET_ISSUE170_V1";
     private static final String TAG = "MorpheInsetsFix";
 
     private static final WeakHashMap<Application, Boolean> INSTALLED = new WeakHashMap<>();
@@ -100,6 +102,21 @@ public final class BoostSystemBarInsetsFix {
             View bottomBar = findViewByName(activity, "bottom_bar");
             if (bottomBar != null) {
                 applyBottomInsetPadding(bottomBar, false);
+            }
+
+            String className = activity.getClass().getName();
+            if (className.endsWith(".ui.activities.MediaImageActivity")) {
+                View loadingProgress = findViewByName(activity, "loading_shit");
+                if (loadingProgress != null) {
+                    applyBottomInsetPadding(loadingProgress, false);
+                    Log.i(
+                            TAG,
+                            "image viewer loading inset marker="
+                                    + IMAGE_VIEWER_LOADING_INSET_MARKER
+                                    + " activity="
+                                    + className
+                    );
+                }
             }
         } catch (Throwable ignored) {
         }
