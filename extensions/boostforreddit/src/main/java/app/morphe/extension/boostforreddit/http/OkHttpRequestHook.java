@@ -15,6 +15,7 @@ import app.morphe.extension.boostforreddit.http.reddit.RedditFixAudioInDownloads
 import app.morphe.extension.boostforreddit.http.reddit.RedditMediaUndeleteInterceptor;
 import app.morphe.extension.boostforreddit.http.reddit.RedditSubmissionUndeleteInterceptor;
 import app.morphe.extension.boostforreddit.http.reddit.RedditSubredditUndeleteInterceptor;
+import app.morphe.extension.boostforreddit.http.redgifs.RedgifsUrlSanitizerInterceptor;
 import app.morphe.extension.boostforreddit.http.wayback.WaybackThrottlingInterceptor;
 import app.morphe.extension.shared.fixes.feed.RAllPatch;
 import app.morphe.extension.shared.requests.BaseOkHttpRequestHook;
@@ -37,6 +38,7 @@ public class OkHttpRequestHook extends BaseOkHttpRequestHook {
     @Override
     protected List<Interceptor> getInterceptors() {
         return List.of(
+                new RedgifsUrlSanitizerInterceptor(),
                 new RedditMediaUndeleteInterceptor(),
                 new RedditSubmissionUndeleteInterceptor(),
                 new RedditSubredditUndeleteInterceptor(),
