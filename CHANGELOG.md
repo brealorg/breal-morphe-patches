@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.111](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-110...morphe-patches-111) (2026-08-20)
+
+* **Boost for Reddit:** Fix Redgifs URL cache corruption that caused HTTP 403 responses and repeated playback stalls.
+
 ## [1.4.110](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-109...morphe-patches-110) (2026-08-17)
 
 * **Boost for Reddit:** Fix Boost Image Viewer safe-area layout so images stay clear of system bars and display cutouts.
