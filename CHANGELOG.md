@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.112](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-111...morphe-patches-112) (2026-09-08)
+
+* **Boost for Reddit:** Fix Boost bottom navigation Activity retention discovered while investigating progressive memory growth and OutOfMemoryError crashes.
+
 ## [1.4.111](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-110...morphe-patches-111) (2026-08-20)
 
 * **Boost for Reddit:** Fix Redgifs URL cache corruption that caused HTTP 403 responses and repeated playback stalls.
