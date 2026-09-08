@@ -122,12 +122,12 @@ public final class BoostSearchBottomNavigation {
     private static final java.util.WeakHashMap<View, Boolean>
             OWNED_MENU_INSTALLED =
                     new java.util.WeakHashMap<>();
-    private static final java.util.WeakHashMap<Activity, FrameLayout>
+    private static final WeakValueRegistry<Activity, FrameLayout>
             DECOR_NAVIGATION_CONTAINERS =
-                    new java.util.WeakHashMap<>();
-    private static final java.util.WeakHashMap<Activity, View>
+                    new WeakValueRegistry<>();
+    private static final WeakValueRegistry<Activity, View>
             DECOR_NAVIGATION_VIEWS =
-                    new java.util.WeakHashMap<>();
+                    new WeakValueRegistry<>();
     private static final java.util.WeakHashMap<Activity, Integer>
             INBOX_BADGE_COUNTS =
                     new java.util.WeakHashMap<>();
