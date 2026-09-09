@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.113](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-112...morphe-patches-113) (2026-09-09)
+
+* **Boost for Reddit:** Fix video rewind reloading so recently played Boost videos can seek backward without reloading the already played section.
+
 ## [1.4.112](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-111...morphe-patches-112) (2026-09-08)
 
 * **Boost for Reddit:** Fix Boost bottom navigation Activity retention discovered while investigating progressive memory growth and OutOfMemoryError crashes.

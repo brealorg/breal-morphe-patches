@@ -72,14 +72,14 @@ The repository shorthand shown at the top is the preferred Manager setup. Raw
 
 | Field | Value |
 |---|---|
-| Version | `1.4.112` |
-| Release tag | `morphe-patches-112` |
-| Asset | `patches-1.4.112.mpp` |
-| SHA256 | `f3ba094e0481069eacb816a31983ef27fec8dcff44b433ae88ced852e9285ed1` |
+| Version | `1.4.113` |
+| Release tag | `morphe-patches-113` |
+| Asset | `patches-1.4.113.mpp` |
+| SHA256 | `0b3531bd7187adc39020eb2551b82beee422ccbb5b8ddab9596e1bd56f96819a` |
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-112/patches-1.4.112.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-113/patches-1.4.113.mpp` |
 
-SHA256: `f3ba094e0481069eacb816a31983ef27fec8dcff44b433ae88ced852e9285ed1`
+SHA256: `0b3531bd7187adc39020eb2551b82beee422ccbb5b8ddab9596e1bd56f96819a`
 ## What this bundle does
 
 The current bundle is focused on practical hotfixes for tested app versions, especially Boost for Reddit behavior on newer Android versions.
@@ -126,10 +126,10 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.112` • `main` • 53 unique patches • 105 package entries
+> **Patch source version:** `1.4.113` • `main` • 54 unique patches • 106 package entries
 
 <details>
-<summary><strong>Boost for Reddit</strong> • 44 patches</summary>
+<summary><strong>Boost for Reddit</strong> • 45 patches</summary>
 
 
 
@@ -159,6 +159,7 @@ Included Imgur patches:
 | [Fix Boost native image upload](#fix-boost-native-image-upload) | Keeps Boost image posts and galleries on Reddit's native uploader and routes images inserted into comments or text posts through Imgur by default, with ImgBB as a manually selected alternative. GIF and video upload behavior is unchanged. |  |
 | [Fix Boost navigation bar overlap](#fix-boost-navigation-bar-overlap) | Adds runtime system bar inset handling for Boost bottom controls and drawer content on Android 15+ target SDK builds. |  |
 | [Fix Boost target SDK 35 compatibility](#fix-boost-target-sdk-35-compatibility) | Sets Boost for Reddit's target SDK to 35 and fixes BillingClient receiver registration for newer Android versions. |  |
+| [Fix Boost video rewind back buffer](#fix-boost-video-rewind-back-buffer) | Retains 30 seconds of recently played video in ExoPlayer so backward seeks can reuse buffered media instead of reloading it. |  |
 | [Fix Boost YouTube playback fallback](#fix-boost-youtube-playback-fallback) | Opens the original YouTube link externally when Boost's legacy embedded YouTube player is unavailable. |  |
 | [Fix download completed notification visibility](#fix-download-completed-notification-visibility) | Moves completed download notifications to a separate default-importance channel so download completion is visible while progress notifications remain low-priority. |  |
 | [Fix Hide crash](#fix-hide-crash) | Stabilizes Boost feed position handling and prevents invalid-index crashes when hiding read posts. |  |
@@ -540,16 +541,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.112` is prepared and locally verified with:
+Release `1.4.113` is prepared and locally verified with:
 
-- Release tag `morphe-patches-112`.
+- Release tag `morphe-patches-113`.
 - Local built MPP SHA256 matching README.
-`f3ba094e0481069eacb816a31983ef27fec8dcff44b433ae88ced852e9285ed1`
-- `patches-bundle.json` returning version `1.4.112`.
-- `patches-bundle.json` pointing to the `morphe-patches-112` asset.
+`0b3531bd7187adc39020eb2551b82beee422ccbb5b8ddab9596e1bd56f96819a`
+- `patches-bundle.json` returning version `1.4.113`.
+- `patches-bundle.json` pointing to the `morphe-patches-113` asset.
 - Expected release asset:
-`patches-1.4.112.mpp`
-- `f3ba094e0481069eacb816a31983ef27fec8dcff44b433ae88ced852e9285ed1  patches-1.4.112.mpp`
+`patches-1.4.113.mpp`
+- `0b3531bd7187adc39020eb2551b82beee422ccbb5b8ddab9596e1bd56f96819a  patches-1.4.113.mpp`
 
 ## Development notes
 
