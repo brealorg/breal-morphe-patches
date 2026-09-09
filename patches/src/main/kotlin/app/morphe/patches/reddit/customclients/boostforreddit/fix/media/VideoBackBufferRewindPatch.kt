@@ -15,19 +15,12 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 private const val CONTRACT_MARKER =
-    "MORPHE_BOOST_VIDEO_REWIND_BACKBUFFER_ISSUE188_V1"
+    "MORPHE_BOOST_VIDEO_REWIND_BACKBUFFER_ISSUE188_V2"
 
-// Boost 1.12.12 preserves the ExoPlayer source identity DefaultLoadControl.java
-// at Ls3/c;. Static discovery and the issue contract prove that:
-//   b()Z returns retainBackBufferFromKeyframe
-//   c()J returns backBufferDurationUs
-private val retainBackBufferFromKeyframeFingerprint = Fingerprint(
-    definingClass = "Ls3/c;",
-    name = "b",
-    returnType = "Z",
-    parameters = emptyList(),
-)
-
+// Boost 1.12.12 preserves ExoPlayer DefaultLoadControl.java at Ls3/c;.
+// c()J is getBackBufferDurationUs(). We intentionally leave b()Z
+// (retainBackBufferFromKeyframe) untouched so ExoPlayer keeps its original
+// bounded keyframe-retention policy.
 private val backBufferDurationUsFingerprint = Fingerprint(
     definingClass = "Ls3/c;",
     name = "c",
@@ -39,13 +32,13 @@ private val backBufferDurationUsFingerprint = Fingerprint(
 val fixBoostVideoRewindBackBufferPatch = bytecodePatch(
     name = "Fix Boost video rewind back buffer",
     description =
-        "Retains 30 seconds of played video in ExoPlayer so backward seeks can reuse recently played media instead of reloading it.",
+        "Retains 30 seconds of recently played video in ExoPlayer so backward seeks can reuse buffered media instead of reloading it.",
     default = true,
 ) {
     compatibleWith(*BoostCompatible)
 
     execute {
-        check(CONTRACT_MARKER.endsWith("ISSUE188_V1"))
+        check(CONTRACT_MARKER.endsWith("ISSUE188_V2"))
 
         backBufferDurationUsFingerprint.method.apply {
             val instructions = implementation?.instructions
@@ -71,32 +64,6 @@ val fixBoostVideoRewindBackBufferPatch = bytecodePatch(
             addInstruction(
                 returnIndex + 1,
                 "return-wide v$returnRegister",
-            )
-        }
-
-        retainBackBufferFromKeyframeFingerprint.method.apply {
-            val instructions = implementation?.instructions
-                ?: error("DefaultLoadControl retain getter has no implementation")
-
-            val returnIndex = instructions.withIndex()
-                .singleOrNull { (_, instruction) ->
-                    instruction.opcode == Opcode.RETURN
-                }
-                ?.index
-                ?: error("Expected exactly one return in DefaultLoadControl.b()")
-
-            val returnRegister =
-                (instructions[returnIndex] as? OneRegisterInstruction)?.registerA
-                    ?: error("Could not resolve DefaultLoadControl.b() return register")
-
-            // Keep the decoder-safe start of the retained back buffer.
-            replaceInstruction(
-                returnIndex,
-                "const/4 v$returnRegister, 0x1",
-            )
-            addInstruction(
-                returnIndex + 1,
-                "return v$returnRegister",
             )
         }
     }
