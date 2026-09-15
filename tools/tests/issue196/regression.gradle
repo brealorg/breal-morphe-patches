@@ -1,0 +1,42 @@
+import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.api.tasks.JavaExec
+
+gradle.projectsEvaluated {
+    def p = gradle.rootProject
+    p.pluginManager.apply("java-base")
+    def cp = p.configurations.create("issue196RegressionClasspath")
+    cp.canBeResolved = true
+    cp.canBeConsumed = false
+    cp.attributes.attribute(org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE,
+            p.objects.named(org.gradle.api.attributes.Usage, org.gradle.api.attributes.Usage.JAVA_RUNTIME))
+    p.dependencies.add(cp.name, "com.fasterxml.jackson.core:jackson-databind:2.6.0")
+    p.dependencies.add(cp.name, "com.squareup.okhttp3:okhttp-jvm:5.3.2")
+    p.repositories.mavenCentral()
+    def testDir = p.file("tools/tests/issue196")
+    def sourceRoot = "extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/"
+    def realSources = ["http/arcticshift/ArcticShift.java", "http/reddit/RedditApiUtils.java",
+                       "utils/EditableObjectNode.java"].collect { p.file(sourceRoot + it) }
+    def fixtureSources = p.fileTree(testDir) { include "**/*.java" }
+    def registerRun = { String suffix, File interceptor, boolean baseline ->
+        def compileTask = p.tasks.register("compileIssue196" + suffix, JavaCompile) {
+            source(realSources, interceptor, fixtureSources)
+            classpath = cp
+            destinationDirectory.set(p.layout.buildDirectory.dir("issue196/" + suffix))
+            options.encoding = "UTF-8"
+            options.release.set(17)
+        }
+        p.tasks.register("issue196" + suffix, JavaExec) {
+            dependsOn(compileTask)
+            classpath = p.files(compileTask.flatMap { it.destinationDirectory }) + cp
+            mainClass.set("Issue196RegressionTest")
+            if (baseline) { args("--baseline") }
+        }
+    }
+    def current = p.file(sourceRoot + "http/reddit/RedditSubmissionUndeleteInterceptor.java")
+    def candidate = registerRun("RegressionTest", current, false)
+    def baselineFile = p.findProperty("issue196Baseline")
+    if (baselineFile != null) {
+        def baseline = registerRun("BaselineProof", p.file(baselineFile), true)
+        candidate.configure { dependsOn(baseline) }
+    }
+}

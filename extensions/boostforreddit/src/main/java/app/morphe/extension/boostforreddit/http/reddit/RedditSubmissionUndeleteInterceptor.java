@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 wchill.
+ * Modified for Breal issue #196: fail-open recovery and compact comment caching (2026-09-11).
  * https://github.com/wchill/patcheddit
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to this code.
@@ -40,11 +41,16 @@ import app.morphe.extension.boostforreddit.utils.Emojis;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 public class RedditSubmissionUndeleteInterceptor implements Interceptor {
     private static final Pattern SUBMISSION_API_REGEX = Pattern.compile("^https?://\\w+\\.reddit\\.com/comments/");
     private static final Pattern GALLERY_REGEX = Pattern.compile("window\\.___r\\s*=\\s*(\\{.+\\})\\s*</script>", Pattern.DOTALL | Pattern.MULTILINE);
     private static final String GALLERY_UNDELETE_MARKER = "morphe_boost_reddit_gallery_undelete_submission_json";
+    private static final String FAIL_OPEN_MARKER = "morphe_boost_undelete_issue196_fail_open";
+    private static final String[] COMMENT_RECOVERY_FIELDS = {
+            "id", "author", "author_fullname", "author_flair_text", "body", "link_id"
+    };
     private final AutoSavingCache submissionCache = new AutoSavingCache("RedditSubmissions", 10);
     private final AutoSavingCache commentsCache = new AutoSavingCache("RedditComments", 10000);
 
@@ -62,27 +68,62 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
             return chain.proceed(request);
         }
         String[] pathParts = request.url().encodedPath().split("/");
-        String submissionId = pathParts[pathParts.length - 1];
+        if (pathParts.length < 3) {
+            return chain.proceed(request);
+        }
+        String submissionId = pathParts[2].replaceFirst("\\.json$", "");
+        if (!submissionId.matches("[A-Za-z0-9]+")) {
+            return chain.proceed(request);
+        }
 
-        Optional<String> cachedResponse = submissionCache.get(submissionId);
-        JsonNode data;
-        if (cachedResponse.isPresent()) {
-            data = handle4xx(request, submissionId);
-        } else {
-            Response response = chain.proceed(request);
-
-            if (response.isSuccessful()) {
-                data = handle200(response, submissionId);
-            } else {
-                response.close();
-                data = handle4xx(request, submissionId);
+        // A cached post is enrichment, not evidence that the live thread is unavailable.
+        // Always preserve Reddit's current comments and request context when available.
+        Response response = chain.proceed(request);
+        if (response.isSuccessful()) {
+            if (response.body() == null) {
+                return response;
+            }
+            // string() closes the original body. Keep the original text for recovery failures,
+            // rather than returning a consumed body or issuing the Reddit request a second time.
+            String originalJson = response.body().string();
+            try {
+                JsonNode data = handle200(response, submissionId, originalJson);
+                return response.newBuilder()
+                        .removeHeader("Content-Length")
+                        .removeHeader("Content-Encoding")
+                        .header("Content-Type", "application/json")
+                        .body(HttpUtils.getResponseBodyFromJson(data))
+                        .build();
+            } catch (IOException | RuntimeException failure) {
+                logRecoveryFailure(failure);
+                return response.newBuilder()
+                        .removeHeader("Content-Length")
+                        .body(ResponseBody.create(originalJson, response.body().contentType()))
+                        .build();
             }
         }
-        return HttpUtils.makeJsonResponse(request, data);
+
+        // Authentication, throttling and transient server errors are not deleted content.
+        if (response.code() != 403 && response.code() != 404) {
+            return response;
+        }
+        try {
+            Response restored = HttpUtils.makeJsonResponse(request, handle4xx(request, submissionId));
+            if (response.body() != null) {
+                response.close();
+            }
+            return restored;
+        } catch (IOException | RuntimeException failure) {
+            logRecoveryFailure(failure);
+            return response;
+        }
     }
 
-    private JsonNode handle200(Response redditResponse, String submissionId) throws IOException {
-        String jsonStr = redditResponse.body().string();
+    private static void logRecoveryFailure(Exception failure) {
+        LoggingUtils.logInfo(false, () -> FAIL_OPEN_MARKER + ": " + failure.getClass().getSimpleName());
+    }
+
+    private JsonNode handle200(Response redditResponse, String submissionId, String jsonStr) throws IOException {
         JsonNode json = HttpUtils.getJsonFromString(jsonStr);
 
         JsonNode submissionListing = json.get(0);
@@ -135,10 +176,37 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
     private JsonNode fetchDeletedSubmission(Request request, String id, JsonNode dataNode) throws IOException {
         Optional<String> cachedJson = submissionCache.get(id);
         if (cachedJson.isPresent()) {
-            return HttpUtils.getJsonFromString(cachedJson.get());
+            try {
+                JsonNode cached = HttpUtils.getJsonFromString(cachedJson.get());
+                if (isUsableSubmission(cached, id)) {
+                    EditableObjectNode normalizedCached = EditableObjectNode.wrap(cached);
+                    if (clearRecoveredUserDeletedRenderMarker(normalizedCached)) {
+                        submissionCache.put(id, HttpUtils.getStringFromJson(normalizedCached));
+                    }
+                    LoggingUtils.logInfo(true, () -> "morphe_boost_undelete_issue196_post_restored_cached");
+                    return normalizedCached;
+                }
+            } catch (RuntimeException failure) {
+                logRecoveryFailure(failure);
+            }
         }
 
         ArrayNode undeletedData = ArcticShift.getIds(ArcticShift.SubmissionType.POSTS, List.of(id));
+        JsonNode recovered = null;
+        if (undeletedData != null) {
+            for (JsonNode candidate : undeletedData) {
+                if (isUsableSubmission(candidate, id)) {
+                    recovered = candidate;
+                    break;
+                }
+            }
+        }
+        if (recovered == null) {
+            if (dataNode != null) {
+                return dataNode;
+            }
+            throw new IOException("No usable archived submission");
+        }
 
         EditableObjectNode editableNode;
         if (dataNode == null) {
@@ -148,7 +216,8 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
             editableNode = EditableObjectNode.wrap(dataNode);
             RedditApiUtils.setRemovalEmoji(editableNode);
         }
-        ArcticShift.updateSubmissionNode(editableNode, undeletedData.get(0));
+        ArcticShift.updateSubmissionNode(editableNode, recovered);
+        clearRecoveredUserDeletedRenderMarker(editableNode);
         editableNode.set("archived", BooleanNode.TRUE);
         editableNode.set("stickied", BooleanNode.FALSE);
         editableNode.setIfUnset("locked", BooleanNode.TRUE);
@@ -168,35 +237,105 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
         restoreRedditGalleryMetadata(request, id, editableNode);
 
         submissionCache.put(id, HttpUtils.getStringFromJson(editableNode));
+        LoggingUtils.logInfo(true, () -> "morphe_boost_undelete_issue196_post_restored");
         return editableNode;
     }
 
-    private void restoreDeletedComments(JsonNode comment) {
-        ObjectNode data = (ObjectNode) comment.get("data");
-        if (RedditApiUtils.isContentRemoved(data)) {
-            RedditApiUtils.setRemovalEmoji(data);
-            Optional<String> cachedJson = commentsCache.get(data.get("id").asText());
-            if (cachedJson.isPresent()) {
-                ArcticShift.updateCommentNode(data, HttpUtils.getJsonFromString(cachedJson.get()));
-            } else {
-                try {
-                    ArrayNode response = ArcticShift.getIds(ArcticShift.SubmissionType.COMMENTS, List.of(data.get("id").asText()));
-                    if (response.size() > 0) {
-                        ArcticShift.updateCommentNode(data, response.get(0));
-                    }
-                    commentsCache.put(data.get("id").asText(), HttpUtils.getStringFromJson(data));
-                } catch (IOException e) {
-                    LoggingUtils.logException(false, () -> "Failed to restore comment " + comment.get("id").asText());
-                }
+    private static boolean clearRecoveredUserDeletedRenderMarker(EditableObjectNode node) {
+        JsonNode removedByCategory = node == null ? null : node.get("removed_by_category");
+        if (removedByCategory != null && "deleted".equals(removedByCategory.asText())) {
+            node.set("removed_by_category", NullNode.instance);
+            LoggingUtils.logInfo(true, () -> "morphe_boost_undelete_issue196_user_deleted_marker_cleared");
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean hasText(JsonNode node, String key) {
+        JsonNode value = node == null ? null : node.get(key);
+        return value != null && value.isTextual() && !value.asText().isBlank();
+    }
+
+    private static boolean isUsableSubmission(JsonNode node, String id) {
+        return node != null && node.getNodeType() == JsonNodeType.OBJECT
+                && hasText(node, "id") && id.equals(node.get("id").asText())
+                && hasText(node, "title") && hasText(node, "author")
+                && hasText(node, "url") && hasText(node, "subreddit")
+                && node.get("created_utc") != null && !node.get("created_utc").isNull();
+    }
+
+    private static JsonNode commentRecoveryFields(JsonNode node, String id) {
+        if (node == null || node.getNodeType() != JsonNodeType.OBJECT || !hasText(node, "id")
+                || !id.equals(node.get("id").asText()) || !hasText(node, "body")
+                || RedditApiUtils.isContentRemoved(node)) {
+            return null;
+        }
+        EditableObjectNode recovery = new EditableObjectNode();
+        for (String key : COMMENT_RECOVERY_FIELDS) {
+            JsonNode value = node.get(key);
+            if (value != null && value.isTextual()) {
+                recovery.set(key, value);
             }
-            if ("DELETED".equals(data.get("collapsed_reason_code").asText())) {
-                data.replace("collapsed", BooleanNode.FALSE);
+        }
+        return recovery;
+    }
+
+    private void restoreDeletedComments(JsonNode comment) {
+        if (comment == null || comment.getNodeType() != JsonNodeType.OBJECT || !hasText(comment, "kind")
+                || !"t1".equals(comment.get("kind").asText())
+                || !(comment.get("data") instanceof ObjectNode)) {
+            return;
+        }
+        ObjectNode data = (ObjectNode) comment.get("data");
+        if (RedditApiUtils.isContentRemoved(data) && hasText(data, "id")) {
+            final String commentId = data.get("id").asText();
+            try {
+                JsonNode recovered = null;
+                Optional<String> cachedJson = commentsCache.get(commentId);
+                if (cachedJson.isPresent()) {
+                    try {
+                        recovered = commentRecoveryFields(HttpUtils.getJsonFromString(cachedJson.get()), commentId);
+                    } catch (RuntimeException failure) {
+                        logRecoveryFailure(failure);
+                    }
+                }
+                if (recovered == null) {
+                    ArrayNode response = ArcticShift.getIds(ArcticShift.SubmissionType.COMMENTS, List.of(commentId));
+                    if (response != null) {
+                        for (JsonNode candidate : response) {
+                            recovered = commentRecoveryFields(candidate, commentId);
+                            if (recovered != null) {
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (recovered != null) {
+                    // Merge into a new object so failed recovery cannot partially alter the live item.
+                    EditableObjectNode updated = new EditableObjectNode(data);
+                    RedditApiUtils.setRemovalEmoji(updated);
+                    ArcticShift.updateCommentNode(updated, recovered);
+                    JsonNode collapsedReason = data.get("collapsed_reason_code");
+                    if (collapsedReason != null && "DELETED".equals(collapsedReason.asText())) {
+                        updated.replace("collapsed", BooleanNode.FALSE);
+                    }
+                    ((ObjectNode) comment).replace("data", updated);
+                    data = updated;
+                    LoggingUtils.logInfo(true, () -> "morphe_boost_undelete_issue196_comment_restored");
+                    // Do not retain the live replies subtree in every cached ancestor comment.
+                    // Rewriting hits also projects older, full-comment cache entries down to these fields.
+                    commentsCache.put(commentId, HttpUtils.getStringFromJson(recovered));
+                }
+            } catch (IOException | RuntimeException failure) {
+                // The ID is inside data, not the t1 wrapper. Failure logging must not itself throw.
+                logRecoveryFailure(failure);
             }
         }
 
         JsonNode replies = data.get("replies");
-        if (replies != null && !replies.isNull() && replies.get("data") != null) {
-            for (JsonNode reply : replies.get("data").get("children")) {
+        JsonNode children = getNested(replies, "data", "children");
+        if (children != null && children.isArray()) {
+            for (JsonNode reply : children) {
                 restoreDeletedComments(reply);
             }
         }
@@ -277,7 +416,7 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
         if (node.isTextual() && node.asText().isBlank()) {
             return false;
         }
-        return !node.isContainerNode() || node.size() > 0;
+        return !(node.getNodeType() == JsonNodeType.OBJECT || node.getNodeType() == JsonNodeType.ARRAY) || node.size() > 0;
     }
 
     private JsonNode getNested(JsonNode node, String... path) {
