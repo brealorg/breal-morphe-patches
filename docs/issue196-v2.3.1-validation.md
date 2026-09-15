@@ -87,3 +87,37 @@ Kilde-/testfilene er bundet til eksisterende bygg gjennom build-runnerens opprin
 **Release er ikke godkjent av dette checkpointet.** OFF på endelig kandidat og samlet akseptansevurdering står fortsatt separat. Ingen eksakt identitet med ekstern rapportørs krasj hevdes. Ingen push, merge, tag, release eller issue-endring inngår.
 
 Maskinlesbar evidens og kildehashene ligger i `issue196-v2.3.1-validation.json`. Rå systemlogger og cache-/bildedata holdes utenfor Git. Opprinnelige summary-filer er uendret.
+
+## Final v2.3.1 ON/OFF acceptance addendum
+
+Source checkpoint: `0ba093eb126bef452dc9acbc2f954f0c303291a9`. DEV APK: `c64e185a770e9b97d1a216cf8a4736fb47346549dc981f982f6718057cb45d1d`.
+This addendum supersedes the *pending final-candidate OFF* disposition above, not the historical evidence itself.
+The original automatic ON `NEEDS_REVIEW` and the separate reviewed functional PASS are retained.
+
+| Evidence | Accepted scope |
+|---|---|
+| Focused regression | 22 existing PASS results, reused without rerun |
+| Signed-APK Jackson ABI | 242 references / 0 findings in the previously checked scope |
+| Original-source NPE fixtures | `TWO_EXPECTED_ORIGINAL_CODE_NPE_PROOFS_REUSED` |
+| ON, b1ew30 | Post/comment recovery, selected Wayback URL, native viewer, visually matching control image; reviewed PASS |
+| ON, 1vdrb92 | Stable cached recovery and deletion-marker normalization; original gallery images NOT visible |
+| OFF, b1ew30 and 1vdrb92 | Same final APK; refresh, comments and navigation confirmed without observed UI/loading failure |
+| OFF, normal feed | Feed refresh, ordinary post, comments and Back confirmed |
+| OFF saved flag | Verified at all five recorded checkpoints |
+| OFF app fatal/crash/ABI/native death/ANR counters | All zero |
+| OFF recovery markers / Arctic Shift / Reddit Wayback | All zero recorded lines |
+| OFF malformed-URL warning lines | 6; retained as warnings, not counted as crashes |
+
+### Maintainer disposition
+
+**Ready for PR review of the tested candidate.** No blocking failure was identified within the validated
+#196 scope. This is not a complete CI/release gate and does not authorize issue closure or publication.
+The original reporter's exact fatal stack was not obtained; deterministic original-source NPE fixture
+failures and historical candidate-introduced Jackson regressions must not be represented as that stack.
+
+The saved OFF value plus zero recovery markers supports disabled behavior in these flows, not a packet trace.
+Warnings do not negate the observed stable run, but issue168's full regression contract was not rerun.
+Archive availability, the specific Glide hook and missing original gallery pixels remain separately qualified.
+
+Only this evidence addendum is new. Production code, test code, APKs, original summaries and raw logs are unchanged.
+The structured addendum and local input hashes are in `issue196-v2.3.1-validation.json` under `final_acceptance`.
