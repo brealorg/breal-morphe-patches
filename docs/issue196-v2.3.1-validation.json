@@ -1,0 +1,225 @@
+{
+  "build": {
+    "abi_references_checked": 242,
+    "artifacts": {
+      "abi_report": "86072dd7a4cbb93aa6c18d9170b603f15595c4b24d73a97697cf950aa2ca2fd6",
+      "dev": "c64e185a770e9b97d1a216cf8a4736fb47346549dc981f982f6718057cb45d1d",
+      "mpp": "c601155e715ffb4a721a800a972d18254fbdc1fbeb5083ab1b5be135eaf302f4",
+      "normal": "d9b30146c419796806b76bd4cb6b198b95c13bb2adfe1b635e2eeb0ba6628fd8",
+      "patch_result": "92c60ff2e4ea69d878cc80117b6e139d0f406733369c44c9238f8ce8ff0f7580"
+    },
+    "baseline_proofs": "TWO_EXPECTED_ORIGINAL_CODE_NPE_PROOFS_REUSED",
+    "fingerprint": "278b50425a929394c12956e97f5cd833409ad8de6fa49c37ad64f4547786418b",
+    "test_names": [
+      "missing_collapse_reason_restores",
+      "null_collapse_reason_restores",
+      "deleted_collapse_reason_expands_only_after_restore",
+      "archive_IO_failure_preserves_comment",
+      "archive_runtime_failure_preserves_comment",
+      "empty_or_invalid_archive_does_not_cache_or_expand",
+      "malformed_wrappers_and_more_are_untouched",
+      "cache_projection_excludes_live_reply_subtrees",
+      "legacy_cache_hit_is_compacted_without_old_replies",
+      "corrupt_comment_cache_retries_archive",
+      "OFF_passes_same_unconsumed_response",
+      "malformed_live_JSON_replays_original_body_and_status",
+      "post_archive_failure_replays_complete_live_thread",
+      "auth_rate_limit_and_server_errors_not_recovered",
+      "404_archive_miss_keeps_original_error_stream",
+      "404_valid_archive_restore_closes_discarded_response",
+      "cached_post_does_not_bypass_live_thread_or_request_full_archive_tree",
+      "nested_recovery_preserves_more_nodes",
+      "malformed_reply_listing_does_not_crash",
+      "live_network_failure_is_not_swallowed_or_retried",
+      "recovered_deleted_gallery_clears_deleted_render_marker",
+      "legacy_cached_gallery_clears_deleted_render_marker"
+    ]
+  },
+  "candidate": "v2.3.1",
+  "checkpoint_scope": "Local source/test/documentation commit; not merge/publish/issue closure",
+  "evidence": {
+    "abi_report": {
+      "name": "jackson-abi.json",
+      "sha256": "86072dd7a4cbb93aa6c18d9170b603f15595c4b24d73a97697cf950aa2ca2fd6"
+    },
+    "baseline_regression_log": {
+      "name": "regression.log",
+      "sha256": "f349ec8d727f7766245eb688217ba1c7d9ec6a598b84840aca7a27ffe8c76fe6"
+    },
+    "build_state": {
+      "name": "state.json",
+      "sha256": "4077797d5503eb5841bd07a72963e31aed0864c15ea7416f67dcc6963edcfb1a"
+    },
+    "dev": {
+      "name": "boost-devclone.apk",
+      "sha256": "c64e185a770e9b97d1a216cf8a4736fb47346549dc981f982f6718057cb45d1d"
+    },
+    "gallery_summary": {
+      "name": "summary.json",
+      "sha256": "0f00ffcb1922834ee8939d2073c3435cd564243cb929e4cf115d989cc4f3c8ab"
+    },
+    "known_media_relevant": {
+      "name": "relevant.txt",
+      "sha256": "3a6b1b1d70548c3d9619375c93fb97c8907bc79b0cca194382726e5389734c56"
+    },
+    "known_media_summary": {
+      "name": "summary.json",
+      "sha256": "3b7055ffdbeb378846670372efc5140e9e9019b39bb7ab114622aa3dee77a0d9"
+    },
+    "mpp": {
+      "name": "patches-1.4.113.mpp",
+      "sha256": "c601155e715ffb4a721a800a972d18254fbdc1fbeb5083ab1b5be135eaf302f4"
+    },
+    "normal": {
+      "name": "boost-candidate.apk",
+      "sha256": "d9b30146c419796806b76bd4cb6b198b95c13bb2adfe1b635e2eeb0ba6628fd8"
+    },
+    "patch_result": {
+      "name": "patch-result.json",
+      "sha256": "92c60ff2e4ea69d878cc80117b6e139d0f406733369c44c9238f8ce8ff0f7580"
+    },
+    "regression_log": {
+      "name": "regression.log",
+      "sha256": "6dc7169af2ea6d0ce98446079df984d582851c649d7976dac8e12f402168be87"
+    },
+    "reviewed_runtime_note": {
+      "name": "reviewed-runtime.md",
+      "sha256": "68655ffb6ba3283d932608984dd4b7bed3c47443c1640f3d958bfdd71e64089f"
+    }
+  },
+  "final_acceptance": {
+    "baseline_proofs": "TWO_EXPECTED_ORIGINAL_CODE_NPE_PROOFS_REUSED",
+    "dev_apk_sha256": "c64e185a770e9b97d1a216cf8a4736fb47346549dc981f982f6718057cb45d1d",
+    "external_reporter_exact_fatal": "NOT_PROVEN_IDENTICAL_TO_THE_REPRODUCED_SOURCE_FAILURES",
+    "full_release_gate": "NOT_RUN",
+    "input_sha256": {
+      "checkpoint_validation": "8c14eee8850216387e6a83fc1cad34144046eb595723d9bc47cd46e5fbfa34be",
+      "off_report": "de96f3ad2763e5c0b2ef30492260df30f29d3ec7cc0323e82a856c0be1df02cb",
+      "off_summary": "62a866acd93b653766dd4f9e242c2c89cb89ab88d6f00f791780bd5584e4038c"
+    },
+    "limitations": [
+      "Original automatic ON NEEDS_REVIEW result and earlier OFF-history fields remain unchanged.",
+      "No independent positive proof of the specific Glide hook or fresh transport byte transfer.",
+      "The original two-image gallery is not a visual recovery PASS.",
+      "Missing/invalid recovery data is covered by the existing named fixtures, not exhaustive live fault injection.",
+      "6 warning lines in the OFF run are not a crash count; this review does not attribute their full stack to issue168.",
+      "Saved OFF and zero recovery log markers are not packet-level proof of zero archive traffic.",
+      "No build, test, runtime, CI, merge, release or normal-package qualification is rerun by this recorder."
+    ],
+    "off": {
+      "counters": {
+        "app_abi_error_lines": 0,
+        "app_anr_events": 0,
+        "app_crash_events": 0,
+        "app_death_events": 0,
+        "app_fatal_events": 0,
+        "app_native_fatal_events": 0,
+        "arctic_shift_log_lines": 0,
+        "malformed_url_warning_lines": 6,
+        "reddit_recovery_marker_lines": 0,
+        "reddit_wayback_log_lines": 0,
+        "total_reddit_recovery_log_lines": 0
+      },
+      "flows": {
+        "deleted_gallery": {
+          "user_confirmed": true,
+          "window_verified": true
+        },
+        "known_post": {
+          "user_confirmed": true,
+          "window_verified": true
+        },
+        "normal_feed": {
+          "user_confirmed": true,
+          "window_verified": true
+        }
+      },
+      "installed_identity_verified_after": true,
+      "observed_crash": false,
+      "preference_checks": [
+        {
+          "effective_value": false,
+          "key": "morphe_boost_reddit_undelete_enabled",
+          "point": "before"
+        },
+        {
+          "effective_value": false,
+          "key": "morphe_boost_reddit_undelete_enabled",
+          "point": "known_post_before"
+        },
+        {
+          "effective_value": false,
+          "key": "morphe_boost_reddit_undelete_enabled",
+          "point": "deleted_gallery_before"
+        },
+        {
+          "effective_value": false,
+          "key": "morphe_boost_reddit_undelete_enabled",
+          "point": "normal_feed_before"
+        },
+        {
+          "effective_value": false,
+          "key": "morphe_boost_reddit_undelete_enabled",
+          "point": "after"
+        }
+      ],
+      "result": "MORPHE_ISSUE196_V2_3_1_OFF_RUNTIME_PASS_FOR_TESTED_FLOWS",
+      "same_process_alive": true,
+      "saved_flag_verified": true,
+      "window_verified": true
+    },
+    "on_review": "PASS_FOR_TESTED_RECOVERY_FLOW",
+    "predecessor": "NOT_RERUN_ISSUE168_SEPARATE",
+    "primary": "PASS_FOR_TESTED_ON_OFF_FLOWS_AND_REUSED_REGRESSION",
+    "ready_for_pr": true,
+    "release_blocking": "NONE_IDENTIFIED_WITHIN_VALIDATED_ISSUE196_SCOPE",
+    "reviewed_scope": "Candidate source at the checkpoint and the exercised ON/OFF flows; ready for PR review.",
+    "source_checkpoint": "0ba093eb126bef452dc9acbc2f954f0c303291a9"
+  },
+  "issue": 196,
+  "runtime": {
+    "automatic_result_preserved": "MORPHE_ISSUE196_KNOWN_MEDIA_RUNTIME_NEEDS_REVIEW",
+    "comment_requests": 10,
+    "comment_restored": 9,
+    "crash_check": "PASS_FOR_THIS_RUN",
+    "external_reporter_exact_crash": "NOT_PROVEN_IDENTICAL_TO_REPRODUCED_SOURCE_FAILURES",
+    "fresh_network_byte_transfer": "NOT_MEASURED",
+    "gallery": {
+      "cached_post_path": "PASS_FOR_THIS_RUN",
+      "images_visible": false,
+      "post_id": "1vdrb92",
+      "removal_marker_normalized": true
+    },
+    "glide_specific_hook": "NOT_PROVEN",
+    "known_media": "n4ss3gg7aam21",
+    "known_media_post": "b1ew30",
+    "native_viewer": true,
+    "off_runtime": "HISTORICAL_V2_2_ONLY_NOT_FINAL_V2_3_1_OFF_PROOF",
+    "positive_url_cache_lines": 1,
+    "post_restored": 1,
+    "predecessor": "NOT_RERUN_ISSUE168_SEPARATE",
+    "primary": "PASS_FOR_REUSED_TESTS_AND_REVIEWED_ON_FLOWS",
+    "release_blocking": "NOT_ASSESSED_AS_A_COMPLETE_RELEASE_GATE",
+    "release_readiness": "PENDING_FINAL_CANDIDATE_OFF_AND_ACCEPTANCE_REVIEW",
+    "reviewed_result": "PASS_FOR_TESTED_RECOVERY_FLOW",
+    "visual_matches_reference": true,
+    "wayback_route_lines": 1
+  },
+  "source_base": "e3f67666d00fa0060958d487792008eacfbc69cd",
+  "source_branch": "work/issue196-undelete-fail-open-v1",
+  "source_sha256": {
+    "extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/http/reddit/RedditSubmissionUndeleteInterceptor.java": "1a06b219fa3de72fa4d4d713be0aec81cd5eb38a11ba3f61af0830e61ca5b73e",
+    "tools/tests/issue196/Issue196RegressionTest.java": "d5ad9f5f2086129cccdfc123288306ea1ec94d8f0e2b8c0174eadebdc93a6508",
+    "tools/tests/issue196/check-jackson-abi.py": "5e4ff3935b03c277492cffc7b76b6f9cb34c915a86d2faf56d7be00457c0bd7c",
+    "tools/tests/issue196/fixtures/app/morphe/extension/boostforreddit/http/AutoSavingCache.java": "45af63fb6ca8b76791c713f46700e0664d89b176ab96cecaf203fb7b90fd7f57",
+    "tools/tests/issue196/fixtures/app/morphe/extension/boostforreddit/http/HttpUtils.java": "bd73ee239c1cf815abc0625548658d69f9d47cf998b95650ba3c16f1d03956a1",
+    "tools/tests/issue196/fixtures/app/morphe/extension/boostforreddit/http/wayback/WaybackMachine.java": "4302630bd74a5373a8ee2240f6ca3045a9c64b1e1d359f8312e91e9f29ce7af5",
+    "tools/tests/issue196/fixtures/app/morphe/extension/boostforreddit/http/wayback/WaybackResponse.java": "12f0c87afbb6a6db507b756fb65853b7cf0b9d95db5acf5450f7b2e44c33b2a1",
+    "tools/tests/issue196/fixtures/app/morphe/extension/boostforreddit/utils/BoostUndeleteSettings.java": "559e8717e10b27fb3724086a1b7aba551967ad84038dac529222b31c2171b952",
+    "tools/tests/issue196/fixtures/app/morphe/extension/boostforreddit/utils/Emojis.java": "7455aa2a0641b3be24531d06c309bae2f4f77f124c0ee9f6ac081beb3626d4c7",
+    "tools/tests/issue196/fixtures/app/morphe/extension/boostforreddit/utils/LoggingUtils.java": "46ea33bc439a3bea6d51f543f8b91f1cbef2863bd5727ba9eeef1753e680543c",
+    "tools/tests/issue196/fixtures/app/morphe/extension/boostforreddit/utils/MarkdownRenderer.java": "a62655b75ce2a1dd01c23e8af9dad69b3ef6536bd17d3a914dfd758ebf6e44d0",
+    "tools/tests/issue196/fixtures/org/jetbrains/annotations/NotNull.java": "89aeb82c4480538461276bdeb824923278672b8e10d8b03e78eff58378786f39",
+    "tools/tests/issue196/regression.gradle": "910b9ad7510cbcf7711c524870b285fce50a0b8cbdb47f3e4331f872b6e3c162"
+  }
+}
