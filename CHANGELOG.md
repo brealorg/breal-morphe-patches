@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.114](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-113...morphe-patches-114) (2026-09-16)
+
+* **Boost for Reddit:** Harden Boost Reddit undelete recovery against malformed archive data and stripped Jackson runtime APIs while preserving normal fail-open behavior.
+
 ## [1.4.113](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-112...morphe-patches-113) (2026-09-09)
 
 * **Boost for Reddit:** Fix video rewind reloading so recently played Boost videos can seek backward without reloading the already played section.
