@@ -15,7 +15,7 @@ fail() {
     FAIL=1
 }
 
-printf 'CONTRACT=BOOST_HTML_NORMALIZER_V7\n'
+printf 'CONTRACT=BOOST_HTML_NORMALIZER_V8\n'
 
 if ! command -v javac >/dev/null 2>&1; then
     fail "JAVAC_NOT_FOUND"
@@ -26,10 +26,10 @@ if [ ! -f "$SOURCE" ]; then
 fi
 
 if [ "$FAIL" -eq 0 ]; then
-    grep -Fq 'MORPHE_CODEBLOCK_HTML_NORMALIZER_V7_MALFORMED_PARENTHESIZED_LINKS' "$SOURCE" ||
-        fail "V7_MARKER_MISSING"
+    grep -Fq 'MORPHE_CODEBLOCK_HTML_NORMALIZER_V8_PARENTHESIZED_LINKS_OPTIONAL_FRAGMENT' "$SOURCE" ||
+        fail "V8_MARKER_MISSING"
     grep -Fq 'normalizeMalformedParenthesizedLinks' "$SOURCE" ||
-        fail "V7_NORMALIZER_METHOD_MISSING"
+        fail "V8_NORMALIZER_METHOD_MISSING"
 fi
 
 if [ "$FAIL" -eq 0 ]; then
@@ -74,6 +74,68 @@ public final class CodeBlockHtmlNormalizerContract {
                 "ISSUE125_REPAIR_IDEMPOTENT",
                 repaired,
                 CodeBlockHtmlNormalizer.normalize(repaired)
+        );
+
+        String issue202Malformed =
+                "<p>It appears to be a screener for the "
+                + "<a href=\"https://en.wikipedia.org/wiki/Lemmings_(advertisement\">"
+                + "https://en.wikipedia.org/wiki/Lemmings_(advertisement)"
+                + "</a>) that fell flat.</p>";
+        String issue202Repaired =
+                "<p>It appears to be a screener for the "
+                + "<a href=\"https://en.wikipedia.org/wiki/Lemmings_(advertisement)\">"
+                + "https://en.wikipedia.org/wiki/Lemmings_(advertisement)"
+                + "</a> that fell flat.</p>";
+
+        assertEquals(
+                "ISSUE202_EXACT_REPRO_REPAIRED",
+                issue202Repaired,
+                CodeBlockHtmlNormalizer.normalize(issue202Malformed)
+        );
+        assertEquals(
+                "ISSUE202_REPAIR_IDEMPOTENT",
+                issue202Repaired,
+                CodeBlockHtmlNormalizer.normalize(issue202Repaired)
+        );
+
+        String sentenceCloseParenAfterLink =
+                "<p>(see <a href=\"https://example.com/page\">https://example.com/page</a>)</p>";
+        assertEquals(
+                "SENTENCE_CLOSE_PAREN_AFTER_LINK_UNCHANGED",
+                sentenceCloseParenAfterLink,
+                CodeBlockHtmlNormalizer.normalize(sentenceCloseParenAfterLink)
+        );
+
+        String sentenceCloseParenAfterBalancedLink =
+                "<p>(see <a href=\"https://example.com/a(b)\">https://example.com/a(b)</a>)</p>";
+        assertEquals(
+                "SENTENCE_CLOSE_PAREN_AFTER_BALANCED_LINK_UNCHANGED",
+                sentenceCloseParenAfterBalancedLink,
+                CodeBlockHtmlNormalizer.normalize(sentenceCloseParenAfterBalancedLink)
+        );
+
+        String unbalancedLabelNoFragment =
+                "<p><a href=\"https://example.com/a(b\">https://example.com/a(b</a>)</p>";
+        assertEquals(
+                "UNBALANCED_LABEL_NO_FRAGMENT_UNCHANGED",
+                unbalancedLabelNoFragment,
+                CodeBlockHtmlNormalizer.normalize(unbalancedLabelNoFragment)
+        );
+
+        String extraLabelSuffixNoFragment =
+                "<p><a href=\"https://example.com/a(b\">https://example.com/a(b)c</a>)</p>";
+        assertEquals(
+                "EXTRA_LABEL_SUFFIX_NO_FRAGMENT_UNCHANGED",
+                extraLabelSuffixNoFragment,
+                CodeBlockHtmlNormalizer.normalize(extraLabelSuffixNoFragment)
+        );
+
+        String nonUrlLabelNoFragment =
+                "<p><a href=\"https://example.com/a(b\">article</a>)</p>";
+        assertEquals(
+                "NON_URL_LABEL_NO_FRAGMENT_UNCHANGED",
+                nonUrlLabelNoFragment,
+                CodeBlockHtmlNormalizer.normalize(nonUrlLabelNoFragment)
         );
 
         String mismatchedFragment =
@@ -123,12 +185,12 @@ public final class CodeBlockHtmlNormalizerContract {
                 CodeBlockHtmlNormalizer.normalize(legacyMultilineCode)
         );
 
-        if (!"MORPHE_CODEBLOCK_HTML_NORMALIZER_V7_MALFORMED_PARENTHESIZED_LINKS"
+        if (!"MORPHE_CODEBLOCK_HTML_NORMALIZER_V8_PARENTHESIZED_LINKS_OPTIONAL_FRAGMENT"
                 .equals(CodeBlockHtmlNormalizer.MARKER)) {
-            throw new AssertionError("V7_MARKER_VALUE_MISMATCH");
+            throw new AssertionError("V8_MARKER_VALUE_MISMATCH");
         }
-        System.out.println("PASS=V7_MARKER_VALUE");
-        System.out.println("RESULT=BOOST_HTML_NORMALIZER_V7_CONTRACT_PASS");
+        System.out.println("PASS=V8_MARKER_VALUE");
+        System.out.println("RESULT=BOOST_HTML_NORMALIZER_V8_CONTRACT_PASS");
     }
 }
 JAVA
@@ -147,9 +209,9 @@ if [ "$FAIL" -eq 0 ]; then
 fi
 
 if [ "$FAIL" -eq 0 ]; then
-    printf 'RESULT=BOOST_HTML_NORMALIZER_V7_CONTRACT_PASS\n'
+    printf 'RESULT=BOOST_HTML_NORMALIZER_V8_CONTRACT_PASS\n'
 else
-    printf 'RESULT=BOOST_HTML_NORMALIZER_V7_CONTRACT_FAIL\n'
+    printf 'RESULT=BOOST_HTML_NORMALIZER_V8_CONTRACT_FAIL\n'
 fi
 
 exit "$FAIL"
