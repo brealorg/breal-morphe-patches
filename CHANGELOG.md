@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.115](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-114...morphe-patches-115) (2026-09-29)
+
+* **Boost for Reddit:** Fix Boost links to URLs with parentheses (such as Wikipedia disambiguation pages) that were cut off at the closing parenthesis, leaving a stray ")" after the link.
+
 ## [1.4.114](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-113...morphe-patches-114) (2026-09-16)
 
 * **Boost for Reddit:** Harden Boost Reddit undelete recovery against malformed archive data and stripped Jackson runtime APIs while preserving normal fail-open behavior.
