@@ -46,6 +46,10 @@ tasks {
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")
+        // Pass the exact bundle built by this project instead of scanning build/libs/.
+        argumentProviders.add(CommandLineArgumentProvider {
+            listOf(jar.get().archiveFile.get().asFile.absolutePath)
+        })
     }
     // Keep published Maven artifacts aligned with the generated patch catalog.
     publish {
