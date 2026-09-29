@@ -10,7 +10,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class CodeBlockHtmlNormalizer {
-    public static final String MARKER = "MORPHE_CODEBLOCK_HTML_NORMALIZER_V7_MALFORMED_PARENTHESIZED_LINKS";
+    public static final String MARKER = "MORPHE_CODEBLOCK_HTML_NORMALIZER_V8_PARENTHESIZED_LINKS_OPTIONAL_FRAGMENT";
+    public static final String V7_MARKER = "MORPHE_CODEBLOCK_HTML_NORMALIZER_V7_MALFORMED_PARENTHESIZED_LINKS";
     public static final String V6_MARKER = "MORPHE_CODEBLOCK_HTML_NORMALIZER_V6_RAW_HTML_MALFORMED_CODE_CLOSE";
     public static final String PREVIOUS_MARKER = "MORPHE_CODEBLOCK_HTML_NORMALIZER_V4_FENCED_SELFTEXT_ACTUAL_SHAPE";
     public static final String V3_MARKER = "MORPHE_CODEBLOCK_HTML_NORMALIZER_V3_FENCED_SELFTEXT";
@@ -25,7 +26,7 @@ public final class CodeBlockHtmlNormalizer {
             Pattern.compile("(?is)<code>(.*?)</code>");
 
     private static final Pattern MALFORMED_PARENTHESIZED_LINK_PATTERN =
-            Pattern.compile("(?i)<a href=\"(https?://[^\"]+)\">(https?://[^<]+)</a>(#[^<\\s)]+)\\)");
+            Pattern.compile("(?i)<a href=\"(https?://[^\"]+)\">(https?://[^<]+)</a>(#[^<\\s)]+)?\\)");
 
     private CodeBlockHtmlNormalizer() {
     }
@@ -80,7 +81,7 @@ public final class CodeBlockHtmlNormalizer {
         while (matcher.find()) {
             String href = matcher.group(1);
             String visibleUrl = matcher.group(2);
-            String duplicatedFragment = matcher.group(3);
+            String duplicatedFragment = matcher.group(3) == null ? "" : matcher.group(3);
 
             if (!visibleUrl.startsWith(href)) {
                 matcher.appendReplacement(out, Matcher.quoteReplacement(matcher.group(0)));
