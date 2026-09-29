@@ -13,15 +13,18 @@ import java.io.File
 import java.net.URLClassLoader
 import java.util.jar.Manifest
 
-fun main() {
-    val patchFiles = setOf(
-        File("build/libs/").listFiles { file ->
-            val fileName = file.name
-            !fileName.contains("javadoc") &&
-                    !fileName.contains("sources") &&
-                    fileName.endsWith(".mpp")
-        }!!.first()
+// MORPHE_PATCH_LIST_GENERATOR_EXACT_MPP_V1
+// The bundle path is passed in by the generatePatchesList task. Scanning
+// build/libs/ picks up stale bundles from earlier versions and silently drops
+// patches that are newer than that bundle.
+fun main(args: Array<String>) {
+    val patchFile = File(
+        args.singleOrNull() ?: error("Usage: PatchListGenerator <path to patches .mpp>")
     )
+    require(patchFile.isFile && patchFile.name.endsWith(".mpp")) {
+        "Patch bundle not found: ${patchFile.path}"
+    }
+    val patchFiles = setOf(patchFile)
     val loadedPatches = loadPatchesFromJar(patchFiles)
     val patchClassLoader = URLClassLoader(patchFiles.map { it.toURI().toURL() }.toTypedArray())
     val manifest = patchClassLoader.getResources("META-INF/MANIFEST.MF")

@@ -82,6 +82,43 @@ if missing:
 print("marker_check=PASS")
 PY
 
+# MORPHE_PATCHES_LIST_NO_SILENT_REMOVAL_V1
+# A generated list that loses patches present in the committed list means the
+# generator loaded the wrong or an incomplete bundle. Intentional removals must
+# be listed (one name per line) in MORPHE_ALLOW_REMOVED_PATCHES.
+echo "===== check for removed patches ====="
+if ! python3 - "$ORIGINAL" <<'PY'
+import json
+import os
+import sys
+from pathlib import Path
+
+def names(path):
+    data = json.loads(Path(path).read_text())
+    return {str(p.get("name", "")) for p in data.get("patches", []) if isinstance(p, dict)}
+
+allowed = {
+    line.strip()
+    for line in os.environ.get("MORPHE_ALLOW_REMOVED_PATCHES", "").splitlines()
+    if line.strip()
+}
+removed = sorted(names(sys.argv[1]) - names("patches-list.json") - allowed)
+
+if removed:
+    print("FAIL: generated patches-list.json drops patches present in the committed list:")
+    for name in removed:
+        print(f"  - {name}")
+    print("If the removal is intentional, list the names in MORPHE_ALLOW_REMOVED_PATCHES.")
+    raise SystemExit(1)
+
+print("removed_patch_check=PASS")
+PY
+then
+  cp "$ORIGINAL" patches-list.json
+  echo "RESULT=PATCHES_LIST_FEED_REMOVED_PATCHES_FAIL"
+  exit 1
+fi
+
 if ! diff -u "$ORIGINAL" patches-list.json > "$DIFF_OUT"; then
   echo
   echo "patches-list.json differs from generated output"
