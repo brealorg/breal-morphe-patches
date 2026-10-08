@@ -166,6 +166,8 @@ val fixBoostHomeFloatingActionMenuOverlapPatch = resourcePatch(
 ) {
     compatibleWith(*BoostCompatible)
 
+    dependsOn(fixFabDependencyClearancePatch)
+
     execute {
         document(MAIN_CONTENT_LAYOUT).use { document ->
             document.raiseIncludedFabs(
