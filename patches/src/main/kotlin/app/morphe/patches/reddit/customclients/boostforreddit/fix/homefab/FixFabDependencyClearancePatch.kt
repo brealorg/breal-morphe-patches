@@ -16,7 +16,7 @@ private const val FAB_CLEARANCE_EXTENSION_DESCRIPTOR =
     "Lapp/morphe/extension/boostforreddit/utils/BoostFabClearance;"
 
 /**
- * Boost's FAB menu and mini FAB behaviors write translationY from only the
+ * Boost's FAB menu and bottom-navigation FAB behaviors write translationY from only the
  * dependency that changed, so dismissing a Snackbar resets the FAB behind the
  * visible bottom navigation (issue #179). Route both callbacks through one
  * extension that clears every visible dependency.
@@ -30,7 +30,7 @@ internal val fixFabDependencyClearancePatch = bytecodePatch {
     execute {
         listOf(
             fabMenuDependentViewChangedFingerprint,
-            fabMiniDependentViewChangedFingerprint,
+            fabBottomNavigationDependentViewChangedFingerprint,
         ).forEach { fingerprint ->
             fingerprint.method.addInstructions(
                 0,
@@ -44,7 +44,7 @@ internal val fixFabDependencyClearancePatch = bytecodePatch {
 
         listOf(
             fabMenuDependentViewRemovedFingerprint,
-            fabMiniDependentViewRemovedFingerprint,
+            fabBottomNavigationDependentViewRemovedFingerprint,
         ).forEach { fingerprint ->
             fingerprint.method.apply {
                 // Keep the native super call, then replace the translation reset.

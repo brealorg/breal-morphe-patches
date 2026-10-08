@@ -14,7 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Owns the vertical clearance of Boost's scroll-aware FAB menu and mini FAB.
+ * Owns the vertical clearance of Boost's scroll-aware FAB menu and
+ * bottom-navigation FABs.
  *
  * Boost's native behaviors depend on both the Snackbar and the bottom
  * navigation, but each callback writes translationY from only the view that
@@ -78,7 +79,15 @@ public final class BoostFabClearance {
             return 0.0f;
         }
 
-        int coordinatorHeight = coordinator.getHeight();
+        // The edge the FAB is laid out against. Using the coordinator height
+        // would add its bottom padding (system inset) to the lift.
+        int anchorBottom = child.getBottom();
+        ViewGroup.LayoutParams params = child.getLayoutParams();
+
+        if (params instanceof ViewGroup.MarginLayoutParams) {
+            anchorBottom += ((ViewGroup.MarginLayoutParams) params).bottomMargin;
+        }
+
         float translation = 0.0f;
 
         for (int i = 0, count = coordinator.getChildCount(); i < count; i++) {
@@ -100,7 +109,7 @@ public final class BoostFabClearance {
                     dependency.getTop() + dependency.getTranslationY();
             translation = Math.min(
                     translation,
-                    visibleTop - coordinatorHeight
+                    visibleTop - anchorBottom
             );
         }
 

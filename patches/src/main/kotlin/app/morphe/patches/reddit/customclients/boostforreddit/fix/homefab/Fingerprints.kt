@@ -62,8 +62,8 @@ private fun dependentViewFingerprint(
 
 private const val SCROLL_AWARE_FAB_MENU_BEHAVIOR =
     "Lcom/rubenmayayo/reddit/ui/customviews/ScrollAwareFABMenuBehavior;"
-private const val SCROLL_AWARE_FAB_MINI_BEHAVIOR =
-    "Lcom/rubenmayayo/reddit/ui/customviews/ScrollAwareFABMiniBehavior;"
+private const val SCROLL_AWARE_FAB_BOTTOM_NAVIGATION_BEHAVIOR =
+    "Lcom/rubenmayayo/reddit/ui/customviews/ScrollAwareFABBehaviorBottomNavigation;"
 private const val FLOATING_ACTION_MENU_TYPE =
     "Lcom/rubenmayayo/reddit/ui/customviews/fab/FloatingActionMenu;"
 private const val FLOATING_ACTION_BUTTON_TYPE =
@@ -77,10 +77,11 @@ internal val fabMenuDependentViewRemovedFingerprint = dependentViewFingerprint(
     SCROLL_AWARE_FAB_MENU_BEHAVIOR, "G", FLOATING_ACTION_MENU_TYPE, "V",
 )
 
-internal val fabMiniDependentViewChangedFingerprint = dependentViewFingerprint(
-    SCROLL_AWARE_FAB_MINI_BEHAVIOR, "F", FLOATING_ACTION_BUTTON_TYPE, "Z",
+// Inbox/Profile fab + fab_submit, Search fab_save and Home fab_random.
+internal val fabBottomNavigationDependentViewChangedFingerprint = dependentViewFingerprint(
+    SCROLL_AWARE_FAB_BOTTOM_NAVIGATION_BEHAVIOR, "H", FLOATING_ACTION_BUTTON_TYPE, "Z",
 )
 
-internal val fabMiniDependentViewRemovedFingerprint = dependentViewFingerprint(
-    SCROLL_AWARE_FAB_MINI_BEHAVIOR, "G", FLOATING_ACTION_BUTTON_TYPE, "V",
+internal val fabBottomNavigationDependentViewRemovedFingerprint = dependentViewFingerprint(
+    SCROLL_AWARE_FAB_BOTTOM_NAVIGATION_BEHAVIOR, "P", FLOATING_ACTION_BUTTON_TYPE, "V",
 )

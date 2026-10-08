@@ -28,6 +28,8 @@ class BoostFabDependencyClearanceSourceContractTest(unittest.TestCase):
         # always ship together with the dependency-aware translation.
         self.assertIn('INCLUDED_FAB_BOTTOM_MARGIN =\n    "0.0dp"', source)
         self.assertIn("dependsOn(fixFabDependencyClearancePatch)", source)
+        # Sizing the include would drop fab_random's native layout_behavior.
+        self.assertNotIn('"@layout/fab_random"', source)
 
     def test_both_scroll_aware_behaviors_are_hooked(self) -> None:
         fingerprints = (HOMEFAB / "Fingerprints.kt").read_text(encoding="utf-8")
@@ -38,8 +40,8 @@ class BoostFabDependencyClearanceSourceContractTest(unittest.TestCase):
         for name in (
             "fabMenuDependentViewChangedFingerprint",
             "fabMenuDependentViewRemovedFingerprint",
-            "fabMiniDependentViewChangedFingerprint",
-            "fabMiniDependentViewRemovedFingerprint",
+            "fabBottomNavigationDependentViewChangedFingerprint",
+            "fabBottomNavigationDependentViewRemovedFingerprint",
         ):
             self.assertIn(f"internal val {name}", fingerprints)
             self.assertIn(name, patch)
@@ -65,6 +67,7 @@ class BoostFabDependencyClearanceSourceContractTest(unittest.TestCase):
         self.assertIn("dependency == excluded", source)
         self.assertIn("Math.min(", source)
         self.assertNotIn("coordinator.getBottom() - child.getBottom()", source)
+        self.assertIn("visibleTop - anchorBottom", source)
 
 
 if __name__ == "__main__":
