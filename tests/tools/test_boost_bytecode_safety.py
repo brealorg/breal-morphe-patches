@@ -151,5 +151,34 @@ class BytecodeSafetyIntegrationContractTests(unittest.TestCase):
         self.assertIn("test_boost_bytecode_safety.py", text)
 
 
+class BytecodeSafetyParserTests(unittest.TestCase):
+    def test_package_private_class_without_access_flags_is_indexed(self) -> None:
+        import sys
+
+        sys.path.insert(0, str(ROOT / "tools"))
+        import boost_bytecode_safety as gate
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "l$b.smali"
+            path.write_text(
+                ".class Lcom/example/l$b;\n"
+                ".super Ljava/lang/Object;\n"
+                ".method constructor <init>(Lcom/example/l;)V\n"
+                "    .locals 0\n"
+                "    return-void\n"
+                ".end method\n",
+                encoding="utf-8",
+            )
+            parsed = gate.parse_smali_file(path)
+
+        self.assertIsNotNone(parsed)
+        self.assertEqual("Lcom/example/l$b;", parsed.descriptor)
+        self.assertEqual(frozenset(), parsed.access)
+        self.assertIn(
+            ("Lcom/example/l$b;", "<init>", "(Lcom/example/l;)V"),
+            {method.key for method in parsed.methods.values()},
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

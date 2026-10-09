@@ -23,7 +23,8 @@ from collections import deque
 from pathlib import Path
 from typing import Iterable, Iterator, Sequence
 
-CLASS_RE = re.compile(r"^\.class\s+(?P<flags>.*?)\s+(?P<descriptor>L[^;]+;)$")
+# Package-private classes have no access flags: ".class Lfoo/Bar$a;".
+CLASS_RE = re.compile(r"^\.class\s+(?:(?P<flags>.*?)\s+)?(?P<descriptor>L[^;]+;)$")
 SUPER_RE = re.compile(r"^\.super\s+(?P<descriptor>L[^;]+;)$")
 FIELD_RE = re.compile(
     r"^\.field\s+(?P<prefix>.*?)\s*(?P<name>[^\s:=]+):(?P<type>[^\s=]+)"
@@ -315,7 +316,7 @@ def parse_smali_file(path: Path) -> ClassDef | None:
         match = CLASS_RE.match(text)
         if match:
             descriptor = match.group("descriptor")
-            class_access = parse_access(match.group("flags"))
+            class_access = parse_access(match.group("flags") or "")
             break
     if descriptor is None:
         return None
