@@ -1,6 +1,7 @@
 package app.morphe.extension.boostforreddit.utils;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
@@ -107,6 +108,8 @@ public final class BoostSearchBottomNavigation {
             "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_VISIBILITY_STATE_V1";
     private static final String ACTIVITY_STACK_STATE_MARKER =
             "MORPHE_BOOST_BOTTOM_NAV_ACTIVITY_STACK_V2_PRESERVE_CALLER";
+    private static final String HOME_TASK_ROOT_MARKER =
+            "MORPHE_BOOST_HOME_TASK_ROOT_ISSUE198_V1";
     private static final String HOME_RESELECT_TOP_MARKER =
             "MORPHE_BOOST_HOME_RESELECT_FAB_GO_TOP_V2";
     private static final java.util.WeakHashMap<View, Boolean>
@@ -4892,6 +4895,37 @@ public final class BoostSearchBottomNavigation {
         }
     }
 
+    private static boolean isMainActivityTaskRoot(Activity activity) {
+        try {
+            ActivityManager manager = (ActivityManager)
+                    activity.getSystemService(Activity.ACTIVITY_SERVICE);
+
+            if (manager == null) {
+                return true;
+            }
+
+            int taskId = activity.getTaskId();
+
+            for (ActivityManager.AppTask task : manager.getAppTasks()) {
+                ActivityManager.RecentTaskInfo info = task.getTaskInfo();
+
+                if (info == null || info.persistentId != taskId) {
+                    continue;
+                }
+
+                return info.baseActivity != null
+                        && MAIN_ACTIVITY.equals(
+                                info.baseActivity.getClassName()
+                        );
+            }
+        } catch (Throwable error) {
+            Log.w(TAG, "Home task root lookup failed", error);
+        }
+
+        // Unknown: keep the stack-preserving route.
+        return true;
+    }
+
     private static boolean openHome(Activity activity) {
         try {
             Class<?> destination = Class.forName(
@@ -4901,10 +4935,31 @@ public final class BoostSearchBottomNavigation {
             );
 
             Intent intent = new Intent(activity, destination);
-            intent.addFlags(
-                    Intent.FLAG_ACTIVITY_CLEAR_TOP
-                            | Intent.FLAG_ACTIVITY_SINGLE_TOP
-            );
+
+            if (isMainActivityTaskRoot(activity)) {
+                intent.addFlags(
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP
+                                | Intent.FLAG_ACTIVITY_SINGLE_TOP
+                );
+            } else {
+                /*
+                 * MainActivity.onCreate() finishes itself unless it is the
+                 * task root. Tasks started from a notification (Inbox) or a
+                 * deep link have another root, so Home would open and close
+                 * immediately (issue #198). Restart the task with Home as root.
+                 */
+                intent.addFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK
+                                | Intent.FLAG_ACTIVITY_CLEAR_TASK
+                );
+                Log.i(
+                        TAG,
+                        "Home restarts task as root marker="
+                                + HOME_TASK_ROOT_MARKER
+                                + " from="
+                                + activity.getClass().getName()
+                );
+            }
 
             activity.startActivity(intent);
             Log.i(
