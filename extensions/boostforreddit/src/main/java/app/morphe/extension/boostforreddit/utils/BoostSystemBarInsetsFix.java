@@ -55,7 +55,7 @@ public final class BoostSystemBarInsetsFix {
     private static final String IMAGE_VIEWER_LOADING_INSET_MARKER =
             "MORPHE_BOOST_IMAGE_VIEWER_LOADING_INSET_ISSUE170_V1";
     private static final String IMAGE_VIEWER_SAFE_AREA_MARKER =
-            "MORPHE_BOOST_IMAGE_VIEWER_SAFE_AREA_ISSUE171_V1";
+            "MORPHE_BOOST_IMAGE_VIEWER_SAFE_AREA_ISSUE189_V2";
     private static final String TAG = "MorpheInsetsFix";
 
     private static final WeakHashMap<Application, Boolean> INSTALLED = new WeakHashMap<>();
@@ -412,6 +412,10 @@ public final class BoostSystemBarInsetsFix {
             public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
                 try {
                     applySafeAreaPaddingNow(v, insets);
+                    // The padded root already clears the system bars. Consume
+                    // the insets so fitsSystemWindows children, such as the
+                    // image viewer toolbar, do not add the same top inset again.
+                    return consumeSafeAreaInsets(insets);
                 } catch (Throwable ignored) {
                 }
                 return insets;
@@ -428,6 +432,18 @@ public final class BoostSystemBarInsetsFix {
                 }
             }
         });
+    }
+
+    private static WindowInsets consumeSafeAreaInsets(WindowInsets insets) {
+        if (insets == null) return null;
+        if (Build.VERSION.SDK_INT >= 30) {
+            return WindowInsets.CONSUMED;
+        }
+        WindowInsets consumed = insets.consumeSystemWindowInsets();
+        if (Build.VERSION.SDK_INT >= 28) {
+            consumed = consumed.consumeDisplayCutout();
+        }
+        return consumed;
     }
 
     private static void applySafeAreaPaddingNow(View view, WindowInsets insets) {
