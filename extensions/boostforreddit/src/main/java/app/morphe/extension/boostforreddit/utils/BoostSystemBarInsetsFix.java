@@ -40,6 +40,8 @@ public final class BoostSystemBarInsetsFix {
     private static final String TOOLBAR_SURFACE_FOREGROUND_MARKER_V2 = "MORPHE_BOOST_TOOLBAR_SURFACE_FOREGROUND_V2";
     private static final String MAIN_NAV_BAR_SURFACE_MARKER_V3 = "MORPHE_BOOST_MAIN_NAV_BAR_SURFACE_V3";
     private static final String MAIN_NAV_BAR_SURFACE_OVERLAY_MARKER_V4 = "MORPHE_BOOST_MAIN_NAV_BAR_SURFACE_OVERLAY_V4";
+    // Tag of BoostSearchBottomNavigation's decor underlay.
+    private static final String NAVIGATION_DECOR_UNDERLAY_TAG = "morphe_boost_bottom_navigation_decor_underlay";
     private static final String EXTENDED_ACTIVITY_SURFACE_SCOPE_MARKER_V5 = "MORPHE_BOOST_EXTENDED_ACTIVITY_SURFACE_SCOPE_V5";
     private static final String DRAWER_STICKY_FOOTER_CLEARANCE_MARKER =
             "MORPHE_BOOST_DRAWER_STICKY_FOOTER_CLEARANCE_ISSUE150_V5_SYSTEM_INSET";
@@ -882,6 +884,7 @@ public final class BoostSystemBarInsetsFix {
                 surface.setLayoutParams(params);
             }
 
+            surface.setVisibility(View.VISIBLE);
             surface.setBackgroundColor(color);
             surface.bringToFront();
             surface.invalidate();
@@ -1130,6 +1133,17 @@ public final class BoostSystemBarInsetsFix {
 
             FrameLayout group = (FrameLayout) decor;
             View surface = decor.findViewWithTag(MAIN_NAV_BAR_SURFACE_OVERLAY_MARKER_V4);
+
+            // The canonical bottom navigation paints this strip with its own
+            // surface color. Only act as the fallback when it is not shown,
+            // instead of both overlays racing with bringToFront().
+            View navigationUnderlay = decor.findViewWithTag(NAVIGATION_DECOR_UNDERLAY_TAG);
+            if (navigationUnderlay != null && navigationUnderlay.getVisibility() == View.VISIBLE) {
+                if (surface != null) {
+                    surface.setVisibility(View.GONE);
+                }
+                return;
+            }
 
             if (surface == null) {
                 surface = new View(decor.getContext());
