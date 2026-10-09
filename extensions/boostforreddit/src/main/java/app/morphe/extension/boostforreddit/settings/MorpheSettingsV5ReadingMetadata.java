@@ -189,6 +189,8 @@ final class MorpheSettingsV5ReadingMetadata {
                 return "Show trending communities";
             case "pref_search_show_trending_searches":
                 return "Show trending today";
+            case "morphe_boost_search_show_active_subreddits":
+                return "Show active subreddits";
             default:
                 return key == null ? "" : key;
         }
@@ -228,6 +230,8 @@ final class MorpheSettingsV5ReadingMetadata {
                 return "Show content labeled Not Safe For Work.";
             case "morphe_boost_search_open_keyboard_on_entry":
                 return "Focus Search and show the keyboard immediately.";
+            case "morphe_boost_search_show_active_subreddits":
+                return "List currently active subreddits when Search opens.";
             default:
                 return "";
         }
