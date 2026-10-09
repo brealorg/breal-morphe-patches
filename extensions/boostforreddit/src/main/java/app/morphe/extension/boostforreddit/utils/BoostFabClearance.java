@@ -9,9 +9,14 @@ package app.morphe.extension.boostforreddit.utils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 /**
  * Owns the vertical clearance of Boost's scroll-aware FAB menu and
@@ -40,7 +45,76 @@ public final class BoostFabClearance {
     private static final Map<Class<?>, Boolean> DEPENDENCY_CACHE =
             new HashMap<>();
 
+    /** FABs this class positions, per coordinator. */
+    private static final Map<ViewGroup, Set<View>> CLEARED_CHILDREN =
+            new WeakHashMap<>();
+
+    /**
+     * Snackbars shown outside the FAB's coordinator (e.g. in the activity
+     * content frame). They are no CoordinatorLayout dependency, so the native
+     * callbacks never fire for them.
+     */
+    private static final Map<ViewGroup, Set<View>> FOREIGN_OBSTRUCTIONS =
+            new WeakHashMap<>();
+
     private BoostFabClearance() {
+    }
+
+    /** Keeps FABs in {@code coordinator} above {@code obstruction} while it is shown. */
+    public static void trackForeignObstruction(
+            final ViewGroup coordinator,
+            final View obstruction
+    ) {
+        if (coordinator == null || obstruction == null) {
+            return;
+        }
+
+        weakSet(FOREIGN_OBSTRUCTIONS, coordinator).add(obstruction);
+
+        final ViewTreeObserver.OnPreDrawListener preDraw = () -> {
+            refresh(coordinator);
+            return true;
+        };
+        obstruction.getViewTreeObserver().addOnPreDrawListener(preDraw);
+        obstruction.addOnAttachStateChangeListener(
+                new View.OnAttachStateChangeListener() {
+                    @Override
+                    public void onViewAttachedToWindow(View view) {
+                    }
+
+                    @Override
+                    public void onViewDetachedFromWindow(View view) {
+                        view.removeOnAttachStateChangeListener(this);
+                        view.getViewTreeObserver().removeOnPreDrawListener(preDraw);
+                        weakSet(FOREIGN_OBSTRUCTIONS, coordinator).remove(view);
+                        refresh(coordinator);
+
+                        Log.i(
+                                TAG,
+                                "foreign obstruction removed marker=" + MARKER
+                        );
+                    }
+                }
+        );
+    }
+
+    private static void refresh(ViewGroup coordinator) {
+        for (View child : new ArrayList<>(weakSet(CLEARED_CHILDREN, coordinator))) {
+            if (child.getParent() == coordinator) {
+                apply(coordinator, child, null);
+            }
+        }
+    }
+
+    private static Set<View> weakSet(Map<ViewGroup, Set<View>> map, ViewGroup key) {
+        Set<View> set = map.get(key);
+
+        if (set == null) {
+            set = Collections.newSetFromMap(new WeakHashMap<>());
+            map.put(key, set);
+        }
+
+        return set;
     }
 
     /** Replaces onDependentViewChanged. */
@@ -88,6 +162,8 @@ public final class BoostFabClearance {
             anchorBottom += ((ViewGroup.MarginLayoutParams) params).bottomMargin;
         }
 
+        weakSet(CLEARED_CHILDREN, coordinator).add(child);
+
         float translation = 0.0f;
 
         for (int i = 0, count = coordinator.getChildCount(); i < count; i++) {
@@ -113,7 +189,28 @@ public final class BoostFabClearance {
             );
         }
 
-        child.setTranslationY(translation);
+        Set<View> foreign = FOREIGN_OBSTRUCTIONS.get(coordinator);
+
+        if (foreign != null && !foreign.isEmpty()) {
+            int[] coordinatorLocation = new int[2];
+            int[] obstructionLocation = new int[2];
+            coordinator.getLocationInWindow(coordinatorLocation);
+
+            for (View obstruction : foreign) {
+                if (obstruction == excluded || !obstruction.isShown()) {
+                    continue;
+                }
+
+                // Window location already includes the Snackbar's translation.
+                obstruction.getLocationInWindow(obstructionLocation);
+                float visibleTop = obstructionLocation[1] - coordinatorLocation[1];
+                translation = Math.min(translation, visibleTop - anchorBottom);
+            }
+        }
+
+        if (child.getTranslationY() != translation) {
+            child.setTranslationY(translation);
+        }
         return translation;
     }
 
