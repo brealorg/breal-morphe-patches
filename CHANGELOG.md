@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.117](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-116...morphe-patches-117) (2026-10-09)
+
+* **Boost for Reddit:** Remove the blank space above the image viewer buttons, add a Search setting to hide Active subreddits, and keep flair labels readable when the subreddit flair text color matches its background.
+
 ## [1.4.116](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-115...morphe-patches-116) (2026-10-09)
 
 * **Boost for Reddit:** Keep floating action buttons above the bottom navigation after a Snackbar is dismissed and show Snackbars above the navigation instead of covering it, automatically load the next page when content filters hide every post on a page, and fix the bottom navigation Home button doing nothing after opening Boost from a notification or link.
