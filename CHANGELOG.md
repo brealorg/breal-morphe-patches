@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.116](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-115...morphe-patches-116) (2026-10-09)
+
+* **Boost for Reddit:** Keep floating action buttons above the bottom navigation after a Snackbar is dismissed and show Snackbars above the navigation instead of covering it, automatically load the next page when content filters hide every post on a page, and fix the bottom navigation Home button doing nothing after opening Boost from a notification or link.
+
 ## [1.4.115](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-114...morphe-patches-115) (2026-09-29)
 
 * **Boost for Reddit:** Fix Boost links to URLs with parentheses (such as Wikipedia disambiguation pages) that were cut off at the closing parenthesis, leaving a stray ")" after the link.

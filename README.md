@@ -72,14 +72,14 @@ The repository shorthand shown at the top is the preferred Manager setup. Raw
 
 | Field | Value |
 |---|---|
-| Version | `1.4.115` |
-| Release tag | `morphe-patches-115` |
-| Asset | `patches-1.4.115.mpp` |
-| SHA256 | `1963b09ac24ade6f651803b962639f49d08e9a494fb031f28284cd73413817fd` |
+| Version | `1.4.116` |
+| Release tag | `morphe-patches-116` |
+| Asset | `patches-1.4.116.mpp` |
+| SHA256 | `e45dc3dec7ca5d9888a4040813734f2c3466b4ac86ab81ec5988e40a066e4e7e` |
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-115/patches-1.4.115.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-116/patches-1.4.116.mpp` |
 
-SHA256: `1963b09ac24ade6f651803b962639f49d08e9a494fb031f28284cd73413817fd`
+SHA256: `e45dc3dec7ca5d9888a4040813734f2c3466b4ac86ab81ec5988e40a066e4e7e`
 ## What this bundle does
 
 The current bundle is focused on practical hotfixes for tested app versions, especially Boost for Reddit behavior on newer Android versions.
@@ -126,10 +126,10 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.115` • `main` • 54 unique patches • 106 package entries
+> **Patch source version:** `1.4.116` • `main` • 56 unique patches • 108 package entries
 
 <details>
-<summary><strong>Boost for Reddit</strong> • 45 patches</summary>
+<summary><strong>Boost for Reddit</strong> • 47 patches</summary>
 
 
 
@@ -142,7 +142,9 @@ Included Imgur patches:
 |---|---|---|
 | [Add archive links to context menu](#add-archive-links-to-context-menu) |  |  |
 | [Add Boost Search bottom navigation](#add-boost-search-bottom-navigation) | Shows Boost's native Home, Search, Subscriptions, Inbox and Profile menu in Search and Go To. |  |
+| [Anchor Boost Snackbars above bottom navigation](#anchor-boost-snackbars-above-bottom-navigation) | Shows Boost Snackbars above the visible bottom navigation instead of covering it. |  |
 | [Animate media in Boost gallery previews](#animate-media-in-boost-gallery-previews) | Autoplays selected Reddit gallery GIF and video media while preserving Boost's poster, data preferences, and full-screen media route. |  |
+| [Auto-load next page after filtered results](#auto-load-next-page-after-filtered-results) | Loads the next page automatically when content filters hide every post on a page, instead of leaving the feed stuck behind a "Results were filtered" Snackbar. |  |
 | [Automatically undelete Imgur images](#automatically-undelete-imgur-images) |  |  |
 | [Automatically undelete Reddit content](#automatically-undelete-reddit-content) |  |  |
 | [Boost Morphe settings](#boost-morphe-settings) | Adds dedicated Morphe settings and task-based Material Settings V5 navigation with global search and a classic fallback. |  |
@@ -541,16 +543,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.115` is prepared and locally verified with:
+Release `1.4.116` is prepared and locally verified with:
 
-- Release tag `morphe-patches-115`.
+- Release tag `morphe-patches-116`.
 - Local built MPP SHA256 matching README.
-`1963b09ac24ade6f651803b962639f49d08e9a494fb031f28284cd73413817fd`
-- `patches-bundle.json` returning version `1.4.115`.
-- `patches-bundle.json` pointing to the `morphe-patches-115` asset.
+`e45dc3dec7ca5d9888a4040813734f2c3466b4ac86ab81ec5988e40a066e4e7e`
+- `patches-bundle.json` returning version `1.4.116`.
+- `patches-bundle.json` pointing to the `morphe-patches-116` asset.
 - Expected release asset:
-`patches-1.4.115.mpp`
-- `1963b09ac24ade6f651803b962639f49d08e9a494fb031f28284cd73413817fd  patches-1.4.115.mpp`
+`patches-1.4.116.mpp`
+- `e45dc3dec7ca5d9888a4040813734f2c3466b4ac86ab81ec5988e40a066e4e7e  patches-1.4.116.mpp`
 
 ## Development notes
 
