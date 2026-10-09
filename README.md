@@ -72,14 +72,14 @@ The repository shorthand shown at the top is the preferred Manager setup. Raw
 
 | Field | Value |
 |---|---|
-| Version | `1.4.116` |
-| Release tag | `morphe-patches-116` |
-| Asset | `patches-1.4.116.mpp` |
-| SHA256 | `e45dc3dec7ca5d9888a4040813734f2c3466b4ac86ab81ec5988e40a066e4e7e` |
+| Version | `1.4.117` |
+| Release tag | `morphe-patches-117` |
+| Asset | `patches-1.4.117.mpp` |
+| SHA256 | `3b3764c3b728fa738f81ed5693a232586a34ac98c5fb4b593639836069b64f51` |
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-116/patches-1.4.116.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-117/patches-1.4.117.mpp` |
 
-SHA256: `e45dc3dec7ca5d9888a4040813734f2c3466b4ac86ab81ec5988e40a066e4e7e`
+SHA256: `3b3764c3b728fa738f81ed5693a232586a34ac98c5fb4b593639836069b64f51`
 ## What this bundle does
 
 The current bundle is focused on practical hotfixes for tested app versions, especially Boost for Reddit behavior on newer Android versions.
@@ -126,10 +126,10 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.116` • `main` • 56 unique patches • 108 package entries
+> **Patch source version:** `1.4.117` • `main` • 57 unique patches • 109 package entries
 
 <details>
-<summary><strong>Boost for Reddit</strong> • 47 patches</summary>
+<summary><strong>Boost for Reddit</strong> • 48 patches</summary>
 
 
 
@@ -172,6 +172,7 @@ Included Imgur patches:
 | [Hook exception handler](#hook-exception-handler) | Hook the exception handler in Boost. Don't enable except for development purposes |  |
 | [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
 | [Prefer high refresh rate](#prefer-high-refresh-rate) | Requests a high display refresh rate for Boost on adaptive-refresh devices. |  |
+| [Readable Boost flair labels](#readable-boost-flair-labels) | Uses black or white flair text when Reddit's flair text color is unreadable on its background. |  |
 | [Remove obsolete profile tabs](#remove-obsolete-profile-tabs) | Removes the legacy Gilded and Friends tabs from Boost profiles. |  |
 | [Restore Boost Open by default prompt](#restore-boost-open-by-default-prompt) | Prompts after Boost patch updates to reopen Android's Open by default settings so supported Reddit links can be re-enabled. |  |
 | [Restore Boost sidebar Trending today](#restore-boost-sidebar-trending-today) | Uses native trending data when renderable, otherwise supplies HOT post rows and fixes the global community-limit control. |  |
@@ -543,16 +544,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.116` is prepared and locally verified with:
+Release `1.4.117` is prepared and locally verified with:
 
-- Release tag `morphe-patches-116`.
+- Release tag `morphe-patches-117`.
 - Local built MPP SHA256 matching README.
-`e45dc3dec7ca5d9888a4040813734f2c3466b4ac86ab81ec5988e40a066e4e7e`
-- `patches-bundle.json` returning version `1.4.116`.
-- `patches-bundle.json` pointing to the `morphe-patches-116` asset.
+`3b3764c3b728fa738f81ed5693a232586a34ac98c5fb4b593639836069b64f51`
+- `patches-bundle.json` returning version `1.4.117`.
+- `patches-bundle.json` pointing to the `morphe-patches-117` asset.
 - Expected release asset:
-`patches-1.4.116.mpp`
-- `e45dc3dec7ca5d9888a4040813734f2c3466b4ac86ab81ec5988e40a066e4e7e  patches-1.4.116.mpp`
+`patches-1.4.117.mpp`
+- `3b3764c3b728fa738f81ed5693a232586a34ac98c5fb4b593639836069b64f51  patches-1.4.117.mpp`
 
 ## Development notes
 
