@@ -142,6 +142,11 @@ private val boostMorpheSettingsResourcesPatch = resourcePatch(
                             android:title="Open keyboard when entering Search"
                             android:summary="Focus the search field and show the keyboard immediately. When disabled, tap Search again to start typing."
                             android:defaultValue="false" />
+                        <CheckBoxPreference
+                            android:key="morphe_boost_search_show_active_subreddits"
+                            android:title="Show active subreddits"
+                            android:summary="List currently active subreddits when Search opens."
+                            android:defaultValue="true" />
                     </PreferenceCategory>
 
                     <PreferenceCategory android:title="Display &amp; performance">

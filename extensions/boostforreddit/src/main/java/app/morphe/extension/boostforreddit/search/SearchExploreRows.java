@@ -29,6 +29,12 @@ public final class SearchExploreRows {
     private static final String SECTION_STABILITY_MARKER =
             "MORPHE_SEARCH_EXPLORE_ISSUE95_STABLE_ANCHOR_V1";
 
+    private static final String PREFERENCE_MARKER =
+            "MORPHE_SEARCH_ACTIVE_SUBREDDITS_PREFERENCE_ISSUE201_V1";
+    // Settings V5 > Search & filters > Suggestions (default on).
+    private static final String PREFERENCE_KEY =
+            "morphe_boost_search_show_active_subreddits";
+
     private static final String CACHE_PREFS = "morphe_search_active_subreddits_v5l";
     private static final String CACHE_VALUE = "active_rows";
     private static final String CACHE_TS = "active_rows_ts";
@@ -82,6 +88,17 @@ public final class SearchExploreRows {
         }
     }
 
+    private static boolean isActiveSubredditsEnabled(Activity activity) {
+        try {
+            return android.preference.PreferenceManager
+                    .getDefaultSharedPreferences(activity)
+                    .getBoolean(PREFERENCE_KEY, true);
+        } catch (Throwable error) {
+            Log.w(TAG, "active subreddits preference failed marker=" + PREFERENCE_MARKER, error);
+            return true;
+        }
+    }
+
     public static void appendOrRefresh(Activity activity, ArrayList rows) {
         if (activity == null || rows == null) {
             return;
@@ -92,6 +109,14 @@ public final class SearchExploreRows {
         }
 
         normalizeRedditSearchFilterLabels(activity);
+
+        if (!isActiveSubredditsEnabled(activity)) {
+            synchronized (LOCK) {
+                removeInsertedLocked(activity, rows);
+            }
+            log("mode=disabled marker=" + PREFERENCE_MARKER);
+            return;
+        }
 
         boolean shouldFetch = false;
 
@@ -179,6 +204,11 @@ public final class SearchExploreRows {
                     public void run() {
                         if (!isSearchTextEmpty(activity)) {
                             log("refresh_skip_nonempty_query");
+                            return;
+                        }
+
+                        if (!isActiveSubredditsEnabled(activity)) {
+                            log("refresh_skip_disabled marker=" + PREFERENCE_MARKER);
                             return;
                         }
 
