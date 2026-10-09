@@ -3362,9 +3362,14 @@ public final class BoostSearchBottomNavigation {
                                             != 1.0f
                                         || !navigation.isEnabled();
 
+                        // Respect explicit hides such as Boost's p3(false)
+                        // for the swipe post view.
                         boolean navigationMismatch =
                                 navigationStateMismatch
                                         && isBottomNavigationPreferenceEnabled(
+                                            activity
+                                        )
+                                        && isNavigationRequestedVisible(
                                             activity
                                         );
 
@@ -3468,6 +3473,16 @@ public final class BoostSearchBottomNavigation {
                         + " selectedItemId="
                         + selectedItemId
         );
+    }
+
+    private static boolean isNavigationRequestedVisible(
+            Activity activity
+    ) {
+        synchronized (NATIVE_NAVIGATION_VISIBILITY_REQUESTS) {
+            Boolean requested =
+                    NATIVE_NAVIGATION_VISIBILITY_REQUESTS.get(activity);
+            return requested == null || requested;
+        }
     }
 
     private static void repairHomeCanonicalState(
