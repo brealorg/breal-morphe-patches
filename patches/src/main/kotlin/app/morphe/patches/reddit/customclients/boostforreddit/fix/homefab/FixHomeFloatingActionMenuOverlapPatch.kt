@@ -31,15 +31,16 @@ private data class IncludedFab(
     val gravity: String,
 )
 
+/*
+ * Only includes whose root has no layout_behavior. Sizing an <include> makes
+ * LayoutInflater build LayoutParams from the include alone, which would drop
+ * fab_random's ScrollAwareFABBehaviorBottomNavigation and native margin.
+ */
 private val MAIN_INCLUDED_FABS =
     listOf(
         IncludedFab(
             layout = "@layout/fab_subreddit",
             gravity = "end|bottom",
-        ),
-        IncludedFab(
-            layout = "@layout/fab_random",
-            gravity = "center|bottom",
         ),
     )
 
@@ -165,6 +166,8 @@ val fixBoostHomeFloatingActionMenuOverlapPatch = resourcePatch(
     default = true,
 ) {
     compatibleWith(*BoostCompatible)
+
+    dependsOn(fixFabDependencyClearancePatch)
 
     execute {
         document(MAIN_CONTENT_LAYOUT).use { document ->
