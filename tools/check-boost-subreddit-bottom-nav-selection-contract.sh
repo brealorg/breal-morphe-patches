@@ -43,7 +43,7 @@ if subreddit_block is None:
     raise SystemExit("FAIL=SUBREDDIT_NOT_MAPPED_DIRECTLY_TO_SUBSCRIPTIONS")
 
 issue117 = re.search(
-    r"private static boolean preserveSourceSelectionAfterRoute\(.*?\n    }\n\n    private static String attachSubredditNavigationListeners",
+    r"private static boolean preserveSourceSelectionAfterRoute\(.*?\n    }\n\n    private static String attachReselectedListener",
     source,
     flags=re.S,
 )
