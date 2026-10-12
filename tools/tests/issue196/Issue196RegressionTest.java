@@ -457,11 +457,15 @@ public final class Issue196RegressionTest {
             check(out.code() == 200 && HttpUtils.calls.get(0).contains("limit=100"), "Large limit not clamped: " + HttpUtils.calls);
         });
         test("subreddit_search_retries_one_archive_query_timeout", () -> {
+            // Arctic Shift sends its query timeout as HTTP 422 with an error body.
             HttpUtils.replies.put("posts/search", new ArrayDeque<>(List.of(
-                    "{\"data\":null,\"error\":\"Timeout. Maybe slow down a bit\"}",
+                    new HttpUtils.HttpStatusException(422, "{\"data\":null,\"error\":\"Timeout. Maybe slow down a bit\"}"),
                     "{\"data\":[{\"id\":\"p1\",\"title\":\"a\",\"created_utc\":1600000000}]}")));
             Response out = new Live().route(SUB_HOT, 404, "gone").run(new RedditSubredditUndeleteInterceptor(), SUB_HOT);
             check(out.code() == 200 && HttpUtils.calls.size() == 2, "Query timeout not retried: " + HttpUtils.calls);
+            Field cooldown = app.morphe.extension.boostforreddit.http.arcticshift.ArcticShift.class.getDeclaredField("lastFailureNanos");
+            cooldown.setAccessible(true);
+            check(cooldown.get(null) == null, "Query timeout started the outage cooldown");
         });
         test("media_live_success_is_never_replaced", () -> {
             Live live = new Live().route(MEDIA, 200, "image");

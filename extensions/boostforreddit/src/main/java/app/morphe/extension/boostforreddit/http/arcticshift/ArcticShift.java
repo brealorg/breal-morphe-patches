@@ -74,6 +74,20 @@ public class ArcticShift {
             JsonNode result = HttpUtils.getJson(url, callTimeoutMillis);
             lastFailureNanos = null;
             return result;
+        } catch (HttpUtils.HttpStatusException failure) {
+            // A query-level timeout comes back as HTTP 422 with an error body. The service is up,
+            // so hand the body to the caller (which may retry) instead of starting a cooldown.
+            if (failure.code == 422 && failure.body.contains("\"error\"")) {
+                try {
+                    return HttpUtils.getJsonFromString(failure.body);
+                } catch (RuntimeException ignored) {
+                    // Not JSON after all; treat as a failure below.
+                }
+            }
+            lastFailureNanos = System.nanoTime();
+            LoggingUtils.logInfo(false, () -> ARCTIC_SHIFT_COOLDOWN_MARKER
+                    + ": HTTP " + failure.code);
+            throw failure;
         } catch (IOException failure) {
             lastFailureNanos = System.nanoTime();
             LoggingUtils.logInfo(false, () -> ARCTIC_SHIFT_COOLDOWN_MARKER
