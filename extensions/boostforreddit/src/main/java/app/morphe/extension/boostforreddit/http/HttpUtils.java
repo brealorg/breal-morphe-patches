@@ -80,9 +80,22 @@ public class HttpUtils {
                 .build();
         try (Response response = clientWithCallTimeout(callTimeoutMillis).newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                throw new IOException("HTTP " + response.code());
+                throw new HttpStatusException(response.code(),
+                        response.body() == null ? "" : response.body().string());
             }
             return objectMapper.readTree(response.body().string());
+        }
+    }
+
+    /** A non-2xx answer; callers can inspect services that report errors in the body. */
+    public static final class HttpStatusException extends IOException {
+        public final int code;
+        public final String body;
+
+        public HttpStatusException(int code, String body) {
+            super("HTTP " + code);
+            this.code = code;
+            this.body = body == null ? "" : body;
         }
     }
 

@@ -4,6 +4,11 @@ import java.io.IOException;
 import java.util.*;
 import okhttp3.*;
 public final class HttpUtils {
+    public static final class HttpStatusException extends IOException {
+        public final int code;
+        public final String body;
+        public HttpStatusException(int code, String body) { super("HTTP " + code); this.code = code; this.body = body; }
+    }
     public static final ObjectMapper mapper = new ObjectMapper();
     public static final Map<String,Object> replies = new LinkedHashMap<>();
     public static final List<String> calls = new ArrayList<>();
