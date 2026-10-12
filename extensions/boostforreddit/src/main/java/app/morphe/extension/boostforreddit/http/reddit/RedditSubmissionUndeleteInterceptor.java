@@ -1,6 +1,7 @@
 /*
  * Copyright 2026 wchill.
  * Modified for Breal issue #196: fail-open recovery and compact comment caching (2026-09-11).
+ * Modified for Breal issue #219: batched comment recovery (2026-10-12).
  * https://github.com/wchill/patcheddit
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to this code.
@@ -22,9 +23,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,6 +52,7 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
     private static final Pattern GALLERY_REGEX = Pattern.compile("window\\.___r\\s*=\\s*(\\{.+\\})\\s*</script>", Pattern.DOTALL | Pattern.MULTILINE);
     private static final String GALLERY_UNDELETE_MARKER = "morphe_boost_reddit_gallery_undelete_submission_json";
     private static final String FAIL_OPEN_MARKER = "morphe_boost_undelete_issue196_fail_open";
+    private static final String COMMENT_BATCH_MARKER = "morphe_boost_undelete_issue219_comment_batch";
     private static final String[] COMMENT_RECOVERY_FIELDS = {
             "id", "author", "author_fullname", "author_flair_text", "body", "link_id"
     };
@@ -137,12 +142,7 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
         }
 
         JsonNode commentsListing = json.get(1);
-        ArrayNode comments = (ArrayNode) commentsListing.get("data").get("children");
-        {
-            for (JsonNode comment : comments) {
-                restoreDeletedComments(comment);
-            }
-        }
+        restoreDeletedComments(commentsListing.get("data").get("children"));
 
         ArrayNode root = new ArrayNode(JsonNodeFactory.instance);
         root.add(submissionListing);
@@ -280,63 +280,136 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
         return recovery;
     }
 
-    private void restoreDeletedComments(JsonNode comment) {
-        if (comment == null || comment.getNodeType() != JsonNodeType.OBJECT || !hasText(comment, "kind")
-                || !"t1".equals(comment.get("kind").asText())
-                || !(comment.get("data") instanceof ObjectNode)) {
+    /**
+     * Restores removed comments in a comment, reply listing or array of comments.
+     *
+     * Archive lookups run inside Boost's own Reddit request, so all uncached IDs are
+     * fetched in as few Arctic Shift calls as possible rather than one call per comment.
+     */
+    private void restoreDeletedComments(JsonNode root) {
+        List<ObjectNode> removed = new ArrayList<>();
+        collectRemovedComments(root, removed);
+        if (removed.isEmpty()) {
             return;
         }
-        ObjectNode data = (ObjectNode) comment.get("data");
-        if (RedditApiUtils.isContentRemoved(data) && hasText(data, "id")) {
-            final String commentId = data.get("id").asText();
+
+        Map<String, JsonNode> recoveredById = new HashMap<>();
+        Set<String> uncached = new LinkedHashSet<>();
+        for (ObjectNode comment : removed) {
+            String commentId = comment.get("data").get("id").asText();
+            if (recoveredById.containsKey(commentId) || uncached.contains(commentId)) {
+                continue;
+            }
+            JsonNode cached = cachedCommentRecovery(commentId);
+            if (cached != null) {
+                recoveredById.put(commentId, cached);
+            } else {
+                uncached.add(commentId);
+            }
+        }
+        fetchArchivedComments(new ArrayList<>(uncached), recoveredById);
+
+        int restored = 0;
+        for (ObjectNode comment : removed) {
+            ObjectNode data = (ObjectNode) comment.get("data");
+            JsonNode recovered = recoveredById.get(data.get("id").asText());
+            if (recovered == null) {
+                continue;
+            }
             try {
-                JsonNode recovered = null;
-                Optional<String> cachedJson = commentsCache.get(commentId);
-                if (cachedJson.isPresent()) {
-                    try {
-                        recovered = commentRecoveryFields(HttpUtils.getJsonFromString(cachedJson.get()), commentId);
-                    } catch (RuntimeException failure) {
-                        logRecoveryFailure(failure);
-                    }
+                // Merge into a new object so failed recovery cannot partially alter the live item.
+                EditableObjectNode updated = new EditableObjectNode(data);
+                RedditApiUtils.setRemovalEmoji(updated);
+                ArcticShift.updateCommentNode(updated, recovered);
+                JsonNode collapsedReason = data.get("collapsed_reason_code");
+                if (collapsedReason != null && "DELETED".equals(collapsedReason.asText())) {
+                    updated.replace("collapsed", BooleanNode.FALSE);
                 }
-                if (recovered == null) {
-                    ArrayNode response = ArcticShift.getIds(ArcticShift.SubmissionType.COMMENTS, List.of(commentId));
-                    if (response != null) {
-                        for (JsonNode candidate : response) {
-                            recovered = commentRecoveryFields(candidate, commentId);
-                            if (recovered != null) {
-                                break;
-                            }
-                        }
-                    }
-                }
-                if (recovered != null) {
-                    // Merge into a new object so failed recovery cannot partially alter the live item.
-                    EditableObjectNode updated = new EditableObjectNode(data);
-                    RedditApiUtils.setRemovalEmoji(updated);
-                    ArcticShift.updateCommentNode(updated, recovered);
-                    JsonNode collapsedReason = data.get("collapsed_reason_code");
-                    if (collapsedReason != null && "DELETED".equals(collapsedReason.asText())) {
-                        updated.replace("collapsed", BooleanNode.FALSE);
-                    }
-                    ((ObjectNode) comment).replace("data", updated);
-                    data = updated;
-                    LoggingUtils.logInfo(true, () -> "morphe_boost_undelete_issue196_comment_restored");
-                    // Do not retain the live replies subtree in every cached ancestor comment.
-                    // Rewriting hits also projects older, full-comment cache entries down to these fields.
-                    commentsCache.put(commentId, HttpUtils.getStringFromJson(recovered));
-                }
-            } catch (IOException | RuntimeException failure) {
-                // The ID is inside data, not the t1 wrapper. Failure logging must not itself throw.
+                comment.replace("data", updated);
+                restored++;
+            } catch (RuntimeException failure) {
                 logRecoveryFailure(failure);
             }
         }
 
-        JsonNode replies = data.get("replies");
-        JsonNode children = getNested(replies, "data", "children");
+        final int removedCount = removed.size();
+        final int uncachedCount = uncached.size();
+        final int restoredCount = restored;
+        LoggingUtils.logInfo(true, () -> COMMENT_BATCH_MARKER
+                + ": removed=" + removedCount
+                + " uncached=" + uncachedCount
+                + " restored=" + restoredCount);
+    }
+
+    private void collectRemovedComments(JsonNode node, List<ObjectNode> removed) {
+        if (node == null) {
+            return;
+        }
+        if (node.isArray()) {
+            for (JsonNode child : node) {
+                collectRemovedComments(child, removed);
+            }
+            return;
+        }
+        if (node.getNodeType() != JsonNodeType.OBJECT || !hasText(node, "kind")
+                || !"t1".equals(node.get("kind").asText())
+                || !(node.get("data") instanceof ObjectNode)) {
+            return;
+        }
+        ObjectNode data = (ObjectNode) node.get("data");
+        if (RedditApiUtils.isContentRemoved(data) && hasText(data, "id")) {
+            removed.add((ObjectNode) node);
+        }
+
+        JsonNode children = getNested(data.get("replies"), "data", "children");
         if (children != null && children.isArray()) {
-            for (JsonNode reply : children) {
-                restoreDeletedComments(reply);
+            collectRemovedComments(children, removed);
+        }
+    }
+
+    private JsonNode cachedCommentRecovery(String commentId) {
+        Optional<String> cachedJson = commentsCache.get(commentId);
+        if (!cachedJson.isPresent()) {
+            return null;
+        }
+        try {
+            JsonNode recovered = commentRecoveryFields(HttpUtils.getJsonFromString(cachedJson.get()), commentId);
+            if (recovered != null) {
+                // Rewriting hits also projects older, full-comment cache entries down to these fields.
+                commentsCache.put(commentId, HttpUtils.getStringFromJson(recovered));
+            }
+            return recovered;
+        } catch (RuntimeException failure) {
+            logRecoveryFailure(failure);
+            return null;
+        }
+    }
+
+    private void fetchArchivedComments(List<String> commentIds, Map<String, JsonNode> recoveredById) {
+        for (int from = 0; from < commentIds.size(); from += ArcticShift.MAX_IDS_PER_REQUEST) {
+            List<String> batch = commentIds.subList(
+                    from, Math.min(from + ArcticShift.MAX_IDS_PER_REQUEST, commentIds.size()));
+            try {
+                ArrayNode response = ArcticShift.getIds(ArcticShift.SubmissionType.COMMENTS, batch);
+                for (JsonNode candidate : response) {
+                    if (!hasText(candidate, "id")) {
+                        continue;
+                    }
+                    String commentId = candidate.get("id").asText();
+                    if (!batch.contains(commentId) || recoveredById.containsKey(commentId)) {
+                        continue;
+                    }
+                    JsonNode recovered = commentRecoveryFields(candidate, commentId);
+                    if (recovered != null) {
+                        recoveredById.put(commentId, recovered);
+                        // Do not retain the live replies subtree in every cached ancestor comment.
+                        commentsCache.put(commentId, HttpUtils.getStringFromJson(recovered));
+                    }
+                }
+            } catch (IOException | RuntimeException failure) {
+                // Keep what earlier batches recovered; the rest of the thread stays live.
+                logRecoveryFailure(failure);
+                return;
             }
         }
     }

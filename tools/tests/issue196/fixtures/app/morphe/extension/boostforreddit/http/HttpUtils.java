@@ -20,6 +20,9 @@ public final class HttpUtils {
         }
         throw new AssertionError("Unconfigured archive request: " + url);
     }
+    public static JsonNode getJson(String url, long callTimeoutMillis) throws IOException {
+        return getJson(url);
+    }
     public static JsonNode getJsonFromString(String text) {
         try { return mapper.readTree(text); }
         catch (IOException e) { throw new RuntimeException(e); }
