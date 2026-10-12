@@ -95,6 +95,20 @@ public final class WaybackMachineRegressionTest {
             check(WaybackMachine.getFromWayback(REQUEST, URL).found(), "Capture not found");
             check(WaybackMachine.getFromWayback(REQUEST, URL).found() && timemapCalls() == 1, "Cached capture not reused");
         });
+        test("rate_limiter_spaces_permits_and_honours_timeouts", () -> {
+            // Replaces reflection into Boost's obfuscated Guava, which could fail class init.
+            app.morphe.extension.boostforreddit.utils.CompatibleRateLimiter limiter =
+                    app.morphe.extension.boostforreddit.utils.CompatibleRateLimiter.create(10);
+            long start = System.nanoTime();
+            for (int i = 0; i < 4; i++) limiter.acquire();
+            long elapsedMs = (System.nanoTime() - start) / 1_000_000L;
+            check(elapsedMs >= 250 && elapsedMs < 1000, "Permits not spaced at 10/s: " + elapsedMs + " ms");
+            app.morphe.extension.boostforreddit.utils.CompatibleRateLimiter slow =
+                    app.morphe.extension.boostforreddit.utils.CompatibleRateLimiter.create(0.5);
+            check(slow.tryAcquire(), "First permit not free");
+            check(!slow.tryAcquire(1, 100, java.util.concurrent.TimeUnit.MILLISECONDS), "Timeout ignored");
+            check(slow.tryAcquire(1, 3, java.util.concurrent.TimeUnit.SECONDS), "Permit within timeout refused");
+        });
         System.out.println("WAYBACK_REGRESSION_TESTS_PASS=" + passed);
     }
 }

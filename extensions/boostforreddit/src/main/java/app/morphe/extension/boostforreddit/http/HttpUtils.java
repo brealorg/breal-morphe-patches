@@ -41,7 +41,9 @@ public class HttpUtils {
 
     static {
         File cacheDir = CacheUtils.getHttpCacheDir();
-        Cache cache = new Cache(cacheDir, 2048L * 1024L * 1024L);
+        // Archive responses only; 2 GB filled phones with old Wayback media. OkHttp trims an
+        // existing larger cache to this size.
+        Cache cache = new Cache(cacheDir, 200L * 1024L * 1024L);
         httpClient = new OkHttpClient.Builder()
                 .connectTimeout(30L, TimeUnit.SECONDS)
                 .readTimeout(30L, TimeUnit.SECONDS)
@@ -153,7 +155,9 @@ public class HttpUtils {
                 .head()
                 .url(url)
                 .build();
-        return httpClient.newCall(request).execute().isSuccessful();
+        try (Response response = httpClient.newCall(request).execute()) {
+            return response.isSuccessful();
+        }
     }
 
     public static Response create404(Request request) {
