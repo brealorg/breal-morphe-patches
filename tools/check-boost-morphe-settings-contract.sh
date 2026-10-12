@@ -288,7 +288,7 @@ assert 'RESOURCE_ARGUMENT =\n            "morphe_boost_settings_hub_resource"' i
 assert 'resourceName.startsWith(RESOURCE_PREFIX)' in hub
 assert 'Preference backup = findPreference(BACKUP_KEY);' in hub
 assert 'intent.setClassName(context.getPackageName(), BACKUP_ACTIVITY);' in hub
-assert 'startActivity(intent);' in hub
+assert 'backup.setIntent(intent);' in hub
 
 assert f'ENABLED_KEY =\n            "{toggle_key}"' in v4
 assert 'LEGACY_V2_ENABLED_KEY =\n            "morphe_boost_settings_layout_v2_enabled"' in v4
