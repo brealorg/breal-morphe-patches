@@ -362,6 +362,16 @@ if [ -n "$BASE_APK" ]; then
     else
       warn "could not read base APK manifest"
     fi
+
+    # Extension code is compiled against stock libraries; Boost ships stripped and obfuscated copies.
+    LINKAGE_LOG="$TMP/linkage.txt"
+    if python3 -I "$(dirname "$0")/boost_extension_linkage.py" \
+        --base-apk "$BASE_APK" --candidate-apk "$APK" > "$LINKAGE_LOG" 2>&1; then
+      pass "all member and class references resolve in the candidate APK"
+    else
+      fail "candidate references members or classes Boost does not ship"
+      grep -E '^(MISSING|LINKAGE_GATE=FAIL)' "$LINKAGE_LOG" | sed -n '1,40p'
+    fi
   fi
 fi
 

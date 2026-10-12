@@ -10,12 +10,11 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-
-import androidx.preference.PreferenceManager;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

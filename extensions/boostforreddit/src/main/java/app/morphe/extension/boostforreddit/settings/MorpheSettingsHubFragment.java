@@ -71,12 +71,11 @@ public final class MorpheSettingsHubFragment extends PreferenceFragmentCompat {
             return;
         }
 
-        backup.setOnPreferenceClickListener(preference -> {
-            Intent intent = new Intent();
-            intent.setClassName(context.getPackageName(), BACKUP_ACTIVITY);
-            startActivity(intent);
-            return true;
-        });
+        // Boost obfuscates Preference.OnPreferenceClickListener, so setOnPreferenceClickListener
+        // cannot be linked at runtime. Preference.setIntent keeps its stock signature.
+        Intent intent = new Intent();
+        intent.setClassName(context.getPackageName(), BACKUP_ACTIVITY);
+        backup.setIntent(intent);
     }
 
     @Override
