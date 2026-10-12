@@ -13,6 +13,7 @@ MPP=""
 NAME="boost-dev-from-mpp"
 SERIAL=""
 MARKERS=()
+ENABLE_PATCHES=()
 INSTALL=0
 NO_VERIFY_WITH_SDK=1
 DEBUGGABLE_DEV=0
@@ -33,6 +34,8 @@ Options:
   --base PATH                Clean original Boost APK. Defaults to known APKMirror Boost 1.12.12.
   --serial SERIAL            adb serial. Required when --install is used.
   --marker TEXT              Marker string required in normal and DEV APK. Repeatable.
+  --enable-patch NAME        Also apply an opt-in patch, e.g. "Automatically undelete
+                             Reddit content". Passed to Morphe CLI as -e. Repeatable.
   --install                  Install DEV APK to the selected device.
   --debuggable-dev           Make only the DEV clone debuggable and enable its
                              DUMP-protected settings audit gateway.
@@ -83,6 +86,10 @@ while [ "$#" -gt 0 ]; do
       ;;
     --marker)
       MARKERS+=("${2:-}")
+      shift 2
+      ;;
+    --enable-patch)
+      ENABLE_PATCHES+=("${2:-}")
       shift 2
       ;;
     --install)
@@ -216,22 +223,20 @@ NORMAL_APK=""
 NORMAL_DIR=""
 if [ "$FAIL" -eq 0 ]; then
   NORMAL_NAME="${NAME}-normal"
-  if [ "$NO_VERIFY_WITH_SDK" -eq 1 ]; then
-    tools/build-boost-candidate.sh \
-      --base "$BASE_APK" \
-      --mpp "$MPP" \
-      --name "$NORMAL_NAME" \
-      --expected-target-sdk "$EXPECTED_TARGET_SDK" \
-      --no-verify-with-sdk \
-      2>&1 | tee "$OUT_DIR/build-normal.log"
-  else
-    tools/build-boost-candidate.sh \
-      --base "$BASE_APK" \
-      --mpp "$MPP" \
-      --name "$NORMAL_NAME" \
-      --expected-target-sdk "$EXPECTED_TARGET_SDK" \
-      2>&1 | tee "$OUT_DIR/build-normal.log"
+  BUILD_ARGS=(
+    --base "$BASE_APK"
+    --mpp "$MPP"
+    --name "$NORMAL_NAME"
+    --expected-target-sdk "$EXPECTED_TARGET_SDK"
+  )
+  [ "$NO_VERIFY_WITH_SDK" -eq 1 ] && BUILD_ARGS+=(--no-verify-with-sdk)
+  if [ "${#ENABLE_PATCHES[@]}" -gt 0 ]; then
+    BUILD_ARGS+=(--)
+    for patch in "${ENABLE_PATCHES[@]}"; do
+      BUILD_ARGS+=(-e "$patch")
+    done
   fi
+  tools/build-boost-candidate.sh "${BUILD_ARGS[@]}" 2>&1 | tee "$OUT_DIR/build-normal.log"
 
   RC=${PIPESTATUS[0]}
   [ "$RC" -eq 0 ] || mark_fail "normal candidate build failed rc=$RC"
@@ -242,6 +247,16 @@ if [ "$FAIL" -eq 0 ]; then
   [ -s "$NORMAL_APK" ] || mark_fail "normal candidate APK missing: $NORMAL_APK"
   echo "NORMAL_DIR=$NORMAL_DIR" | tee "$OUT_DIR/normal-dir.txt"
   echo "NORMAL_APK=$NORMAL_APK" | tee "$OUT_DIR/normal-apk.txt"
+
+  # An opt-in patch that silently did not apply makes every runtime result meaningless.
+  for patch in "${ENABLE_PATCHES[@]}"; do
+    if python3 -c 'import json, sys; applied = {p["name"] for p in json.load(open(sys.argv[1]))["appliedPatches"]}; sys.exit(sys.argv[2] not in applied)' \
+        "$NORMAL_DIR/patch-result.json" "$patch"; then
+      echo "ENABLED_PATCH_APPLIED=$patch"
+    else
+      mark_fail "enabled patch not applied: $patch"
+    fi
+  done
 fi
 
 echo

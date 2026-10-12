@@ -34,6 +34,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew :patches:buildAndroid --no-daemon
 
+      # Extension code paths (undelete, Arctic Shift, Wayback) that never run on a device in CI.
+      - name: Extension regression tests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew -q -I tools/tests/issue196/regression.gradle issue196RegressionTest --no-daemon
+
+      - name: Tool tests
+        run: python3 -m unittest discover -s tests/tools
+
       - name: Upload artifacts
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:

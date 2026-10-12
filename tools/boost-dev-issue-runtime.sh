@@ -9,6 +9,7 @@ WATCH_SECONDS="75"
 DEV_PACKAGE="com.rubenmayayo.reddit.dev"
 NORMAL_PACKAGE="com.rubenmayayo.reddit"
 MARKERS=()
+ENABLE_PATCHES=()
 
 mark_fail() { echo "FAIL: $*"; FAIL=1; }
 
@@ -25,6 +26,7 @@ Options:
   --serial SERIAL          One-run adb serial override.
   --watch-seconds N        Logcat capture seconds. Default: 75.
   --marker TEXT            Marker required in DEV APK. Repeatable.
+  --enable-patch NAME      Also apply an opt-in patch (Morphe CLI -e). Repeatable.
   -h, --help               Show this help.
 
 Policy:
@@ -44,6 +46,7 @@ while [ "$#" -gt 0 ]; do
     --serial) SERIAL="${2:-}"; shift 2 ;;
     --watch-seconds) WATCH_SECONDS="${2:-}"; shift 2 ;;
     --marker) MARKERS+=("${2:-}"); shift 2 ;;
+    --enable-patch) ENABLE_PATCHES+=("${2:-}"); shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "FAIL: unknown arg: $1"; exit 2 ;;
   esac
@@ -114,6 +117,9 @@ CMD=(tools/boost-dev-from-mpp.sh
   --install
   --serial "$SERIAL"
 )
+for patch in "${ENABLE_PATCHES[@]}"; do
+  CMD+=(--enable-patch "$patch")
+done
 for marker in "${MARKERS[@]}"; do
   CMD+=(--marker "$marker")
 done
