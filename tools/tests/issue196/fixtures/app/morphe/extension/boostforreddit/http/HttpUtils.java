@@ -32,6 +32,11 @@ public final class HttpUtils {
         for (Map.Entry<String,Object> fixture : replies.entrySet()) {
             if (url.contains(fixture.getKey())) {
                 Object result = fixture.getValue();
+                // A Deque answers successive calls in order and then repeats its last answer.
+                if (result instanceof Deque) {
+                    Deque<?> answers = (Deque<?>) result;
+                    result = answers.size() > 1 ? answers.poll() : answers.peek();
+                }
                 if (result instanceof IOException) throw (IOException)result;
                 if (result instanceof RuntimeException) throw (RuntimeException)result;
                 if (result instanceof Error) throw (Error)result;
