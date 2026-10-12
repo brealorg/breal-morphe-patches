@@ -15,7 +15,11 @@ import android.widget.ScrollView;
 
 import androidx.fragment.app.Fragment;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import app.morphe.extension.boostforreddit.utils.BoostSystemBarInsetsFix;
+import app.morphe.extension.boostforreddit.utils.BoostUndeleteSettings;
 
 /** Hidden Notifications & account hubs for the parallel Settings V5 tree. */
 public final class MorpheSettingsV5NotificationsAccountFragment extends Fragment {
@@ -86,8 +90,29 @@ public final class MorpheSettingsV5NotificationsAccountFragment extends Fragment
                     "Notifications & account hub has no children: " + pageId
             );
         }
-        renderDestinations(content, children);
+        renderDestinations(content, withoutUnpatchedRecovery(context, children));
         return scrollView;
+    }
+
+    private static final String RECOVERY_PAGE =
+            "v5/notifications_and_account/history_privacy_and_recovery/recovery_and_archives";
+
+    /** Recovery & archives only holds undelete toggles; hide it when no undelete patch was applied. */
+    private static String[] withoutUnpatchedRecovery(Context context, String[] children) {
+        boolean anyApplied = BoostUndeleteSettings.isTogglePatchApplied(
+                context, BoostUndeleteSettings.PREF_REDDIT_UNDELETE_ENABLED)
+                || BoostUndeleteSettings.isTogglePatchApplied(
+                context, BoostUndeleteSettings.PREF_IMGUR_UNDELETE_ENABLED);
+        if (anyApplied) {
+            return children;
+        }
+        List<String> kept = new ArrayList<>();
+        for (String child : children) {
+            if (!RECOVERY_PAGE.equals(child)) {
+                kept.add(child);
+            }
+        }
+        return kept.toArray(new String[0]);
     }
 
     @Override

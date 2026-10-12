@@ -12,6 +12,8 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 import app.morphe.patches.reddit.customclients.boostforreddit.misc.extension.sharedExtensionPatch
 import app.morphe.patches.reddit.customclients.boostforreddit.http.interceptHttpRequests
+import app.morphe.patches.reddit.customclients.boostforreddit.http.IMGUR_UNDELETE_APPLIED_RESOURCE
+import app.morphe.patches.reddit.customclients.boostforreddit.http.undeleteAppliedMarkerPatch
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -24,7 +26,7 @@ val interceptImgurRequests = bytecodePatch(
     name = "Automatically undelete Imgur images",
     default = false
 ) {
-    dependsOn(sharedExtensionPatch, interceptHttpRequests)
+    dependsOn(sharedExtensionPatch, interceptHttpRequests, undeleteAppliedMarkerPatch(IMGUR_UNDELETE_APPLIED_RESOURCE))
     compatibleWith(*BoostCompatible)
 
     execute {

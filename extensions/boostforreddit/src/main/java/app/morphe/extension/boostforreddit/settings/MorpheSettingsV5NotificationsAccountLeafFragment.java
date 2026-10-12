@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 
+import app.morphe.extension.boostforreddit.utils.BoostUndeleteSettings;
+
 /** Complete hidden Notifications & account leaves for Settings V5. */
 public final class MorpheSettingsV5NotificationsAccountLeafFragment
         extends MorpheSettingsV5XmlPreferenceFragment {
@@ -48,7 +50,9 @@ public final class MorpheSettingsV5NotificationsAccountLeafFragment
 
     @Override
     protected boolean includeControl(String resourceName, String key) {
-        return page != null && page.containsKey(key);
+        return page != null && page.containsKey(key)
+                && (getContext() == null
+                || BoostUndeleteSettings.isTogglePatchApplied(getContext(), key));
     }
 
     @Override
