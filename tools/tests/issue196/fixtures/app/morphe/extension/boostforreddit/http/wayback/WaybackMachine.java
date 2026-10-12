@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.util.*;
 import okhttp3.*;
 public final class WaybackMachine {
+    public static final long CONTENT_TIMEOUT_MS = 15_000L;
     /** contentUrl -> archived Response, null (not archived), or a Throwable to throw. */
     public static final Map<String,Object> archive = new HashMap<>();
     public static final List<String> calls = new ArrayList<>();

@@ -34,8 +34,25 @@ gradle.projectsEvaluated {
             if (baseline) { args("--baseline") }
         }
     }
+    // The real WaybackMachine, with the issue196 HttpUtils/cache/logging fixtures instead of the stub.
+    def waybackCompile = p.tasks.register("compileWaybackRegression", JavaCompile) {
+        source(p.files(sourceRoot + "http/wayback/WaybackMachine.java", sourceRoot + "http/wayback/WaybackResponse.java"),
+                p.fileTree(testDir) { include "fixtures/**/http/HttpUtils.java", "fixtures/**/http/AutoSavingCache.java",
+                        "fixtures/**/utils/LoggingUtils.java" },
+                p.file("tools/tests/wayback/WaybackMachineRegressionTest.java"))
+        classpath = cp
+        destinationDirectory.set(p.layout.buildDirectory.dir("issue196/wayback"))
+        options.encoding = "UTF-8"
+        options.release.set(17)
+    }
+    def waybackRun = p.tasks.register("waybackRegressionTest", JavaExec) {
+        dependsOn(waybackCompile)
+        classpath = p.files(waybackCompile.flatMap { it.destinationDirectory }) + cp
+        mainClass.set("WaybackMachineRegressionTest")
+    }
     def current = p.file(sourceRoot + "http/reddit/RedditSubmissionUndeleteInterceptor.java")
     def candidate = registerRun("RegressionTest", current, false)
+    candidate.configure { dependsOn(waybackRun) }
     def baselineFile = p.findProperty("issue196Baseline")
     if (baselineFile != null) {
         def baseline = registerRun("BaselineProof", p.file(baselineFile), true)

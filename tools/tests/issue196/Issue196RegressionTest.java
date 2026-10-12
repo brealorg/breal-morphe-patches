@@ -464,6 +464,42 @@ public final class Issue196RegressionTest {
             Exchange x = new Exchange(200, content);
             check(x.run(new RedditSubmissionUndeleteInterceptor()).body().string().equals(content), "Error escaped recovery");
         });
+        test("post_recovery_error_still_restores_comments", () -> {
+            HttpUtils.replies.put("posts/ids?ids=abc", new NoSuchMethodError("fixture linkage"));
+            archiveComment("archived c1");
+            String livePost = POST.replace("\"live\"", "\"[deleted]\"");
+            Exchange x = new Exchange(200, thread(livePost, "[" + deletedComment("c1", null) + "]"));
+            JsonNode out = json(x.run(new RedditSubmissionUndeleteInterceptor()).body().string());
+            check(out.get(0).get("data").get("children").get(0).get("data").get("selftext").asText().equals("[deleted]"),
+                    "Live post not kept after post recovery failed");
+            check(out.get(1).get("data").get("children").get(0).get("data").get("body").asText().equals("archived c1"),
+                    "Comment recovery discarded with the failed post recovery");
+        });
+        test("gallery_wayback_failure_keeps_recovered_post_and_retries_from_cache", () -> {
+            String galleryUrl = "https://www.reddit.com/gallery/abc";
+            HttpUtils.replies.put("posts/ids?ids=abc", "{\"data\":[{\"id\":\"abc\",\"title\":\"gallery\",\"author\":\"fixture\","
+                    + "\"subreddit\":\"test\",\"created_utc\":1,\"url\":\"" + galleryUrl + "\",\"selftext\":\"archived\"}]}");
+            app.morphe.extension.boostforreddit.http.wayback.WaybackMachine.archive.put(galleryUrl, new IOException("fixture timeout"));
+            archiveComment("archived c1");
+            String livePost = "{\"id\":\"abc\",\"title\":\"gallery\",\"author\":\"fixture\",\"subreddit\":\"test\",\"created_utc\":1,"
+                    + "\"url\":\"" + galleryUrl + "\",\"selftext\":\"[removed]\"}";
+            String content = thread(livePost, "[" + deletedComment("c1", null) + "]");
+            RedditSubmissionUndeleteInterceptor i = new RedditSubmissionUndeleteInterceptor();
+            JsonNode out = json(new Exchange(200, content).run(i).body().string());
+            JsonNode post = out.get(0).get("data").get("children").get(0).get("data");
+            check(post.get("selftext").asText().equals("archived"), "Recovered post lost to gallery failure");
+            check(out.get(1).get("data").get("children").get(0).get("data").get("body").asText().equals("archived c1"),
+                    "Comments lost to gallery failure");
+            check(cache(i, "submissionCache").get("abc").isPresent(), "Recovered post not cached");
+
+            String wayback = "https://web.archive.org/web/20200101000000if_/" + galleryUrl;
+            app.morphe.extension.boostforreddit.http.wayback.WaybackMachine.archive.put(galleryUrl, page(wayback, 200,
+                    "<script>window.___r = {\"posts\":{\"models\":{\"t3_abc\":{\"media\":{\"gallery\":{\"items\":[{\"mediaId\":\"m1\"}]},"
+                    + "\"mediaMetadata\":{\"m1\":{\"e\":\"Image\"}}}}}}}</script>"));
+            post = json(new Exchange(200, content).run(i).body().string()).get(0).get("data").get("children").get(0).get("data");
+            check(post.get("gallery_data") != null && post.get("is_gallery").asBoolean(), "Cached post did not retry gallery metadata");
+            check(json(cache(i, "submissionCache").get("abc").get()).get("gallery_data") != null, "Gallery metadata not cached");
+        });
         System.out.println("ISSUE196_REGRESSION_TESTS_PASS="+passed);
     }
 }

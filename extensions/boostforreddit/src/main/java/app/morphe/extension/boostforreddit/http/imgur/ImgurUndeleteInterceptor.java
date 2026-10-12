@@ -78,7 +78,8 @@ public class ImgurUndeleteInterceptor implements Interceptor {
         Optional<String> cachedUrl = imgurCache.get(imgurId);
         if (cachedUrl.isPresent()) {
             try {
-                return emulateAlbumApiResponse(HttpUtils.get(cachedUrl.get()), imgurId);
+                return emulateAlbumApiResponse(
+                        HttpUtils.get(cachedUrl.get(), WaybackMachine.CONTENT_TIMEOUT_MS), imgurId);
             } catch (Throwable failure) {
                 // Fall back to the live request rather than failing on a bad cache entry.
                 logRecoveryFailure(failure);
@@ -119,7 +120,7 @@ public class ImgurUndeleteInterceptor implements Interceptor {
         Optional<String> cachedUrl = imgurCache.get(imgurId + "." + ext);
         if (cachedUrl.isPresent()) {
             try {
-                Response cached = HttpUtils.get(cachedUrl.get());
+                Response cached = HttpUtils.get(cachedUrl.get(), WaybackMachine.CONTENT_TIMEOUT_MS);
                 if (cached.isSuccessful()) {
                     return cached;
                 }

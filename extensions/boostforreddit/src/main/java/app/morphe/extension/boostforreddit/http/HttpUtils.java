@@ -37,6 +37,7 @@ public class HttpUtils {
     private static final OkHttpClient httpClient;
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final Map<Long, OkHttpClient> timeoutClients = new ConcurrentHashMap<>();
+    private static final Map<Long, OkHttpClient> streamingTimeoutClients = new ConcurrentHashMap<>();
 
     static {
         File cacheDir = CacheUtils.getHttpCacheDir();
@@ -89,6 +90,23 @@ public class HttpUtils {
         return timeoutClients.computeIfAbsent(callTimeoutMillis, millis -> httpClient.newBuilder()
                 .callTimeout(millis, TimeUnit.MILLISECONDS)
                 .build());
+    }
+
+    /**
+     * GET whose connect and per-read waits are bounded, without a limit on the whole call,
+     * so the body can still be streamed to Glide or Boost after this returns.
+     */
+    public static Response get(String url, long connectAndReadTimeoutMillis) throws IOException {
+        Request request = new Request.Builder()
+                .get()
+                .url(url)
+                .build();
+        OkHttpClient client = streamingTimeoutClients.computeIfAbsent(connectAndReadTimeoutMillis,
+                millis -> httpClient.newBuilder()
+                        .connectTimeout(millis, TimeUnit.MILLISECONDS)
+                        .readTimeout(millis, TimeUnit.MILLISECONDS)
+                        .build());
+        return client.newCall(request).execute();
     }
 
     public static String getStringFromJson(JsonNode node) {
