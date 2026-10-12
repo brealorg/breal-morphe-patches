@@ -53,6 +53,7 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
     private static final String GALLERY_UNDELETE_MARKER = "morphe_boost_reddit_gallery_undelete_submission_json";
     private static final String FAIL_OPEN_MARKER = "morphe_boost_undelete_issue196_fail_open";
     private static final String COMMENT_BATCH_MARKER = "morphe_boost_undelete_issue219_comment_batch";
+    private static final String POST_RECOVERY_FAIL_OPEN_MARKER = "morphe_boost_undelete_post_recovery_fail_open";
     private static final String[] COMMENT_RECOVERY_FIELDS = {
             "id", "author", "author_fullname", "author_flair_text", "body", "link_id"
     };
@@ -135,11 +136,15 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
         JsonNode submissionListing = json.get(0);
         JsonNode submission = submissionListing.get("data").get("children").get(0).get("data");
         if (RedditApiUtils.isContentRemoved(submission)) {
-            submission = new EditableObjectNode(Map.of(
-                    "kind", new TextNode("t3"),
-                    "data", fetchDeletedSubmission(redditResponse.request(), submissionId, submission)
-            ));
-            submissionListing = RedditApiUtils.createListing(submissionListing, List.of(submission));
+            try {
+                JsonNode recovered = fetchDeletedSubmission(redditResponse.request(), submissionId, submission);
+                submissionListing = RedditApiUtils.createListing(submissionListing, List.of(
+                        new EditableObjectNode(Map.of("kind", new TextNode("t3"), "data", recovered))));
+            } catch (Throwable failure) {
+                // Keep Reddit's post and still restore the comments below.
+                LoggingUtils.logInfo(false, () -> POST_RECOVERY_FAIL_OPEN_MARKER
+                        + ": " + failure.getClass().getSimpleName());
+            }
         }
 
         JsonNode commentsListing = json.get(1);
@@ -181,7 +186,10 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
                 JsonNode cached = HttpUtils.getJsonFromString(cachedJson.get());
                 if (isUsableSubmission(cached, id)) {
                     EditableObjectNode normalizedCached = EditableObjectNode.wrap(cached);
-                    if (clearRecoveredUserDeletedRenderMarker(normalizedCached)) {
+                    boolean changed = clearRecoveredUserDeletedRenderMarker(normalizedCached);
+                    // Gallery metadata may have been unavailable when the post was cached.
+                    changed |= restoreRedditGalleryMetadataSafely(request, id, normalizedCached);
+                    if (changed) {
                         submissionCache.put(id, HttpUtils.getStringFromJson(normalizedCached));
                     }
                     LoggingUtils.logInfo(true, () -> "morphe_boost_undelete_issue196_post_restored_cached");
@@ -235,7 +243,7 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
         editableNode.setIfUnset("link_flair_css_class", NullNode.instance);
         editableNode.setIfUnset("link_flair_text", NullNode.instance);
 
-        restoreRedditGalleryMetadata(request, id, editableNode);
+        restoreRedditGalleryMetadataSafely(request, id, editableNode);
 
         submissionCache.put(id, HttpUtils.getStringFromJson(editableNode));
         LoggingUtils.logInfo(true, () -> "morphe_boost_undelete_issue196_post_restored");
@@ -447,34 +455,50 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
         }
     }
 
-    private void restoreRedditGalleryMetadata(Request request, String id, EditableObjectNode editableNode) throws IOException {
+    /**
+     * Restores gallery metadata from the Wayback Machine. The text post is usable without it,
+     * so archive failures are logged rather than discarding the recovered post.
+     * Returns true when metadata was added.
+     */
+    private boolean restoreRedditGalleryMetadataSafely(Request request, String id, EditableObjectNode editableNode) {
         if (!isRedditGallery(editableNode.get("url"))) {
-            return;
+            return false;
         }
 
         if (hasUsableGalleryMetadata(editableNode)) {
             editableNode.set("is_gallery", BooleanNode.TRUE);
             LoggingUtils.logInfo(true, () -> GALLERY_UNDELETE_MARKER + ": existing gallery metadata for " + id);
-            return;
+            return false;
         }
 
+        try {
+            return restoreRedditGalleryMetadata(request, id, editableNode);
+        } catch (Throwable failure) {
+            LoggingUtils.logInfo(false, () -> GALLERY_UNDELETE_MARKER + ": failed for " + id
+                    + ": " + failure.getClass().getSimpleName());
+            return false;
+        }
+    }
+
+    private boolean restoreRedditGalleryMetadata(Request request, String id, EditableObjectNode editableNode) throws IOException {
         String galleryUrl = editableNode.get("url").asText();
         JsonNode data = getPostDataFromWayback(request, galleryUrl);
         JsonNode media = getNested(data, "posts", "models", "t3_" + id, "media");
         if (media == null || media.isNull()) {
-            return;
+            return false;
         }
 
         JsonNode gallery = media.get("gallery");
         JsonNode mediaMetadata = media.get("mediaMetadata");
         if (!isUsableJsonNode(gallery) || !isUsableJsonNode(mediaMetadata)) {
-            return;
+            return false;
         }
 
         editableNode.set("gallery_data", gallery);
         editableNode.set("media_metadata", mediaMetadata);
         editableNode.set("is_gallery", BooleanNode.TRUE);
         LoggingUtils.logInfo(true, () -> GALLERY_UNDELETE_MARKER + ": restored gallery metadata for " + id);
+        return true;
     }
 
     private boolean hasUsableGalleryMetadata(JsonNode node) {
@@ -505,12 +529,13 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
     }
 
     private JsonNode getPostDataFromWayback(Request request, String galleryUrl) throws IOException {
-        WaybackResponse response = WaybackMachine.getFromWayback(request, galleryUrl);
-        if (!response.found() || response.getResponse() == null || response.getResponse().body() == null) {
-            return null;
+        String html;
+        try (WaybackResponse response = WaybackMachine.getFromWayback(request, galleryUrl)) {
+            if (!response.found() || response.getResponse().body() == null) {
+                return null;
+            }
+            html = response.getResponse().body().string();
         }
-
-        String html = response.getResponse().body().string();
         Matcher matcher = GALLERY_REGEX.matcher(html);
         if (matcher.find()) {
             String json = matcher.group(1);

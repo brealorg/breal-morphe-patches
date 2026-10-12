@@ -55,6 +55,9 @@ public class WaybackResponse implements Closeable {
 
     @Override
     public void close() {
+        if (response == null) {
+            return;
+        }
         try {
             response.close();
         } catch (Exception ignored) {}

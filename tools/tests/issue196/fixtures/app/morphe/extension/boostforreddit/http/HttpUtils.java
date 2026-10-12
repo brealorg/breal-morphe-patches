@@ -16,6 +16,9 @@ public final class HttpUtils {
         if (page == null) throw new AssertionError("Unconfigured page request: " + url);
         return page;
     }
+    public static Response get(String url, long connectAndReadTimeoutMillis) throws IOException {
+        return get(url);
+    }
     public static Response create503(Request request) {
         return new Response.Builder().request(request).protocol(Protocol.HTTP_1_1)
                 .code(503).message("Service unavailable").body(getResponseBodyFromString("")).build();
