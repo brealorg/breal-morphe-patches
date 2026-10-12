@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 wchill.
+ * Modified for Breal undelete audit: live-first, fail-open recovery (2026-10-12).
  * https://github.com/wchill/patcheddit
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to this code.
@@ -11,12 +12,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.SocketTimeoutException;
-import java.util.Optional;
-import java.util.regex.Pattern;
 
 import app.morphe.extension.boostforreddit.http.HttpUtils;
 import app.morphe.extension.boostforreddit.utils.BoostUndeleteSettings;
+import app.morphe.extension.boostforreddit.utils.LoggingUtils;
 import app.morphe.extension.boostforreddit.http.wayback.WaybackMachine;
 import app.morphe.extension.boostforreddit.http.wayback.WaybackResponse;
 import okhttp3.Interceptor;
@@ -26,7 +25,7 @@ import okhttp3.Request;
 
 public class RedditMediaUndeleteInterceptor implements Interceptor {
 
-    private static final Pattern REDDIT_URL_NO_EXT = Pattern.compile("https://(?:i|preview)\\.reddit\\.com/\\w+");
+    private static final String FAIL_OPEN_MARKER = "morphe_boost_undelete_media_fail_open";
 
     @NotNull
     @Override
@@ -48,18 +47,14 @@ public class RedditMediaUndeleteInterceptor implements Interceptor {
             return chain.proceed(request);
         }
 
+        // Reddit stays authoritative: cached archive copies are only used after a live 404.
+        Response response = chain.proceed(request);
+        if (response.code() != HttpURLConnection.HTTP_NOT_FOUND) {
+            return response;
+        }
+        response.close();
+
         try {
-            Optional<WaybackResponse> cachedResponse = WaybackMachine.fetchUrlFromCache(request, contentUrl);
-            if (cachedResponse.isPresent()) {
-                return cachedResponse.get().getResponse();
-            }
-
-            Response response = chain.proceed(request);
-            if (response.code() != HttpURLConnection.HTTP_NOT_FOUND) {
-                return response;
-            }
-            response.close();
-
             if (!hasFileExtension(contentUrl)) {
                 String modifiedUrl = contentUrl.split("\\?")[0] + ".jpeg";
                 Request modifiedRequest = new Request.Builder()
@@ -85,8 +80,10 @@ public class RedditMediaUndeleteInterceptor implements Interceptor {
                 waybackResponse = WaybackMachine.getFromWayback(modifiedRequest, modifiedUrl);
             }
             return waybackResponse.getResponse();
-        } catch (SocketTimeoutException e) {
-            return HttpUtils.create503(request);
+        } catch (Throwable failure) {
+            // The live answer was a 404; keep that rather than surfacing an archive failure.
+            LoggingUtils.logInfo(false, () -> FAIL_OPEN_MARKER + ": " + failure.getClass().getSimpleName());
+            return HttpUtils.create404(request);
         }
     }
 
@@ -95,6 +92,7 @@ public class RedditMediaUndeleteInterceptor implements Interceptor {
         if (url.contains("?")) {
             url = url.split("\\?")[0];
         }
-        return REDDIT_URL_NO_EXT.matcher(url).matches();
+        String lastSegment = url.substring(url.lastIndexOf('/') + 1);
+        return lastSegment.lastIndexOf('.') > 0;
     }
 }

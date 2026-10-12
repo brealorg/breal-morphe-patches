@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 wchill.
+ * Modified for Breal undelete audit: live-first, fail-open recovery (2026-10-12).
  * https://github.com/wchill/patcheddit
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to this code.
@@ -18,6 +19,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -44,6 +46,7 @@ public class RedditSubredditUndeleteInterceptor implements Interceptor {
     private static final Pattern SUBREDDIT_ABOUT_RULES_API_REGEX = Pattern.compile("^https?://\\w+\\.reddit\\.com/r/(\\w+)/about/rules$");
     private static final Pattern SUBREDDIT_POSTS_API_REGEX = Pattern.compile("^https?://\\w+\\.reddit\\.com/r/(\\w+)/(?:hot|new|rising|top|controversial)");
     private static final String SUBREDDIT_LISTING_SCOPE_MARKER = "morphe_boost_reddit_subreddit_listing_fallback_scope";
+    private static final String FAIL_OPEN_MARKER = "morphe_boost_undelete_subreddit_fail_open";
     private final AutoSavingCache subredditCache = new AutoSavingCache("RedditSubreddits", 10);
     @NotNull
     @Override
@@ -73,35 +76,56 @@ public class RedditSubredditUndeleteInterceptor implements Interceptor {
         return chain.proceed(request);
     }
 
-    private Response handleAbout(Chain chain, Request request, String subredditName) throws IOException {
-        Optional<String> cached = subredditCache.get(subredditName);
-        if (cached.isPresent()) {
-            return HttpUtils.makeJsonResponse(request, cached.get());
-        }
+    // Reddit answers banned and private subreddits with 404 and 403. Anything else (auth,
+    // rate limits, server errors) is not removal, and an archive copy would hide the real state.
+    private static boolean isRemovalStatus(Response response) {
+        return response.code() == HttpURLConnection.HTTP_NOT_FOUND
+                || response.code() == HttpURLConnection.HTTP_FORBIDDEN;
+    }
 
+    private static void logRecoveryFailure(String subredditName, Throwable failure) {
+        LoggingUtils.logInfo(false, () -> FAIL_OPEN_MARKER + ": " + subredditName
+                + " " + failure.getClass().getSimpleName());
+    }
+
+    private Response handleAbout(Chain chain, Request request, String subredditName) throws IOException {
+        // Reddit stays authoritative: the archive is only consulted after a removal status.
         Response apiResponse = chain.proceed(request);
-        if (apiResponse.isSuccessful()) {
+        if (apiResponse.isSuccessful() || !isRemovalStatus(apiResponse)) {
             return apiResponse;
         }
 
-        // Sometimes subreddits don't show up if searching by name, so attempt to get a post and retrieve the sub id from that.
-        JsonNode samplePost = ArcticShift.getSubredditPosts(subredditName, 1).get(0);
-        String subredditId = samplePost.get("subreddit_id").asText();
-
-        JsonNode subreddit = ArcticShift.getSubredditInfoById(subredditId);
-        subredditCache.put(subredditName, HttpUtils.getStringFromJson(subreddit));
-
-        return HttpUtils.makeJsonResponse(request, subreddit);
+        try {
+            Optional<String> cached = subredditCache.get(subredditName);
+            String subredditJson;
+            if (cached.isPresent()) {
+                subredditJson = cached.get();
+            } else {
+                // Sometimes subreddits don't show up if searching by name, so attempt to get a post and retrieve the sub id from that.
+                JsonNode samplePost = ArcticShift.getSubredditPosts(subredditName, 1).get(0);
+                if (samplePost == null || samplePost.get("subreddit_id") == null) {
+                    return apiResponse;
+                }
+                String subredditId = samplePost.get("subreddit_id").asText();
+                subredditJson = HttpUtils.getStringFromJson(ArcticShift.getSubredditInfoById(subredditId));
+                subredditCache.put(subredditName, subredditJson);
+            }
+            Response restored = HttpUtils.makeJsonResponse(request, subredditJson);
+            apiResponse.close();
+            return restored;
+        } catch (Throwable failure) {
+            // Optional archive recovery must never replace Reddit's own answer with a crash.
+            logRecoveryFailure(subredditName, failure);
+            return apiResponse;
+        }
     }
 
     private Response handleRules(Chain chain, Request request, String subredditName) throws IOException {
-        Optional<String> cached = subredditCache.get(subredditName);
-        if (cached.isEmpty()) {
-            Response response = chain.proceed(request);
-            if (response.isSuccessful()) {
-                return response;
-            }
+        Response response = chain.proceed(request);
+        if (response.isSuccessful() || !isRemovalStatus(response)) {
+            return response;
         }
+        response.close();
 
         EditableObjectNode rulesNode = new EditableObjectNode(
                 Map.of(
@@ -114,28 +138,39 @@ public class RedditSubredditUndeleteInterceptor implements Interceptor {
     }
 
     private Response handlePosts(Chain chain, Request request, String subredditName) throws IOException {
-        Optional<String> cached = subredditCache.get(subredditName);
-        Response response = null;
-        if (cached.isEmpty()) {
-            response = chain.proceed(request);
-            // Keep normal successful listings and transient reddit/server failures untouched.
-            if (response.isSuccessful() || response.code() >= 500) {
-                return response;
-            }
-
-            // r/all and r/popular are global listing surfaces, not deleted/banned subreddit detail surfaces.
-            // Falling back to Arctic Shift here can produce an empty synthetic listing, especially for r/all.
-            if (isGlobalListingSubreddit(subredditName)) {
-                final int statusCode = response.code();
-                LoggingUtils.logInfo(true, () -> SUBREDDIT_LISTING_SCOPE_MARKER
-                        + ": pass through global listing "
-                        + subredditName
-                        + " after HTTP "
-                        + statusCode);
-                return response;
-            }
+        Response response = chain.proceed(request);
+        // Keep normal successful listings and non-removal failures untouched.
+        if (response.isSuccessful() || !isRemovalStatus(response)) {
+            return response;
         }
 
+        // r/all and r/popular are global listing surfaces, not deleted/banned subreddit detail surfaces.
+        // Falling back to Arctic Shift here can produce an empty synthetic listing, especially for r/all.
+        if (isGlobalListingSubreddit(subredditName)) {
+            final int statusCode = response.code();
+            LoggingUtils.logInfo(true, () -> SUBREDDIT_LISTING_SCOPE_MARKER
+                    + ": pass through global listing "
+                    + subredditName
+                    + " after HTTP "
+                    + statusCode);
+            return response;
+        }
+
+        try {
+            Response restored = archivedListing(request, subredditName, response.code());
+            if (restored == null) {
+                return response;
+            }
+            response.close();
+            return restored;
+        } catch (Throwable failure) {
+            logRecoveryFailure(subredditName, failure);
+            return response;
+        }
+    }
+
+    /** Returns an Arctic Shift listing, or null when the archive has nothing usable. */
+    private Response archivedListing(Request request, String subredditName, int statusCode) throws IOException {
         HttpUrl url = request.url();
 
         Integer limit = Optional.ofNullable(url.queryParameter("limit"))
@@ -165,16 +200,12 @@ public class RedditSubredditUndeleteInterceptor implements Interceptor {
         List<JsonNode> children = new ArrayList<>();
         JsonNode rootNode = ArcticShift.getSubredditPosts(subredditName, limit, before, after);
         if (rootNode == null || !rootNode.isArray() || rootNode.size() == 0) {
-            final int statusCode = response == null ? -1 : response.code();
             LoggingUtils.logInfo(true, () -> SUBREDDIT_LISTING_SCOPE_MARKER
                     + ": empty Arctic Shift fallback for "
                     + subredditName
                     + ", pass through original HTTP "
                     + statusCode);
-            if (response != null) {
-                return response;
-            }
-            return chain.proceed(request);
+            return null;
         }
 
         long earliestTimestamp = 365241780471L;
@@ -203,16 +234,12 @@ public class RedditSubredditUndeleteInterceptor implements Interceptor {
         }
 
         if (children.isEmpty()) {
-            final int statusCode = response == null ? -1 : response.code();
             LoggingUtils.logInfo(true, () -> SUBREDDIT_LISTING_SCOPE_MARKER
                     + ": no usable fallback children for "
                     + subredditName
                     + ", pass through original HTTP "
                     + statusCode);
-            if (response != null) {
-                return response;
-            }
-            return chain.proceed(request);
+            return null;
         }
 
         ObjectNode listing = RedditApiUtils.createListing(children);

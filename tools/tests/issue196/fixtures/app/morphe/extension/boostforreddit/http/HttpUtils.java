@@ -7,7 +7,23 @@ public final class HttpUtils {
     public static final ObjectMapper mapper = new ObjectMapper();
     public static final Map<String,Object> replies = new LinkedHashMap<>();
     public static final List<String> calls = new ArrayList<>();
-    public static void reset() { replies.clear(); calls.clear(); }
+    /** url -> Response for get(url), e.g. cached Wayback pages. */
+    public static final Map<String,Response> pages = new LinkedHashMap<>();
+    public static void reset() { replies.clear(); calls.clear(); pages.clear(); }
+    public static Response get(String url) throws IOException {
+        calls.add(url);
+        Response page = pages.get(url);
+        if (page == null) throw new AssertionError("Unconfigured page request: " + url);
+        return page;
+    }
+    public static Response create503(Request request) {
+        return new Response.Builder().request(request).protocol(Protocol.HTTP_1_1)
+                .code(503).message("Service unavailable").body(getResponseBodyFromString("")).build();
+    }
+    public static Response create404(Request request) {
+        return new Response.Builder().request(request).protocol(Protocol.HTTP_1_1)
+                .code(404).message("Not found").body(getResponseBodyFromString("")).build();
+    }
     public static JsonNode getJson(String url) throws IOException {
         calls.add(url);
         for (Map.Entry<String,Object> fixture : replies.entrySet()) {
@@ -15,6 +31,7 @@ public final class HttpUtils {
                 Object result = fixture.getValue();
                 if (result instanceof IOException) throw (IOException)result;
                 if (result instanceof RuntimeException) throw (RuntimeException)result;
+                if (result instanceof Error) throw (Error)result;
                 return getJsonFromString((String)result);
             }
         }

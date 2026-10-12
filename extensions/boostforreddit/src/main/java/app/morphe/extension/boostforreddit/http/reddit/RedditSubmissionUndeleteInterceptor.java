@@ -99,7 +99,8 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
                         .header("Content-Type", "application/json")
                         .body(HttpUtils.getResponseBodyFromJson(data))
                         .build();
-            } catch (IOException | RuntimeException failure) {
+            } catch (Throwable failure) {
+                // Errors too: a linkage or stack failure in optional recovery must not crash Boost.
                 logRecoveryFailure(failure);
                 return response.newBuilder()
                         .removeHeader("Content-Length")
@@ -118,13 +119,13 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
                 response.close();
             }
             return restored;
-        } catch (IOException | RuntimeException failure) {
+        } catch (Throwable failure) {
             logRecoveryFailure(failure);
             return response;
         }
     }
 
-    private static void logRecoveryFailure(Exception failure) {
+    private static void logRecoveryFailure(Throwable failure) {
         LoggingUtils.logInfo(false, () -> FAIL_OPEN_MARKER + ": " + failure.getClass().getSimpleName());
     }
 
