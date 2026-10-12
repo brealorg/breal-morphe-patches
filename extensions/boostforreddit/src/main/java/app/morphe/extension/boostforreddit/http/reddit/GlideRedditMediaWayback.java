@@ -61,6 +61,7 @@ public final class GlideRedditMediaWayback {
 
             Response response = waybackResponse.getResponse();
             if (response == null || response.body() == null || !response.isSuccessful()) {
+                waybackResponse.close();
                 LoggingUtils.logInfo(true, () -> MARKER + ": unusable Wayback response for " + contentUrl);
                 return null;
             }

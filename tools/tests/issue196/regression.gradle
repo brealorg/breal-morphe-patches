@@ -36,7 +36,8 @@ gradle.projectsEvaluated {
     }
     // The real WaybackMachine, with the issue196 HttpUtils/cache/logging fixtures instead of the stub.
     def waybackCompile = p.tasks.register("compileWaybackRegression", JavaCompile) {
-        source(p.files(sourceRoot + "http/wayback/WaybackMachine.java", sourceRoot + "http/wayback/WaybackResponse.java"),
+        source(p.files(sourceRoot + "http/wayback/WaybackMachine.java", sourceRoot + "http/wayback/WaybackResponse.java",
+                sourceRoot + "utils/CompatibleRateLimiter.java"),
                 p.fileTree(testDir) { include "fixtures/**/http/HttpUtils.java", "fixtures/**/http/AutoSavingCache.java",
                         "fixtures/**/utils/LoggingUtils.java" },
                 p.file("tools/tests/wayback/WaybackMachineRegressionTest.java"))
