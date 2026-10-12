@@ -432,6 +432,37 @@ public final class Issue196RegressionTest {
             check(out != live.served.get(0) && out.code() == 200 && live.closed(0), "Live response leaked or not replaced");
             check(json(out.body().string()).get("data").get("children").get(0).get("data").get("id").asText().equals("p1"), "Archive listing wrong");
         });
+        test("subreddit_listing_fills_fields_old_archive_posts_lack", () -> {
+            // Pushshift-era posts have no hidden/clicked/visited/locked; Boost dropped the whole listing.
+            HttpUtils.replies.put("posts/search", "{\"data\":[{\"id\":\"p1\",\"title\":\"old\",\"created_utc\":1388522231,\"subreddit\":\"gone\"}]}");
+            Response out = new Live().route(SUB_HOT, 404, "gone").run(new RedditSubredditUndeleteInterceptor(), SUB_HOT);
+            JsonNode post = json(out.body().string()).get("data").get("children").get(0).get("data");
+            for (String key : new String[]{"hidden", "clicked", "visited", "locked", "archived", "stickied", "spoiler", "over_18", "is_self", "score", "num_comments", "name", "subreddit_name_prefixed", "created"}) {
+                check(post.get(key) != null, "Archived listing post lacks " + key);
+            }
+            check(post.get("name").asText().equals("t3_p1") && post.get("subreddit_name_prefixed").asText().equals("r/gone"), "Wrong defaults");
+        });
+        test("subreddit_top_listing_pages_within_time_window", () -> {
+            HttpUtils.replies.put("posts/search", "{\"data\":[{\"id\":\"p2\",\"title\":\"older\",\"created_utc\":1600000000}]}");
+            String page2 = "https://oauth.reddit.com/r/gone/top?t=week&limit=25&after=2020-09-13T12:26:40";
+            new Live().route(page2, 404, "gone").run(new RedditSubredditUndeleteInterceptor(), page2);
+            String query = HttpUtils.calls.get(0);
+            check(query.contains("&before=2020-09-13T12:26:40"), "Page cursor replaced by time window: " + query);
+            check(query.contains("&after=" + java.time.LocalDate.now(java.time.ZoneOffset.UTC).minusWeeks(1)), "Time window lost: " + query);
+        });
+        test("subreddit_limit_over_100_is_clamped", () -> {
+            HttpUtils.replies.put("posts/search", "{\"data\":[{\"id\":\"p1\",\"title\":\"a\",\"created_utc\":1600000000}]}");
+            String url = "https://oauth.reddit.com/r/gone/hot?limit=500";
+            Response out = new Live().route(url, 404, "gone").run(new RedditSubredditUndeleteInterceptor(), url);
+            check(out.code() == 200 && HttpUtils.calls.get(0).contains("limit=100"), "Large limit not clamped: " + HttpUtils.calls);
+        });
+        test("subreddit_search_retries_one_archive_query_timeout", () -> {
+            HttpUtils.replies.put("posts/search", new ArrayDeque<>(List.of(
+                    "{\"data\":null,\"error\":\"Timeout. Maybe slow down a bit\"}",
+                    "{\"data\":[{\"id\":\"p1\",\"title\":\"a\",\"created_utc\":1600000000}]}")));
+            Response out = new Live().route(SUB_HOT, 404, "gone").run(new RedditSubredditUndeleteInterceptor(), SUB_HOT);
+            check(out.code() == 200 && HttpUtils.calls.size() == 2, "Query timeout not retried: " + HttpUtils.calls);
+        });
         test("media_live_success_is_never_replaced", () -> {
             Live live = new Live().route(MEDIA, 200, "image");
             check(live.run(new RedditMediaUndeleteInterceptor(), MEDIA) == live.served.get(0), "Live media replaced");

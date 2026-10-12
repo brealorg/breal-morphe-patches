@@ -39,6 +39,8 @@ public class ArcticShift {
 
     static final int COMMENT_TREE_LIMIT = 3000;
 
+    private static final long QUERY_TIMEOUT_RETRY_DELAY_MS = 1_000L;
+
     // Lookups run inside Boost's own Reddit requests, so a slow archive must not hold them for long.
     private static final long CALL_TIMEOUT_MS = 10_000L;
     private static final long COMMENT_TREE_CALL_TIMEOUT_MS = 20_000L;
@@ -133,7 +135,24 @@ public class ArcticShift {
             url += "&before=" + after;
         }
 
-        return getArrayDataOrEmpty(makeApiCall(url), "posts/search");
+        JsonNode result = makeApiCall(url);
+        if (isQueryTimeout(result)) {
+            // Cold subreddit searches often time out once on Arctic Shift's side and then succeed.
+            try {
+                Thread.sleep(QUERY_TIMEOUT_RETRY_DELAY_MS);
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+                throw new IOException("Interrupted while retrying Arctic Shift search");
+            }
+            result = makeApiCall(url);
+        }
+        return getArrayDataOrEmpty(result, "posts/search");
+    }
+
+    private static boolean isQueryTimeout(JsonNode result) {
+        JsonNode data = result == null ? null : result.get("data");
+        JsonNode error = result == null ? null : result.get("error");
+        return (data == null || data.isNull()) && error != null && error.asText().startsWith("Timeout");
     }
 
     private static ArrayNode getArrayDataOrEmpty(JsonNode rootNode, String context) {

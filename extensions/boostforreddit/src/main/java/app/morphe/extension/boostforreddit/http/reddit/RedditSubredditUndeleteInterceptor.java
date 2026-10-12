@@ -11,6 +11,7 @@ package app.morphe.extension.boostforreddit.http.reddit;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
+import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -173,13 +174,16 @@ public class RedditSubredditUndeleteInterceptor implements Interceptor {
     private Response archivedListing(Request request, String subredditName, int statusCode) throws IOException {
         HttpUrl url = request.url();
 
+        // Arctic Shift accepts 1..100; Boost asks for up to 100 but other clients may ask for more.
         Integer limit = Optional.ofNullable(url.queryParameter("limit"))
                 .map(Integer::parseInt)
+                .map(value -> Math.max(1, Math.min(100, value)))
                 .orElse(null);
+        // Reddit's before/after are page cursors; this listing's cursors are post dates.
         String before = url.queryParameter("before");
         String after = url.queryParameter("after");
         String t = url.queryParameter("t");
-        if (t != null && !"all".equals(t)) {
+        if (t != null && !"all".equals(t) && before == null) {
             LocalDateTime afterDateTime = LocalDateTime.now(ZoneOffset.UTC);
             if ("hour".equals(t)) {
                 afterDateTime = afterDateTime.minusHours(1);
@@ -194,7 +198,9 @@ public class RedditSubredditUndeleteInterceptor implements Interceptor {
             } else {
                 afterDateTime = LocalDateTime.ofEpochSecond(0L, 0, ZoneOffset.UTC);
             }
-            after = afterDateTime.toLocalDate() + "T" + afterDateTime.toLocalTime();
+            // The time window is a lower bound on post dates. It must not replace the "after"
+            // cursor, or every page of a top/controversial listing repeats the first one.
+            before = afterDateTime.toLocalDate() + "T" + afterDateTime.toLocalTime();
         }
 
         List<JsonNode> children = new ArrayList<>();
@@ -215,6 +221,7 @@ public class RedditSubredditUndeleteInterceptor implements Interceptor {
             child.set(Emojis.EXTRA_EMOJI_CONTEXT_KEY, new TextNode(Emojis.PROHIBITED_EMOJI));
             child.set("saved", BooleanNode.FALSE);
             child.set("likes", NullNode.instance);
+            applyArchivedPostDefaults(child, subredditName);
 
             children.add(new EditableObjectNode(Map.of(
                     "kind", new TextNode("t3"),
@@ -247,6 +254,34 @@ public class RedditSubredditUndeleteInterceptor implements Interceptor {
         listingData.replace("after", new TextNode(convertUnixTimestamp(earliestTimestamp)));
         listingData.replace("before", new TextNode(convertUnixTimestamp(latestTimestamp)));
         return HttpUtils.makeJsonResponse(request, listing);
+    }
+
+    /**
+     * Older archived posts (Pushshift-era) lack fields current Reddit listings always have.
+     * Boost drops listing children without them, so a restored subreddit looked empty.
+     */
+    static void applyArchivedPostDefaults(EditableObjectNode post, String subredditName) {
+        post.setIfUnset("archived", BooleanNode.TRUE);
+        post.setIfUnset("locked", BooleanNode.TRUE);
+        post.setIfUnset("hidden", BooleanNode.FALSE);
+        post.setIfUnset("clicked", BooleanNode.FALSE);
+        post.setIfUnset("visited", BooleanNode.FALSE);
+        post.setIfUnset("stickied", BooleanNode.FALSE);
+        post.setIfUnset("spoiler", BooleanNode.FALSE);
+        post.setIfUnset("over_18", BooleanNode.FALSE);
+        post.setIfUnset("is_self", BooleanNode.FALSE);
+        post.setIfUnset("score", new IntNode(0));
+        post.setIfUnset("num_comments", new IntNode(0));
+        post.setIfUnset("subreddit", new TextNode(subredditName));
+        post.setIfUnset("subreddit_name_prefixed", new TextNode("r/" + subredditName));
+        JsonNode id = post.get("id");
+        if (id != null && id.isTextual()) {
+            post.setIfUnset("name", new TextNode("t3_" + id.asText()));
+        }
+        JsonNode created = post.get("created_utc");
+        if (created != null) {
+            post.setIfUnset("created", created);
+        }
     }
 
     private static Long parseCreatedUtcEpochSeconds(JsonNode node) {
