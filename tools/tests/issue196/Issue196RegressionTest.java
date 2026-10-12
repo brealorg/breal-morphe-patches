@@ -7,6 +7,8 @@ import okhttp3.*;
 import okio.*;
 import app.morphe.extension.boostforreddit.http.*;
 import app.morphe.extension.boostforreddit.http.reddit.*;
+import app.morphe.extension.boostforreddit.http.imgur.*;
+import java.util.*;
 import app.morphe.extension.boostforreddit.utils.*;
 
 public final class Issue196RegressionTest {
@@ -20,7 +22,9 @@ public final class Issue196RegressionTest {
     private static JsonNode json(String text) { return HttpUtils.getJsonFromString(text); }
     private static String text(JsonNode node) { return HttpUtils.getStringFromJson(node); }
     private static void test(String name, Test test) throws Exception {
-        HttpUtils.reset(); BoostUndeleteSettings.enabled = true; LoggingUtils.failures = 0; resetArchiveCooldown();
+        HttpUtils.reset(); app.morphe.extension.boostforreddit.http.wayback.WaybackMachine.reset();
+        BoostUndeleteSettings.enabled = true; BoostUndeleteSettings.imgurEnabled = true;
+        LoggingUtils.failures = 0; resetArchiveCooldown();
         test.run(); passed++; System.out.println("PASS " + name);
     }
     private static void resetArchiveCooldown() throws Exception {
@@ -103,6 +107,45 @@ public final class Issue196RegressionTest {
         }
         Response run(RedditSubmissionUndeleteInterceptor i) throws IOException { return i.intercept(chain); }
     }
+    /** Live server for interceptors that make their own follow-up requests. */
+    private static final class Live {
+        final Map<String, Object[]> routes = new HashMap<>();
+        final List<Response> served = new ArrayList<>();
+        final List<String> requested = new ArrayList<>();
+        Live route(String url, int status, String body) { routes.put(url, new Object[]{status, body}); return this; }
+        Response respond(Request request) {
+            String url = request.url().toString();
+            requested.add(url);
+            Object[] route = routes.get(url);
+            if (route == null) throw new AssertionError("Unexpected live request: " + url);
+            Response response = new Response.Builder().request(request).protocol(Protocol.HTTP_1_1)
+                    .code((Integer)route[0]).message("fixture").body(new Body((String)route[1])).build();
+            served.add(response);
+            return response;
+        }
+        Response run(Interceptor interceptor, String url) throws IOException {
+            Request initial = new Request.Builder().url(url).build();
+            Interceptor.Chain chain = (Interceptor.Chain)Proxy.newProxyInstance(Interceptor.Chain.class.getClassLoader(),
+                    new Class<?>[]{Interceptor.Chain.class}, (proxy, method, args) -> {
+                        if (method.getName().equals("request")) return initial;
+                        if (method.getName().equals("proceed")) return respond((Request)args[0]);
+                        throw new AssertionError("Unexpected Chain call: " + method.getName());
+                    });
+            return interceptor.intercept(chain);
+        }
+        boolean closed(int index) { return ((Body)served.get(index).body()).closed; }
+    }
+    private static Response page(String url, int status, String body) {
+        return new Response.Builder().request(new Request.Builder().url(url).build()).protocol(Protocol.HTTP_1_1)
+                .code(status).message("fixture").body(new Body(body)).build();
+    }
+    private static final String SUB_ABOUT = "https://oauth.reddit.com/r/gone/about";
+    private static final String SUB_HOT = "https://oauth.reddit.com/r/gone/hot?limit=25";
+    private static final String MEDIA = "https://i.redd.it/abc123.png";
+    private static final String IMGUR_ALBUM_API = "https://api.imgur.com/3/album/AbC12";
+    private static final String IMGUR_WAYBACK = "https://web.archive.org/web/20200101000000if_/https://imgur.com/a/AbC12";
+    private static final String IMGUR_PAGE = "<script>window.postDataJSON = {\"count\":1,\"items\":[{\"hash\":\"Img1234\",\"ext\":\".jpg\"}]}</script>";
+
     private static void baseline() throws Exception {
         test("baseline_missing_collapsed_reason_throws_NPE", () -> {
             archiveComment("recovered");
@@ -346,6 +389,80 @@ public final class Issue196RegressionTest {
             check(listing.get(0).get("data").get("body").asText().equals("cached h1"),"Cache hit not applied");
             check(listing.get(1).get("data").get("body").asText().equals("archived m1"),"Miss not applied");
             check(cache(i,"commentsCache").get("m1").isPresent(),"Recovered miss not cached");
+        });
+        test("subreddit_404_with_empty_archive_returns_original_not_crash", () -> {
+            // Before the audit fix: .get(0) on an empty Arctic Shift array threw an NPE out of the interceptor.
+            HttpUtils.replies.put("posts/search?sort=desc&subreddit=gone&limit=1", "{\"data\":[]}");
+            Live live = new Live().route(SUB_ABOUT, 404, "{\"reason\":\"banned\"}");
+            Response out = live.run(new RedditSubredditUndeleteInterceptor(), SUB_ABOUT);
+            check(out == live.served.get(0) && !live.closed(0), "Original 404 not returned");
+        });
+        test("subreddit_non_removal_errors_never_query_archive", () -> {
+            for (int status : new int[]{401, 429, 500, 503}) {
+                Live live = new Live().route(SUB_ABOUT, status, "error").route(SUB_HOT, status, "error");
+                check(live.run(new RedditSubredditUndeleteInterceptor(), SUB_ABOUT) == live.served.get(0), "About replaced");
+                check(live.run(new RedditSubredditUndeleteInterceptor(), SUB_HOT) == live.served.get(1), "Listing replaced");
+            }
+            check(HttpUtils.calls.isEmpty(), "Queried archive for non-removal status: " + HttpUtils.calls);
+        });
+        test("subreddit_cached_archive_does_not_bypass_live_reddit", () -> {
+            RedditSubredditUndeleteInterceptor i = new RedditSubredditUndeleteInterceptor();
+            Field f = RedditSubredditUndeleteInterceptor.class.getDeclaredField("subredditCache"); f.setAccessible(true);
+            ((AutoSavingCache)f.get(i)).put("gone", "{\"kind\":\"t5\",\"data\":{\"display_name\":\"stale\"}}");
+            Live live = new Live().route(SUB_ABOUT, 200, "{\"live\":true}").route(SUB_HOT, 200, "{\"listing\":true}");
+            check(live.run(i, SUB_ABOUT) == live.served.get(0), "Cached archive bypassed live about");
+            check(live.run(i, SUB_HOT) == live.served.get(1), "Cached archive bypassed live listing");
+        });
+        test("subreddit_archive_failure_and_bad_limit_return_original", () -> {
+            HttpUtils.replies.put("posts/search", new java.net.SocketTimeoutException("fixture slow"));
+            Live live = new Live().route(SUB_HOT, 404, "gone").route("https://oauth.reddit.com/r/gone/hot?limit=abc", 404, "gone");
+            check(live.run(new RedditSubredditUndeleteInterceptor(), SUB_HOT) == live.served.get(0) && !live.closed(0), "Archive failure escaped");
+            resetArchiveCooldown(); HttpUtils.replies.clear();
+            check(live.run(new RedditSubredditUndeleteInterceptor(), "https://oauth.reddit.com/r/gone/hot?limit=abc") == live.served.get(1), "Bad limit escaped");
+            check(LoggingUtils.failures > 0, "Failure not logged");
+        });
+        test("subreddit_restored_listing_closes_live_response", () -> {
+            HttpUtils.replies.put("posts/search", "{\"data\":[{\"id\":\"p1\",\"title\":\"archived\",\"created_utc\":1600000000}]}");
+            Live live = new Live().route(SUB_HOT, 404, "gone");
+            Response out = live.run(new RedditSubredditUndeleteInterceptor(), SUB_HOT);
+            check(out != live.served.get(0) && out.code() == 200 && live.closed(0), "Live response leaked or not replaced");
+            check(json(out.body().string()).get("data").get("children").get(0).get("data").get("id").asText().equals("p1"), "Archive listing wrong");
+        });
+        test("media_live_success_is_never_replaced", () -> {
+            Live live = new Live().route(MEDIA, 200, "image");
+            check(live.run(new RedditMediaUndeleteInterceptor(), MEDIA) == live.served.get(0), "Live media replaced");
+            check(app.morphe.extension.boostforreddit.http.wayback.WaybackMachine.calls.isEmpty(), "Archive queried for live media");
+        });
+        test("media_archive_failure_returns_404_and_skips_bogus_jpeg_retry", () -> {
+            app.morphe.extension.boostforreddit.http.wayback.WaybackMachine.archive.put(MEDIA, new ClassCastException("fixture odd CDX"));
+            Live live = new Live().route(MEDIA, 404, "");
+            Response out = live.run(new RedditMediaUndeleteInterceptor(), MEDIA);
+            check(out.code() == 404, "Archive failure escaped or changed status");
+            check(live.requested.size() == 1, "Extension URL retried as .png.jpeg: " + live.requested);
+        });
+        test("imgur_album_caches_wayback_url_and_reopens_from_it", () -> {
+            app.morphe.extension.boostforreddit.http.wayback.WaybackMachine.archive.put("https://imgur.com/a/AbC12", page(IMGUR_WAYBACK, 200, IMGUR_PAGE));
+            ImgurUndeleteInterceptor i = new ImgurUndeleteInterceptor();
+            Live live = new Live().route(IMGUR_ALBUM_API, 404, "");
+            Response first = live.run(i, IMGUR_ALBUM_API);
+            check(first.code() == 200 && live.closed(0), "Album not restored or live leaked");
+            check(json(first.body().string()).get("data").get("images").get(0).get("link").asText().contains("20200101000000"), "Wrong archived image link");
+            // Second open goes through the cache; before the fix it cached the Imgur API URL and threw.
+            HttpUtils.pages.put(IMGUR_WAYBACK, page(IMGUR_WAYBACK, 200, IMGUR_PAGE));
+            Response second = live.run(i, IMGUR_ALBUM_API);
+            check(second.code() == 200 && live.requested.size() == 1, "Cached album not used");
+        });
+        test("imgur_archive_failure_returns_live_response", () -> {
+            app.morphe.extension.boostforreddit.http.wayback.WaybackMachine.archive.put("https://imgur.com/a/ZzZ99", new NoSuchMethodError("fixture linkage"));
+            Live live = new Live().route("https://api.imgur.com/3/album/ZzZ99", 404, "gone");
+            Response out = live.run(new ImgurUndeleteInterceptor(), "https://api.imgur.com/3/album/ZzZ99");
+            check(out == live.served.get(0) && !live.closed(0), "Imgur failure escaped");
+        });
+        test("submission_errors_in_recovery_fail_open", () -> {
+            HttpUtils.replies.put("comments/ids?ids=", new StackOverflowError("fixture deep tree"));
+            String content = thread(POST, "[" + deletedComment("e1", null) + "]");
+            Exchange x = new Exchange(200, content);
+            check(x.run(new RedditSubmissionUndeleteInterceptor()).body().string().equals(content), "Error escaped recovery");
         });
         System.out.println("ISSUE196_REGRESSION_TESTS_PASS="+passed);
     }

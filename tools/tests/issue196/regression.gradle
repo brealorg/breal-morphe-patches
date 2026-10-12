@@ -15,7 +15,9 @@ gradle.projectsEvaluated {
     def testDir = p.file("tools/tests/issue196")
     def sourceRoot = "extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/"
     def realSources = ["http/arcticshift/ArcticShift.java", "http/reddit/RedditApiUtils.java",
-                       "utils/EditableObjectNode.java"].collect { p.file(sourceRoot + it) }
+                       "utils/EditableObjectNode.java", "http/reddit/RedditSubredditUndeleteInterceptor.java",
+                       "http/reddit/RedditMediaUndeleteInterceptor.java", "http/imgur/ImgurUndeleteInterceptor.java",
+                       "http/wayback/WaybackResponse.java"].collect { p.file(sourceRoot + it) }
     def fixtureSources = p.fileTree(testDir) { include "**/*.java" }
     def registerRun = { String suffix, File interceptor, boolean baseline ->
         def compileTask = p.tasks.register("compileIssue196" + suffix, JavaCompile) {
