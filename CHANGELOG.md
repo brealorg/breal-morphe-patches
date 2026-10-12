@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.119](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-118...morphe-patches-119) (2026-10-13)
+
+* **Boost for Reddit:** **Boost for Reddit:** Open i.redd.it image links in Boost's image viewer, and make automatic undelete more reliable: archived banned subreddits show their posts again, archive slowdowns no longer hang threads or images, restored posts keep your votes and saves, quarantined posts show Reddit's opt-in prompt again, and the undelete settings explain what is sent to the archives and only appear when the patch is installed.
+
 ## [1.4.118](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-117...morphe-patches-118) (2026-10-12)
 
 * **Boost for Reddit:** **Boost for Reddit:** Fix comments loading forever and blocking the app when "Automatically undelete Reddit content" is on and a thread has many deleted comments, make undelete fall back to Reddit's own content instead of crashing or showing stale archive data, and make turning off "Prefer high refresh rate" take effect.
