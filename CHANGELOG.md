@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.118](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-117...morphe-patches-118) (2026-10-12)
+
+* **Boost for Reddit:** **Boost for Reddit:** Fix comments loading forever and blocking the app when "Automatically undelete Reddit content" is on and a thread has many deleted comments, make undelete fall back to Reddit's own content instead of crashing or showing stale archive data, and make turning off "Prefer high refresh rate" take effect.
+
 ## [1.4.117](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-116...morphe-patches-117) (2026-10-09)
 
 * **Boost for Reddit:** Remove the blank space above the image viewer buttons, add a Search setting to hide Active subreddits, and keep flair labels readable when the subreddit flair text color matches its background.
