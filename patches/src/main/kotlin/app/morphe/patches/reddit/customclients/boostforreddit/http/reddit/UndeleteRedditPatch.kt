@@ -20,6 +20,8 @@ import app.morphe.patcher.util.smali.toInstructions
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 import app.morphe.patches.reddit.customclients.boostforreddit.misc.extension.sharedExtensionPatch
 import app.morphe.patches.reddit.customclients.boostforreddit.http.interceptHttpRequests
+import app.morphe.patches.reddit.customclients.boostforreddit.http.REDDIT_UNDELETE_APPLIED_RESOURCE
+import app.morphe.patches.reddit.customclients.boostforreddit.http.undeleteAppliedMarkerPatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstruction
@@ -44,7 +46,7 @@ val undeleteRedditPatch = bytecodePatch(
     name = "Automatically undelete Reddit content",
     default = false
 ) {
-    dependsOn(sharedExtensionPatch, interceptHttpRequests)
+    dependsOn(sharedExtensionPatch, interceptHttpRequests, undeleteAppliedMarkerPatch(REDDIT_UNDELETE_APPLIED_RESOURCE))
     compatibleWith(*BoostCompatible)
 
     execute {
@@ -277,10 +279,13 @@ val undeleteRedditPatch = bytecodePatch(
                 }
             }
         }
-        stateSubmissionViewHasValidRemovalReasonFingerprint.method.let {
-            stateSubmissionViewGetSummaryFingerprint.stringMatches!!.forEach { match ->
-                val index = it.indexOfFirstInstructionReversed(Opcode.CONST_4)
-                it.addInstructionsWithLabels(
+        stateSubmissionViewHasValidRemovalReasonFingerprint.let { fingerprint ->
+            // Use this method's own "reddit" check. It used to take the indices of the summary
+            // method's matches, which put a second copy of this block after the return.
+            val match = fingerprint.stringMatches!!.single { it.string == "reddit" }
+            fingerprint.method.apply {
+                val returnTrueIndex = indexOfFirstInstructionReversed(Opcode.CONST_4)
+                addInstructionsWithLabels(
                     match.index,
                     """
                     const-string        v0, "content_takedown"
@@ -288,7 +293,7 @@ val undeleteRedditPatch = bytecodePatch(
                     move-result         v0
                     if-nez              v0, :matched
                     """,
-                    ExternalLabel("matched", it.getInstruction(index))
+                    ExternalLabel("matched", getInstruction(returnTrueIndex))
                 )
             }
         }

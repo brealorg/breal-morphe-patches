@@ -61,9 +61,9 @@ final class MorpheSettingsV5NotificationsAccountMetadata {
             case "pref_search_history_save":
                 return "Keep recent searches available while Boost is running.";
             case "morphe_boost_imgur_undelete_enabled":
-                return "Try to restore supported missing Imgur media from archive sources. Disabled by default.";
+                return "Restore missing Imgur images and albums from the Wayback Machine. Links to missing Imgur media you open are sent to this third-party archive. Off by default.";
             case "morphe_boost_reddit_undelete_enabled":
-                return "Try to restore supported deleted Reddit posts and comments from archive sources. Disabled by default.";
+                return "Restore removed Reddit posts and comments from Arctic Shift and the Wayback Machine. When a thread has removed content, its post and comment IDs are sent to these third-party archives. Off by default.";
             case "pref_check_messages":
                 return "Periodically check Reddit for new inbox notifications.";
             case "pref_check_modmail":

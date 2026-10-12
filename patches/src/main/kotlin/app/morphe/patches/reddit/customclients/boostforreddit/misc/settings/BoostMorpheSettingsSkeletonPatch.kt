@@ -161,13 +161,13 @@ private val boostMorpheSettingsResourcesPatch = resourcePatch(
                         <CheckBoxPreference
                             android:key="morphe_boost_reddit_undelete_enabled"
                             android:title="Automatically undelete Reddit content"
-                            android:summary="Try to restore supported deleted Reddit posts/comments from archive sources. Disabled by default to keep normal browsing stable."
+                            android:summary="Restore removed Reddit posts and comments from Arctic Shift and the Wayback Machine. When a thread has removed content, its post and comment IDs are sent to these third-party archives. Off by default."
                             android:defaultValue="false" />
 
                         <CheckBoxPreference
                             android:key="morphe_boost_imgur_undelete_enabled"
                             android:title="Automatically undelete Imgur images"
-                            android:summary="Try to restore supported missing Imgur media from archive sources. Disabled by default."
+                            android:summary="Restore missing Imgur images and albums from the Wayback Machine. Links to missing Imgur media you open are sent to this third-party archive. Off by default."
                             android:defaultValue="false" />
                     </PreferenceCategory>
                     <PreferenceCategory android:title="Settings">
