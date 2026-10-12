@@ -72,14 +72,14 @@ The repository shorthand shown at the top is the preferred Manager setup. Raw
 
 | Field | Value |
 |---|---|
-| Version | `1.4.118` |
-| Release tag | `morphe-patches-118` |
-| Asset | `patches-1.4.118.mpp` |
-| SHA256 | `8cc3a3d54a3be4cb365270f7dfc0a8a5aa22b099a80927d77021f02f5da415fc` |
+| Version | `1.4.119` |
+| Release tag | `morphe-patches-119` |
+| Asset | `patches-1.4.119.mpp` |
+| SHA256 | `6fca52f75b1db2e2678b6b47be8086a0ed2fd5212310ee2c905766155eca4351` |
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-118/patches-1.4.118.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-119/patches-1.4.119.mpp` |
 
-SHA256: `8cc3a3d54a3be4cb365270f7dfc0a8a5aa22b099a80927d77021f02f5da415fc`
+SHA256: `6fca52f75b1db2e2678b6b47be8086a0ed2fd5212310ee2c905766155eca4351`
 ## What this bundle does
 
 The current bundle is focused on practical hotfixes for tested app versions, especially Boost for Reddit behavior on newer Android versions.
@@ -126,10 +126,10 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.118` • `main` • 57 unique patches • 109 package entries
+> **Patch source version:** `1.4.119` • `main` • 58 unique patches • 110 package entries
 
 <details>
-<summary><strong>Boost for Reddit</strong> • 48 patches</summary>
+<summary><strong>Boost for Reddit</strong> • 49 patches</summary>
 
 
 
@@ -171,6 +171,7 @@ Included Imgur patches:
 | [Fix slow Giphy loading](#fix-slow-giphy-loading) | Bypasses Boost's slow Giphy API resolver and uses Boost's direct media.giphy.com MP4 fallback for Giphy posts. |  |
 | [Hook exception handler](#hook-exception-handler) | Hook the exception handler in Boost. Don't enable except for development purposes |  |
 | [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Open Reddit image links in Boost](#open-reddit-image-links-in-boost) | Opens i.redd.it image links in Boost's image viewer instead of a web page. |  |
 | [Prefer high refresh rate](#prefer-high-refresh-rate) | Requests a high display refresh rate for Boost on adaptive-refresh devices. |  |
 | [Readable Boost flair labels](#readable-boost-flair-labels) | Uses black or white flair text when Reddit's flair text color is unreadable on its background. |  |
 | [Remove obsolete profile tabs](#remove-obsolete-profile-tabs) | Removes the legacy Gilded and Friends tabs from Boost profiles. |  |
@@ -544,16 +545,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.118` is prepared and locally verified with:
+Release `1.4.119` is prepared and locally verified with:
 
-- Release tag `morphe-patches-118`.
+- Release tag `morphe-patches-119`.
 - Local built MPP SHA256 matching README.
-`8cc3a3d54a3be4cb365270f7dfc0a8a5aa22b099a80927d77021f02f5da415fc`
-- `patches-bundle.json` returning version `1.4.118`.
-- `patches-bundle.json` pointing to the `morphe-patches-118` asset.
+`6fca52f75b1db2e2678b6b47be8086a0ed2fd5212310ee2c905766155eca4351`
+- `patches-bundle.json` returning version `1.4.119`.
+- `patches-bundle.json` pointing to the `morphe-patches-119` asset.
 - Expected release asset:
-`patches-1.4.118.mpp`
-- `8cc3a3d54a3be4cb365270f7dfc0a8a5aa22b099a80927d77021f02f5da415fc  patches-1.4.118.mpp`
+`patches-1.4.119.mpp`
+- `6fca52f75b1db2e2678b6b47be8086a0ed2fd5212310ee2c905766155eca4351  patches-1.4.119.mpp`
 
 ## Development notes
 
