@@ -2,6 +2,7 @@
  * Copyright 2026 wchill.
  * Modified for Breal issue #196: fail-open recovery and compact comment caching (2026-09-11).
  * Modified for Breal issue #219: batched comment recovery (2026-10-12).
+ * Modified for the Breal undelete audit: live user state, negative caching, 403 reasons (2026-10-13).
  * https://github.com/wchill/patcheddit
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to this code.
@@ -22,8 +23,10 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +60,19 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
     private static final String[] COMMENT_RECOVERY_FIELDS = {
             "id", "author", "author_fullname", "author_flair_text", "body", "link_id"
     };
-    private final AutoSavingCache submissionCache = new AutoSavingCache("RedditSubmissions", 10);
+    // Per-user state from the live post; archived copies must not reset votes or saves.
+    private static final String[] LIVE_STATE_FIELDS = {
+            "saved", "likes", "clicked", "hidden", "visited", "archived", "locked", "stickied",
+            "score", "ups", "upvote_ratio", "num_comments"
+    };
+    // 403 reasons that mean the content is unreachable rather than opt-in (quarantine) or auth.
+    private static final Set<String> RECOVERABLE_403_REASONS = Set.of("private", "banned");
+    private static final String MISSING_PREFIX = "missing:";
+    // Arctic Shift ingests deletions with a delay, so a miss is only remembered for a while.
+    private static final long MISSING_TTL_MILLIS = 6L * 60L * 60L * 1000L;
+    private static final String NEGATIVE_CACHE_MARKER = "morphe_boost_undelete_negative_cache";
+
+    private final AutoSavingCache submissionCache = new AutoSavingCache("RedditSubmissions", 200);
     private final AutoSavingCache commentsCache = new AutoSavingCache("RedditComments", 10000);
 
     @NotNull
@@ -114,6 +129,9 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
         if (response.code() != 403 && response.code() != 404) {
             return response;
         }
+        if (response.code() == 403 && !isRecoverable403(response)) {
+            return response;
+        }
         try {
             Response restored = HttpUtils.makeJsonResponse(request, handle4xx(request, submissionId));
             if (response.body() != null) {
@@ -123,6 +141,33 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
         } catch (Throwable failure) {
             logRecoveryFailure(failure);
             return response;
+        }
+    }
+
+    /** Quarantined posts have an opt-in prompt and other 403s are auth problems; keep those. */
+    private static boolean isRecoverable403(Response response) {
+        try {
+            JsonNode reason = HttpUtils.getJsonFromString(response.peekBody(16_384L).string()).get("reason");
+            return reason != null && RECOVERABLE_403_REASONS.contains(reason.asText());
+        } catch (Throwable failure) {
+            return false;
+        }
+    }
+
+    static String missingMarker() {
+        return MISSING_PREFIX + System.currentTimeMillis();
+    }
+
+    /** True for a cache entry recording a recent archive miss. */
+    static boolean isFreshMiss(String cached) {
+        if (cached == null || !cached.startsWith(MISSING_PREFIX)) {
+            return false;
+        }
+        try {
+            long at = Long.parseLong(cached.substring(MISSING_PREFIX.length()));
+            return System.currentTimeMillis() - at < MISSING_TTL_MILLIS;
+        } catch (NumberFormatException failure) {
+            return false;
         }
     }
 
@@ -180,7 +225,39 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
     }
 
     private JsonNode fetchDeletedSubmission(Request request, String id, JsonNode dataNode) throws IOException {
+        Map<String, JsonNode> liveState = captureLiveState(dataNode);
+        JsonNode recoveredPost = recoverSubmission(request, id, dataNode);
+        if (liveState.isEmpty() || recoveredPost == dataNode) {
+            return recoveredPost;
+        }
+        // Cached copies keep archive defaults; the returned post keeps the user's live state.
+        EditableObjectNode merged = new EditableObjectNode(recoveredPost);
+        liveState.forEach(merged::set);
+        return merged;
+    }
+
+    private static Map<String, JsonNode> captureLiveState(JsonNode dataNode) {
+        Map<String, JsonNode> state = new HashMap<>();
+        if (dataNode != null) {
+            for (String key : LIVE_STATE_FIELDS) {
+                JsonNode value = dataNode.get(key);
+                if (value != null) {
+                    state.put(key, value);
+                }
+            }
+        }
+        return state;
+    }
+
+    private JsonNode recoverSubmission(Request request, String id, JsonNode dataNode) throws IOException {
         Optional<String> cachedJson = submissionCache.get(id);
+        if (cachedJson.isPresent() && isFreshMiss(cachedJson.get())) {
+            LoggingUtils.logInfo(true, () -> NEGATIVE_CACHE_MARKER + ": post");
+            if (dataNode != null) {
+                return dataNode;
+            }
+            throw new IOException("Submission recently missing from archive");
+        }
         if (cachedJson.isPresent()) {
             try {
                 JsonNode cached = HttpUtils.getJsonFromString(cachedJson.get());
@@ -211,6 +288,7 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
             }
         }
         if (recovered == null) {
+            submissionCache.put(id, missingMarker());
             if (dataNode != null) {
                 return dataNode;
             }
@@ -222,7 +300,8 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
             editableNode = new EditableObjectNode();
             editableNode.set(Emojis.EXTRA_EMOJI_CONTEXT_KEY, new TextNode(Emojis.PROHIBITED_EMOJI));
         } else {
-            editableNode = EditableObjectNode.wrap(dataNode);
+            // A copy: the live node supplies the user's state after recovery.
+            editableNode = new EditableObjectNode(dataNode);
             RedditApiUtils.setRemovalEmoji(editableNode);
         }
         ArcticShift.updateSubmissionNode(editableNode, recovered);
@@ -304,12 +383,18 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
 
         Map<String, JsonNode> recoveredById = new HashMap<>();
         Set<String> uncached = new LinkedHashSet<>();
+        int knownMissing = 0;
         for (ObjectNode comment : removed) {
             String commentId = comment.get("data").get("id").asText();
             if (recoveredById.containsKey(commentId) || uncached.contains(commentId)) {
                 continue;
             }
-            JsonNode cached = cachedCommentRecovery(commentId);
+            Optional<String> cachedJson = commentsCache.get(commentId);
+            if (cachedJson.isPresent() && isFreshMiss(cachedJson.get())) {
+                knownMissing++;
+                continue;
+            }
+            JsonNode cached = cachedJson.isPresent() ? cachedCommentRecovery(commentId, cachedJson.get()) : null;
             if (cached != null) {
                 recoveredById.put(commentId, cached);
             } else {
@@ -343,10 +428,12 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
 
         final int removedCount = removed.size();
         final int uncachedCount = uncached.size();
+        final int knownMissingCount = knownMissing;
         final int restoredCount = restored;
         LoggingUtils.logInfo(true, () -> COMMENT_BATCH_MARKER
                 + ": removed=" + removedCount
                 + " uncached=" + uncachedCount
+                + " knownMissing=" + knownMissingCount
                 + " restored=" + restoredCount);
     }
 
@@ -376,13 +463,12 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
         }
     }
 
-    private JsonNode cachedCommentRecovery(String commentId) {
-        Optional<String> cachedJson = commentsCache.get(commentId);
-        if (!cachedJson.isPresent()) {
-            return null;
+    private JsonNode cachedCommentRecovery(String commentId, String cachedJson) {
+        if (cachedJson.startsWith(MISSING_PREFIX)) {
+            return null; // Expired miss; ask the archive again.
         }
         try {
-            JsonNode recovered = commentRecoveryFields(HttpUtils.getJsonFromString(cachedJson.get()), commentId);
+            JsonNode recovered = commentRecoveryFields(HttpUtils.getJsonFromString(cachedJson), commentId);
             if (recovered != null) {
                 // Rewriting hits also projects older, full-comment cache entries down to these fields.
                 commentsCache.put(commentId, HttpUtils.getStringFromJson(recovered));
@@ -400,6 +486,7 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
                     from, Math.min(from + ArcticShift.MAX_IDS_PER_REQUEST, commentIds.size()));
             try {
                 ArrayNode response = ArcticShift.getIds(ArcticShift.SubmissionType.COMMENTS, batch);
+                Set<String> missing = new HashSet<>(batch);
                 for (JsonNode candidate : response) {
                     if (!hasText(candidate, "id")) {
                         continue;
@@ -411,9 +498,15 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
                     JsonNode recovered = commentRecoveryFields(candidate, commentId);
                     if (recovered != null) {
                         recoveredById.put(commentId, recovered);
+                        missing.remove(commentId);
                         // Do not retain the live replies subtree in every cached ancestor comment.
                         commentsCache.put(commentId, HttpUtils.getStringFromJson(recovered));
                     }
+                }
+                // Only a successful lookup proves absence; failures below are not cached.
+                String marker = missingMarker();
+                for (String commentId : missing) {
+                    commentsCache.put(commentId, marker);
                 }
             } catch (IOException | RuntimeException failure) {
                 // Keep what earlier batches recovered; the rest of the thread stays live.
@@ -423,35 +516,45 @@ public class RedditSubmissionUndeleteInterceptor implements Interceptor {
         }
     }
 
-    private void checkReply(EditableObjectNode node) {
-        node.setIfUnset("saved", BooleanNode.FALSE);
-        node.setIfUnset("controversiality", new IntNode(0));
-        node.setIfUnset("score_hidden", BooleanNode.FALSE);
-        node.setIfUnset("locked", BooleanNode.TRUE);
-        node.set("likes", NullNode.instance);
+    /**
+     * Fills fields Boost expects on archived comments, for a comment and all its replies.
+     * Iterative, so very deep archived threads cannot overflow the stack.
+     */
+    private void checkReply(EditableObjectNode root) {
+        ArrayDeque<EditableObjectNode> pending = new ArrayDeque<>();
+        pending.push(root);
+        while (!pending.isEmpty()) {
+            EditableObjectNode node = pending.pop();
+            node.setIfUnset("saved", BooleanNode.FALSE);
+            node.setIfUnset("controversiality", new IntNode(0));
+            node.setIfUnset("score_hidden", BooleanNode.FALSE);
+            node.setIfUnset("locked", BooleanNode.TRUE);
+            node.set("likes", NullNode.instance);
 
-        if (node.get("body") != null) {
-            String renderedHtml = MarkdownRenderer.render(node.get("body").asText());
-            node.set("body_html", new TextNode(renderedHtml));
-        }
-
-        JsonNode replies = node.get("replies");
-        if (replies == null) {
-            node.set("replies", new TextNode(""));
-        } else if (!replies.isNull() && replies.getNodeType() == JsonNodeType.OBJECT) {
-            EditableObjectNode newReplies = EditableObjectNode.wrap(replies);
-            EditableObjectNode dataNode = EditableObjectNode.wrap(replies.get("data"));
-            ArrayNode newReplyArray = new ArrayNode(JsonNodeFactory.instance);
-            for (JsonNode child : dataNode.get("children")) {
-                EditableObjectNode newChild = EditableObjectNode.wrap(child);
-                EditableObjectNode newChildData = EditableObjectNode.wrap(newChild.get("data"));
-                checkReply(newChildData);
-                newChild.set("data", newChildData);
-                newReplyArray.add(newChild);
+            if (node.get("body") != null) {
+                String renderedHtml = MarkdownRenderer.render(node.get("body").asText());
+                node.set("body_html", new TextNode(renderedHtml));
             }
-            dataNode.set("children", newReplyArray);
-            newReplies.set("data", dataNode);
-            node.set("replies", newReplies);
+
+            JsonNode replies = node.get("replies");
+            if (replies == null) {
+                node.set("replies", new TextNode(""));
+            } else if (!replies.isNull() && replies.getNodeType() == JsonNodeType.OBJECT
+                    && replies.get("data") != null && replies.get("data").get("children") != null) {
+                EditableObjectNode newReplies = EditableObjectNode.wrap(replies);
+                EditableObjectNode dataNode = EditableObjectNode.wrap(replies.get("data"));
+                ArrayNode newReplyArray = new ArrayNode(JsonNodeFactory.instance);
+                for (JsonNode child : dataNode.get("children")) {
+                    EditableObjectNode newChild = EditableObjectNode.wrap(child);
+                    EditableObjectNode newChildData = EditableObjectNode.wrap(newChild.get("data"));
+                    newChild.set("data", newChildData);
+                    newReplyArray.add(newChild);
+                    pending.push(newChildData);
+                }
+                dataNode.set("children", newReplyArray);
+                newReplies.set("data", dataNode);
+                node.set("replies", newReplies);
+            }
         }
     }
 

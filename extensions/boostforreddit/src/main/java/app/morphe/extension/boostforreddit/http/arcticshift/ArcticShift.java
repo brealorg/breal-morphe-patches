@@ -37,6 +37,8 @@ public class ArcticShift {
     /** Arctic Shift rejects ID lookups with more than 500 IDs. */
     public static final int MAX_IDS_PER_REQUEST = 500;
 
+    static final int COMMENT_TREE_LIMIT = 3000;
+
     // Lookups run inside Boost's own Reddit requests, so a slow archive must not hold them for long.
     private static final long CALL_TIMEOUT_MS = 10_000L;
     private static final long COMMENT_TREE_CALL_TIMEOUT_MS = 20_000L;
@@ -83,12 +85,18 @@ public class ArcticShift {
             throw new IllegalArgumentException("At most " + MAX_IDS_PER_REQUEST + " IDs per request");
         }
         String url = ARCTIC_SHIFT_BASE_URL + submissionType.toString().toLowerCase() + "/ids?ids=" + String.join(",", ids);
-        return getArrayDataOrEmpty(makeApiCall(url), submissionType.toString().toLowerCase() + "/ids");
+        JsonNode data = makeApiCall(url).get("data");
+        // Callers cache an empty answer as "not archived", so an error payload must not look empty.
+        if (data == null || !data.isArray()) {
+            throw new IOException(ARCTIC_SHIFT_NULL_DATA_MARKER + ": non-array data for ids lookup");
+        }
+        return (ArrayNode) data;
     }
 
     public static ArrayNode getCommentTree(String linkId) throws IOException {
         //return queryArcticShiftForCommentTree(id, null, null, null, null);
-        String url = ARCTIC_SHIFT_BASE_URL + "comments/tree?limit=25000&link_id=" + linkId;
+        // Enough for any thread Boost renders comfortably; 25000 made deleted megathreads time out.
+        String url = ARCTIC_SHIFT_BASE_URL + "comments/tree?limit=" + COMMENT_TREE_LIMIT + "&link_id=" + linkId;
         return getArrayDataOrEmpty(makeApiCall(url, COMMENT_TREE_CALL_TIMEOUT_MS), "comments/tree");
     }
 

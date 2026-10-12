@@ -202,7 +202,11 @@ public final class Issue196RegressionTest {
                 RedditSubmissionUndeleteInterceptor i=new RedditSubmissionUndeleteInterceptor();
                 ObjectNode c=deleted(",\"collapsed_reason_code\":\"DELETED\""); String before=text(c);
                 restore(i,c); check(text(c).equals(before), "Invalid recovery changed item");
-                check(cache(i,"commentsCache").values.isEmpty(),"Invalid recovery cached");
+                // A successful but useless answer is remembered as a miss, never as content;
+                // an error payload (data:null) is not remembered at all.
+                Collection<String> cached=cache(i,"commentsCache").values.values();
+                check(cached.stream().allMatch(v->v.startsWith("missing:")),"Invalid recovery cached as content");
+                check(!fixture.equals("{\"data\":null}") || cached.isEmpty(),"Error payload cached as a miss");
             }
         });
         test("malformed_wrappers_and_more_are_untouched", () -> {
@@ -499,6 +503,54 @@ public final class Issue196RegressionTest {
             post = json(new Exchange(200, content).run(i).body().string()).get(0).get("data").get("children").get(0).get("data");
             check(post.get("gallery_data") != null && post.get("is_gallery").asBoolean(), "Cached post did not retry gallery metadata");
             check(json(cache(i, "submissionCache").get("abc").get()).get("gallery_data") != null, "Gallery metadata not cached");
+        });
+        test("quarantined_or_unexplained_403_is_returned_unchanged", () -> {
+            for (String body : new String[]{"{\"reason\":\"quarantined\",\"quarantine_message\":\"x\"}", "", "{\"message\":\"Forbidden\"}"}) {
+                HttpUtils.reset();
+                Exchange x = new Exchange(403, body);
+                Response out = x.run(new RedditSubmissionUndeleteInterceptor());
+                check(out == x.original && !x.body.closed, "403 without a recoverable reason was replaced: " + body);
+                check(out.body().string().equals(body), "403 body consumed: " + body);
+                check(HttpUtils.calls.isEmpty(), "Archive queried for 403: " + body);
+            }
+        });
+        test("private_403_is_recovered_from_archive", () -> {
+            HttpUtils.replies.put("posts/ids?ids=abc", "{\"data\":[" + POST.replace("\"live\"", "\"archived\"") + "]}");
+            HttpUtils.replies.put("comments/tree", "{\"data\":[]}");
+            Exchange x = new Exchange(403, "{\"reason\":\"private\",\"message\":\"Forbidden\"}");
+            Response out = x.run(new RedditSubmissionUndeleteInterceptor());
+            check(out.code() == 200 && x.body.closed, "Private-sub post not recovered");
+            check(json(out.body().string()).get(0).get("data").get("children").get(0).get("data").get("selftext").asText().equals("archived"), "Wrong post");
+        });
+        test("recovered_post_keeps_live_user_state", () -> {
+            HttpUtils.replies.put("posts/ids?ids=abc", "{\"data\":[" + POST.replace("\"live\"", "\"archived\"") + "]}");
+            String live = POST.replace("\"live\"", "\"[removed]\"").replace("}", ",\"saved\":true,\"likes\":true,\"score\":42,\"archived\":false}");
+            RedditSubmissionUndeleteInterceptor i = new RedditSubmissionUndeleteInterceptor();
+            for (int open = 0; open < 2; open++) {
+                JsonNode post = json(new Exchange(200, thread(live, "[]")).run(i).body().string())
+                        .get(0).get("data").get("children").get(0).get("data");
+                check(post.get("selftext").asText().equals("archived"), "Post not recovered");
+                check(post.get("saved").asBoolean() && post.get("likes").asBoolean() && post.get("score").asInt() == 42
+                        && !post.get("archived").asBoolean(), "Live user state overwritten (open " + open + "): " + post);
+            }
+            check(HttpUtils.calls.size() == 1, "Second open did not use the cache");
+            check(!json(cache(i, "submissionCache").get("abc").get()).get("saved").asBoolean(), "Live user state cached");
+        });
+        test("archive_misses_are_remembered_until_they_expire", () -> {
+            HttpUtils.replies.put("comments/ids?ids=", "{\"data\":[]}");
+            RedditSubmissionUndeleteInterceptor i = new RedditSubmissionUndeleteInterceptor();
+            restore(i, json("[" + deletedComment("m1", null) + "]"));
+            restore(i, json("[" + deletedComment("m1", null) + "]"));
+            check(commentLookups() == 1, "Known-missing comment looked up again");
+            cache(i, "commentsCache").put("m1", "missing:0");
+            restore(i, json("[" + deletedComment("m1", null) + "]"));
+            check(commentLookups() == 2, "Expired miss not retried");
+
+            HttpUtils.replies.put("posts/ids?ids=abc", "{\"data\":[]}");
+            String live = thread(POST.replace("\"live\"", "\"[removed]\""), "[]");
+            new Exchange(200, live).run(i);
+            new Exchange(200, live).run(i);
+            check(HttpUtils.calls.stream().filter(u -> u.contains("posts/ids")).count() == 1, "Known-missing post looked up again");
         });
         System.out.println("ISSUE196_REGRESSION_TESTS_PASS="+passed);
     }
