@@ -18,6 +18,8 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import app.morphe.extension.boostforreddit.http.arcticshift.ArcticShiftThrottlingInterceptor;
@@ -34,6 +36,7 @@ import okhttp3.ResponseBody;
 public class HttpUtils {
     private static final OkHttpClient httpClient;
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final Map<Long, OkHttpClient> timeoutClients = new ConcurrentHashMap<>();
 
     static {
         File cacheDir = CacheUtils.getHttpCacheDir();
@@ -61,6 +64,31 @@ public class HttpUtils {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Fetches JSON with an overall time limit. Unlike {@link #getJson(String)}, HTTP errors
+     * throw instead of handing an error page to the JSON parser.
+     */
+    public static JsonNode getJson(String url, long callTimeoutMillis) throws IOException {
+        Request request = new Request.Builder()
+                .get()
+                .url(url)
+                .build();
+        try (Response response = clientWithCallTimeout(callTimeoutMillis).newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("HTTP " + response.code());
+            }
+            return objectMapper.readTree(response.body().string());
+        }
+    }
+
+    // Boost obfuscates okio, so Call.timeout() (returning okio.Timeout) cannot be linked at runtime.
+    // Builder.callTimeout only uses okhttp and JDK types. Derived clients share the pool and cache.
+    private static OkHttpClient clientWithCallTimeout(long callTimeoutMillis) {
+        return timeoutClients.computeIfAbsent(callTimeoutMillis, millis -> httpClient.newBuilder()
+                .callTimeout(millis, TimeUnit.MILLISECONDS)
+                .build());
     }
 
     public static String getStringFromJson(JsonNode node) {

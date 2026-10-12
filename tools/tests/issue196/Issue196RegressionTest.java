@@ -20,8 +20,27 @@ public final class Issue196RegressionTest {
     private static JsonNode json(String text) { return HttpUtils.getJsonFromString(text); }
     private static String text(JsonNode node) { return HttpUtils.getStringFromJson(node); }
     private static void test(String name, Test test) throws Exception {
-        HttpUtils.reset(); BoostUndeleteSettings.enabled = true; LoggingUtils.failures = 0;
+        HttpUtils.reset(); BoostUndeleteSettings.enabled = true; LoggingUtils.failures = 0; resetArchiveCooldown();
         test.run(); passed++; System.out.println("PASS " + name);
+    }
+    private static void resetArchiveCooldown() throws Exception {
+        Field field = app.morphe.extension.boostforreddit.http.arcticshift.ArcticShift.class.getDeclaredField("lastFailureNanos");
+        field.setAccessible(true); field.set(null, null);
+    }
+    private static String deletedComment(String id, String replies) {
+        return "{\"kind\":\"t1\",\"data\":{\"id\":\"" + id + "\",\"body\":\"[deleted]\",\"collapsed\":true"
+                + (replies == null ? "" : ",\"replies\":{\"data\":{\"children\":" + replies + "}}") + "}}";
+    }
+    private static String archived(String... ids) {
+        StringBuilder b = new StringBuilder("{\"data\":[");
+        for (int n = 0; n < ids.length; n++) {
+            if (n > 0) b.append(',');
+            b.append("{\"id\":\"").append(ids[n]).append("\",\"body\":\"archived ").append(ids[n]).append("\"}");
+        }
+        return b.append("]}").toString();
+    }
+    private static long commentLookups() {
+        return HttpUtils.calls.stream().filter(url -> url.contains("comments/ids")).count();
     }
     private static ObjectNode deleted(String extra) {
         return (ObjectNode)json("{\"kind\":\"t1\",\"data\":{\"id\":\"c1\",\"body\":\"[deleted]\",\"collapsed\":true" + extra + "}}");
@@ -283,6 +302,50 @@ public final class Issue196RegressionTest {
             check(rewritten.get("removed_by_category")==null || rewritten.get("removed_by_category").isNull(),
                     "Legacy cache was not rewritten");
             check(HttpUtils.calls.isEmpty(),"Legacy cache normalization unexpectedly hit archive");
+        });
+        test("issue219_thread_comments_use_one_batched_lookup", () -> {
+            HttpUtils.replies.put("comments/ids?ids=", archived("a1","a2","a3"));
+            String comments="["+deletedComment("a1","["+deletedComment("a2",null)+"]")+",{\"kind\":\"more\",\"data\":{\"id\":\"tail\"}},"+deletedComment("a3",null)+"]";
+            Exchange x=new Exchange(200,thread(POST,comments)); Response out=x.run(new RedditSubmissionUndeleteInterceptor());
+            JsonNode c=json(out.body().string()).get(1).get("data").get("children");
+            check(commentLookups()==1,"Expected one batched lookup, got "+HttpUtils.calls);
+            check(HttpUtils.calls.get(0).endsWith("ids=a1,a2,a3"),"Batch IDs wrong: "+HttpUtils.calls);
+            check(c.get(0).get("data").get("body").asText().equals("archived a1"),"Top-level not restored");
+            check(c.get(0).get("data").get("replies").get("data").get("children").get(0).get("data").get("body").asText().equals("archived a2"),"Nested not restored");
+            check(c.get(1).get("kind").asText().equals("more") && c.get(2).get("data").get("body").asText().equals("archived a3"),"Sibling/more damaged");
+        });
+        test("issue219_more_than_500_ids_are_split", () -> {
+            StringBuilder comments=new StringBuilder("[");
+            for(int n=0;n<501;n++){ if(n>0) comments.append(','); comments.append(deletedComment("b"+n,null)); }
+            HttpUtils.replies.put("comments/ids?ids=", archived("b0","b500"));
+            JsonNode listing=json(comments.append("]").toString());
+            restore(new RedditSubmissionUndeleteInterceptor(),listing);
+            check(commentLookups()==2,"Expected 2 lookups, got "+commentLookups());
+            check(HttpUtils.calls.get(1).endsWith("ids=b500"),"Second batch wrong");
+            check(listing.get(0).get("data").get("body").asText().equals("archived b0"),"First batch not applied");
+            check(listing.get(500).get("data").get("body").asText().equals("archived b500"),"Second batch not applied");
+            check(listing.get(1).get("data").get("body").asText().equals("[deleted]"),"Missing archive entry altered");
+        });
+        test("issue219_archive_failure_cools_down_later_threads", () -> {
+            HttpUtils.replies.put("comments/ids?ids=", new java.net.SocketTimeoutException("fixture slow"));
+            String content=thread(POST,"["+deletedComment("d1",null)+"]");
+            Exchange first=new Exchange(200,content);
+            check(first.run(new RedditSubmissionUndeleteInterceptor()).body().string().equals(content),"Live thread lost on timeout");
+            check(commentLookups()==1,"First lookup missing");
+            Exchange second=new Exchange(200,content);
+            check(second.run(new RedditSubmissionUndeleteInterceptor()).body().string().equals(content),"Live thread lost during cooldown");
+            check(commentLookups()==1,"Archive queried again during cooldown");
+        });
+        test("issue219_cache_hits_are_not_requested", () -> {
+            RedditSubmissionUndeleteInterceptor i=new RedditSubmissionUndeleteInterceptor();
+            cache(i,"commentsCache").put("h1","{\"id\":\"h1\",\"body\":\"cached h1\"}");
+            HttpUtils.replies.put("comments/ids?ids=", archived("m1"));
+            JsonNode listing=json("["+deletedComment("h1",null)+","+deletedComment("m1",null)+"]");
+            restore(i,listing);
+            check(HttpUtils.calls.size()==1 && HttpUtils.calls.get(0).endsWith("ids=m1"),"Cached ID requested: "+HttpUtils.calls);
+            check(listing.get(0).get("data").get("body").asText().equals("cached h1"),"Cache hit not applied");
+            check(listing.get(1).get("data").get("body").asText().equals("archived m1"),"Miss not applied");
+            check(cache(i,"commentsCache").get("m1").isPresent(),"Recovered miss not cached");
         });
         System.out.println("ISSUE196_REGRESSION_TESTS_PASS="+passed);
     }

@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 wchill.
+ * Modified for Breal issue #219: bounded calls and failure cooldown (2026-10-12).
  * https://github.com/wchill/patcheddit
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to this code.
@@ -13,8 +14,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import app.morphe.extension.boostforreddit.http.HttpUtils;
 import app.morphe.extension.boostforreddit.utils.EditableObjectNode;
@@ -29,6 +32,18 @@ public class ArcticShift {
 
     private static final String ARCTIC_SHIFT_BASE_URL = "https://arctic-shift.photon-reddit.com/api/";
     private static final String ARCTIC_SHIFT_NULL_DATA_MARKER = "morphe_boost_arcticshift_null_data_fail_open";
+    private static final String ARCTIC_SHIFT_COOLDOWN_MARKER = "morphe_boost_arcticshift_issue219_cooldown";
+
+    /** Arctic Shift rejects ID lookups with more than 500 IDs. */
+    public static final int MAX_IDS_PER_REQUEST = 500;
+
+    // Lookups run inside Boost's own Reddit requests, so a slow archive must not hold them for long.
+    private static final long CALL_TIMEOUT_MS = 10_000L;
+    private static final long COMMENT_TREE_CALL_TIMEOUT_MS = 20_000L;
+
+    // After a failure, skip lookups briefly instead of making every thread wait for the same outage.
+    private static final long FAILURE_COOLDOWN_NANOS = TimeUnit.SECONDS.toNanos(60);
+    private static volatile Long lastFailureNanos;
 
     private static final String[] POSTS_FIELDS = {
             "id", "title", "author", "author_fullname", "author_flair_text", "crosspost_parent",
@@ -42,11 +57,31 @@ public class ArcticShift {
     };
 
     private static JsonNode makeApiCall(String url) throws IOException {
-        LoggingUtils.logInfo(true, () -> String.format("Arctic Shift: %s", url));
-        return HttpUtils.getJson(url);
+        return makeApiCall(url, CALL_TIMEOUT_MS);
     }
 
-    public static ArrayNode getIds(SubmissionType submissionType, Iterable<String> ids) throws IOException {
+    private static JsonNode makeApiCall(String url, long callTimeoutMillis) throws IOException {
+        Long failedAt = lastFailureNanos;
+        if (failedAt != null && System.nanoTime() - failedAt < FAILURE_COOLDOWN_NANOS) {
+            throw new IOException(ARCTIC_SHIFT_COOLDOWN_MARKER + ": skipping lookup after recent failure");
+        }
+        LoggingUtils.logInfo(true, () -> String.format("Arctic Shift: %s", url));
+        try {
+            JsonNode result = HttpUtils.getJson(url, callTimeoutMillis);
+            lastFailureNanos = null;
+            return result;
+        } catch (IOException failure) {
+            lastFailureNanos = System.nanoTime();
+            LoggingUtils.logInfo(false, () -> ARCTIC_SHIFT_COOLDOWN_MARKER
+                    + ": " + failure.getClass().getSimpleName());
+            throw failure;
+        }
+    }
+
+    public static ArrayNode getIds(SubmissionType submissionType, Collection<String> ids) throws IOException {
+        if (ids.size() > MAX_IDS_PER_REQUEST) {
+            throw new IllegalArgumentException("At most " + MAX_IDS_PER_REQUEST + " IDs per request");
+        }
         String url = ARCTIC_SHIFT_BASE_URL + submissionType.toString().toLowerCase() + "/ids?ids=" + String.join(",", ids);
         return getArrayDataOrEmpty(makeApiCall(url), submissionType.toString().toLowerCase() + "/ids");
     }
@@ -54,7 +89,7 @@ public class ArcticShift {
     public static ArrayNode getCommentTree(String linkId) throws IOException {
         //return queryArcticShiftForCommentTree(id, null, null, null, null);
         String url = ARCTIC_SHIFT_BASE_URL + "comments/tree?limit=25000&link_id=" + linkId;
-        return getArrayDataOrEmpty(makeApiCall(url), "comments/tree");
+        return getArrayDataOrEmpty(makeApiCall(url, COMMENT_TREE_CALL_TIMEOUT_MS), "comments/tree");
     }
 
     public static JsonNode getSubredditInfoById(String id) throws IOException {
