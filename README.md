@@ -20,6 +20,8 @@ Browser deep link:
 
 Use this only from a browser/link handler, not inside the Morphe Manager source URL text field:
 
+**[➕ Add to Morphe](https://morphe.software/add-source?github=brealorg/breal-morphe-patches)**
+
 ```text
 https://morphe.software/add-source?github=brealorg/breal-morphe-patches
 ```
