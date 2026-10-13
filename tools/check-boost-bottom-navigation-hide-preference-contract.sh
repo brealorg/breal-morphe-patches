@@ -12,7 +12,18 @@ rg -q -F \
   "$SOURCE"
 
 rg -q -U \
-  '(?s)View navigation =\s*configureNativeCanonicalNavigation\(.*?\);\s*lockOwnedNavigationHost\(navigation\);\s*if \(appliedVisible\)' \
+  '(?s)View navigation =\s*configureNativeCanonicalNavigation\(.*?\);\s*lockOwnedNavigationHost\(\s*navigation,\s*revealScrolledBar && appliedVisible\s*\);\s*if \(appliedVisible\)' \
+  "$SOURCE"
+
+# p3(true) (feed shown) reveals a bar hide-on-scroll moved off screen;
+# onResume does not.
+rg -q -U \
+  '(?s)public static void enforceMaterialOnlyRuntimeVisibility\(.*?enforceMaterialOnlyVisibility\(\s*activity,\s*visible,\s*true\s*\);' \
+  "$SOURCE"
+
+# onResume keeps Boost's last p3() decision (swipe post viewer forces false).
+rg -q -U \
+  '(?s)public static void refreshMaterialNavigationPreference\(.*?RUNTIME_VISIBILITY_REQUESTS\.get\(activity\).*?runtimeVisible\s*&& isBottomNavigationPreferenceEnabled\(activity\)' \
   "$SOURCE"
 
 HOST_BLOCK="$(
@@ -36,6 +47,9 @@ rg -q -F 'new Object[]{behaviorAfter}' <<< "$HOST_BLOCK"
 rg -q -F 'new Object[]{null}' <<< "$HOST_BLOCK"
 rg -q -F 'navigation.setTranslationY(0.0f);' <<< "$HOST_BLOCK"
 rg -q -U \
+  '(?s)if \(revealScrolledBar && scrolledAway\).*?behaviorBefore = null;' \
+  <<< "$HOST_BLOCK"
+rg -q -U \
   '(?s)if \(hideOnScroll\).*?new Object\[]\{behaviorAfter\}.*?else \{.*?new Object\[]\{null\}.*?navigation\.setTranslationY\(0\.0f\)' \
   <<< "$HOST_BLOCK"
 
@@ -52,6 +66,8 @@ echo 'BOTTOM_NAV_NATIVE_PREFERENCE_READ=PASS'
 echo 'BOTTOM_NAV_HIDE_BEHAVIOR_ENABLED_WHEN_ON=PASS'
 echo 'BOTTOM_NAV_HIDE_BEHAVIOR_REMOVED_WHEN_OFF=PASS'
 echo 'BOTTOM_NAV_TRANSLATION_RESTORED_WHEN_OFF=PASS'
+echo 'BOTTOM_NAV_REVEALED_ON_FEED_SWITCH=PASS'
+echo 'BOTTOM_NAV_ON_RESUME_KEEPS_RUNTIME_REQUEST=PASS'
 echo 'FAB_INDEPENDENT_FROM_BOTTOM_NAV_PREFERENCE=PASS'
 echo 'UNIFORM_FAB_PRE_SCROLL_PRESERVED=PASS'
 echo 'RESULT=MORPHE_BOTTOM_NAV_HIDE_PREFERENCE_CONTRACT_OK'

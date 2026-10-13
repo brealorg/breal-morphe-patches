@@ -68,3 +68,13 @@ internal val searchAbstractSubredditsErrorCallbackFingerprint = Fingerprint(
             method.name == "a"
     },
 )
+
+internal val emptyRecyclerViewBottomNavigationPaddingFingerprint = Fingerprint(
+    returnType = "V",
+    parameters = emptyList(),
+    custom = { method, classDef ->
+        classDef.type ==
+            "Lcom/rubenmayayo/reddit/ui/customviews/EmptyRecyclerView;" &&
+            method.name == "F1"
+    },
+)

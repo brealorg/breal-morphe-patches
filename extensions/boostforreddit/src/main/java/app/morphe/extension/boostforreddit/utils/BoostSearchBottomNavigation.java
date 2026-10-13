@@ -205,6 +205,14 @@ public final class BoostSearchBottomNavigation {
     private static final WeakHashMap<Activity, Boolean>
             NATIVE_NAVIGATION_VISIBILITY_REQUESTS =
                     new WeakHashMap<>();
+    /**
+     * Boost's own last p3() decision per activity, before the preference
+     * gate. SubmissionsActivity forces false while the swipe post viewer is
+     * shown; onResume must not override that.
+     */
+    private static final WeakHashMap<Activity, Boolean>
+            RUNTIME_VISIBILITY_REQUESTS =
+                    new WeakHashMap<>();
 
     private static volatile ColorStateList CANONICAL_ITEM_TINT;
 
@@ -1438,6 +1446,15 @@ public final class BoostSearchBottomNavigation {
             Activity activity,
             boolean runtimeVisible
     ) {
+        if (activity != null) {
+            synchronized (RUNTIME_VISIBILITY_REQUESTS) {
+                RUNTIME_VISIBILITY_REQUESTS.put(
+                        activity,
+                        runtimeVisible
+                );
+            }
+        }
+
         boolean preferenceEnabled =
                 isBottomNavigationPreferenceEnabled(activity);
         boolean visible =
@@ -1457,15 +1474,28 @@ public final class BoostSearchBottomNavigation {
 
         enforceMaterialOnlyVisibility(
                 activity,
-                visible
+                visible,
+                true
         );
     }
 
     public static void refreshMaterialNavigationPreference(
             Activity activity
     ) {
+        boolean runtimeVisible = true;
+
+        synchronized (RUNTIME_VISIBILITY_REQUESTS) {
+            Boolean requested =
+                    RUNTIME_VISIBILITY_REQUESTS.get(activity);
+
+            if (requested != null) {
+                runtimeVisible = requested;
+            }
+        }
+
         boolean visible =
-                isBottomNavigationPreferenceEnabled(activity);
+                runtimeVisible
+                        && isBottomNavigationPreferenceEnabled(activity);
 
         enforceMaterialOnlyVisibility(
                 activity,
@@ -1662,6 +1692,23 @@ public final class BoostSearchBottomNavigation {
             Activity activity,
             boolean visible
     ) {
+        enforceMaterialOnlyVisibility(
+                activity,
+                visible,
+                false
+        );
+    }
+
+    /**
+     * @param revealScrolledBar Boost calls p3(true) when a feed is shown
+     *         (All, Popular, a subreddit). Bring back a bar that
+     *         hide-on-scroll moved off screen in the previous feed.
+     */
+    private static void enforceMaterialOnlyVisibility(
+            Activity activity,
+            boolean visible,
+            boolean revealScrolledBar
+    ) {
         if (activity == null) {
             return;
         }
@@ -1698,7 +1745,10 @@ public final class BoostSearchBottomNavigation {
                             appliedVisible
                     );
 
-            lockOwnedNavigationHost(navigation);
+            lockOwnedNavigationHost(
+                    navigation,
+                    revealScrolledBar && appliedVisible
+            );
 
             if (appliedVisible) {
                 syncSystemNavigationBar(activity);
@@ -1729,8 +1779,17 @@ public final class BoostSearchBottomNavigation {
         }
     }
 
+    /**
+     * Brings back a bar that hide-on-scroll moved off screen, with a fresh
+     * behavior so the next downward scroll hides it again.
+     */
+    public static void revealScrolledNavigation(View navigation) {
+        lockOwnedNavigationHost(navigation, true);
+    }
+
     private static void lockOwnedNavigationHost(
-            View navigation
+            View navigation,
+            boolean revealScrolledBar
     ) {
         if (navigation == null) {
             return;
@@ -1843,6 +1902,18 @@ public final class BoostSearchBottomNavigation {
             Object behaviorAfter = behaviorBefore;
 
             if (hideOnScroll) {
+                boolean scrolledAway =
+                        navigation.getTranslationY() != 0.0f;
+
+                if (revealScrolledBar && scrolledAway) {
+                    // A fresh behavior starts in the scrolled-up state, so the
+                    // next downward scroll hides the bar again.
+                    navigation.clearAnimation();
+                    navigation.animate().cancel();
+                    navigation.setTranslationY(0.0f);
+                    behaviorBefore = null;
+                }
+
                 if (!hideBehaviorClass.isInstance(behaviorBefore)) {
                     Constructor<?> constructor =
                             hideBehaviorClass.getDeclaredConstructor();
