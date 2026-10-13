@@ -4,8 +4,6 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SETTINGS="$ROOT/patches/src/main/kotlin/app/morphe/patches/reddit/customclients/boostforreddit/misc/settings/BoostMorpheSettingsSkeletonPatch.kt"
 FRAGMENT="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsFragment.java"
-HUB="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsHubFragment.java"
-LAYOUT="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsLayout.java"
 V4="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4.java"
 V4_FRAGMENT="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4Fragment.java"
 V4_APPEARANCE="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings/MorpheSettingsV4AppearanceFragment.java"
@@ -21,8 +19,10 @@ SYSTEM_BARS="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/
 
 test -f "$SETTINGS"
 test -f "$FRAGMENT"
-test -f "$HUB"
-test -f "$LAYOUT"
+# The v2 layout and hubs were unreachable once Settings v4 stored its choice; they are removed.
+SETTINGS_DIR="$ROOT/extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/settings"
+test ! -e "$SETTINGS_DIR/MorpheSettingsHubFragment.java"
+test ! -e "$SETTINGS_DIR/MorpheSettingsLayout.java"
 test -f "$V4"
 test -f "$V4_FRAGMENT"
 test -f "$V4_APPEARANCE"
@@ -40,8 +40,6 @@ rg -q -F 'get("res/xml/pref_headers_v2.xml")' "$SETTINGS"
 rg -q -F 'morphe_boost_settings_entry' "$SETTINGS"
 rg -q -F 'app.morphe.extension.boostforreddit.settings.MorpheSettingsFragment' "$SETTINGS"
 rg -q -F 'MORPHE_BOOST_TOP_LEVEL_SETTINGS_ISSUE106_V1' "$FRAGMENT"
-rg -q -F 'MORPHE_BOOST_SETTINGS_LAYOUT_ISSUE106_V2_1' "$LAYOUT"
-rg -q -F 'MORPHE_BOOST_SETTINGS_HUBS_ISSUE106_V2_1' "$HUB"
 rg -q -F 'MORPHE_BOOST_SETTINGS_V4_ISSUE106_V1' "$V4"
 rg -q -F 'MORPHE_BOOST_SETTINGS_V4_UI_ISSUE106_V1' "$V4_FRAGMENT"
 rg -q -F 'MORPHE_BOOST_SETTINGS_V4_APPEARANCE_ISSUE106_V1' "$V4_APPEARANCE"
@@ -52,7 +50,7 @@ rg -q -F 'MORPHE_BOOST_SETTINGS_V4_SAVED_VIEWS_ISSUE106_V1' "$V4_SAVED_VIEWS"
 rg -q -F 'MORPHE_BOOST_SETTINGS_V4_FONTS_ISSUE106_V1' "$V4_FONTS"
 rg -q -F 'MORPHE_BOOST_SETTINGS_V4_NATIVE_REST_ISSUE106_V1' "$V4_NATIVE_PAGES"
 rg -q -F 'MORPHE_BOOST_SETTINGS_V14_COHERENT_UI_ISSUE106_V1' "$V14_UI"
-rg -q -F 'setPreferencesFromResource(resourceId, rootKey);' "$FRAGMENT" "$HUB"
+rg -q -F 'setPreferencesFromResource(resourceId, rootKey);' "$FRAGMENT"
 
 if rg -q -F 'get("res/xml/pref_advanced_v2.xml")' "$SETTINGS"; then
     echo 'FAIL: Morphe settings are still written into Advanced' >&2
@@ -62,8 +60,6 @@ fi
 python3 - \
     "$SETTINGS" \
     "$FRAGMENT" \
-    "$LAYOUT" \
-    "$HUB" \
     "$V4" \
     "$V4_FRAGMENT" \
     "$V4_APPEARANCE" \
@@ -82,20 +78,18 @@ from pathlib import Path
 
 settings = Path(sys.argv[1]).read_text()
 fragment = Path(sys.argv[2]).read_text()
-layout = Path(sys.argv[3]).read_text()
-hub = Path(sys.argv[4]).read_text()
-v4 = Path(sys.argv[5]).read_text()
-v4_fragment = Path(sys.argv[6]).read_text()
-v4_appearance = Path(sys.argv[7]).read_text()
-v4_app_icon = Path(sys.argv[8]).read_text()
-v4_post_views = Path(sys.argv[9]).read_text()
-v4_saved_views = Path(sys.argv[10]).read_text()
-v4_fonts = Path(sys.argv[11]).read_text()
-v4_catalog = Path(sys.argv[12]).read_text()
-v4_theme = Path(sys.argv[13]).read_text()
-v4_native_pages = Path(sys.argv[14]).read_text()
-v14_ui = Path(sys.argv[15]).read_text()
-system_bars = Path(sys.argv[16]).read_text()
+v4 = Path(sys.argv[3]).read_text()
+v4_fragment = Path(sys.argv[4]).read_text()
+v4_appearance = Path(sys.argv[5]).read_text()
+v4_app_icon = Path(sys.argv[6]).read_text()
+v4_post_views = Path(sys.argv[7]).read_text()
+v4_saved_views = Path(sys.argv[8]).read_text()
+v4_fonts = Path(sys.argv[9]).read_text()
+v4_catalog = Path(sys.argv[10]).read_text()
+v4_theme = Path(sys.argv[11]).read_text()
+v4_native_pages = Path(sys.argv[12]).read_text()
+v14_ui = Path(sys.argv[13]).read_text()
+system_bars = Path(sys.argv[14]).read_text()
 
 preference_keys = [
     "morphe_boost_inline_media_previews_enabled",
@@ -184,15 +178,15 @@ assert (
 )
 
 legacy_start = settings.index('get("res/xml/pref_headers_v2.xml")')
-v2_start = settings.index('"morphe_boost_settings_layout_v2" to')
-first_hub_start = settings.index(
-    '"morphe_boost_settings_hub_appearance_layout" to'
-)
-legacy_root = settings[legacy_start:v2_start]
-v2_root = settings[v2_start:first_hub_start]
-v2_resources = settings[v2_start:]
+legacy_root = settings[legacy_start:]
 
-for root in (legacy_root, v2_root):
+assert '"morphe_boost_settings_layout_v2" to' not in settings
+assert "morphe_boost_settings_hub_" not in settings
+assert "MorpheSettingsHubFragment" not in settings
+assert "MorpheSettingsLayout" not in settings
+assert "resolveRootResource" not in settings
+
+for root in (legacy_root,):
     assert root.count('android:key="morphe_boost_settings_entry"') == 1
     assert root.count('android:title="Morphe"') == 1
     assert root.count(
@@ -210,85 +204,11 @@ for root in (legacy_root, v2_root):
 assert legacy_root.index(
     'android:key="morphe_boost_settings_entry"'
 ) < legacy_root.index("PreferenceFragmentGeneralCompat")
-assert v2_root.index(
-    'android:key="morphe_boost_settings_entry"'
-) < v2_root.index("morphe_boost_settings_v2_appearance_layout")
-assert 'app:allowDividerAbove="true"' in v2_root.split(
-    'morphe_boost_settings_v2_appearance_layout', 1
-)[1].split('</Preference>', 1)[0]
-
-hub_names = [
-    "appearance_layout",
-    "posts_comments",
-    "navigation",
-    "media_links",
-    "search_filters",
-    "data_storage",
-    "account_privacy",
-    "app_legacy",
-]
-
-for name in hub_names:
-    resource_name = f"morphe_boost_settings_hub_{name}"
-    assert settings.count(f'"{resource_name}" to') == 1, resource_name
-    assert v2_root.count(f'android:value="{resource_name}"') == 1, name
-
-assert v2_root.count("MorpheSettingsHubFragment") == len(hub_names)
-assert "PreferenceFragmentAdvancedCompat" not in v2_resources
-assert 'android:key="remove_ads"' not in v2_resources
-assert 'android:key="buy_pro"' not in v2_resources
-assert 'android:key="support_launch"' not in v2_resources
-assert 'android:key="privacy_policy"' not in v2_resources
-
-v2_leaf_fragments = [
-    "PreferenceFragmentAppearanceCompat",
-    "PreferenceFragmentViewsCompat",
-    "PreferenceFragmentFontsCompat",
-    "PreferenceFragmentPostsCompat",
-    "PreferenceFragmentCommentsCompat",
-    "PreferenceFragmentToolbarCompat",
-    "PreferenceFragmentBottomNavigationCompat",
-    "PreferenceFragmentDrawerCompat",
-    "PreferenceFragmentMediaCompat",
-    "PreferenceFragmentLinksCompat",
-    "PreferenceFragmentSearchCompat",
-    "PreferenceFragmentFiltersCompat",
-    "PreferenceFragmentMessagesCompat",
-    "PreferenceFragmentDataSavingCompat",
-    "PreferenceFragmentAccountCompat",
-    "PreferenceFragmentPrivacyCompat",
-    "PreferenceFragmentGeneralCompat",
-    "PreferenceFragmentMiscCompat",
-    "PreferenceFragmentAboutCompat",
-]
-
-for name in v2_leaf_fragments:
-    assert v2_resources.count(name) == 1, name
-
-assert 'get("res/xml/$resourceName.xml")' in settings
-assert 'get("res/xml/\\$resourceName.xml")' not in settings
 assert 'RESOURCE_NAME = "morphe_boost_settings_skeleton"' in fragment
 assert 'context.getPackageName()' in fragment
 assert 'BOOST_PACKAGE = "com.rubenmayayo.reddit"' in fragment
 assert fragment.count("resources.getIdentifier(") == 2
 assert "throw new IllegalStateException(" in fragment
-
-assert 'ENABLED_KEY =\n            "morphe_boost_settings_layout_v2_enabled"' in layout
-assert f'V4_ENABLED_KEY =\n            "{toggle_key}"' in layout
-assert 'RESOURCE_NAME =\n            "morphe_boost_settings_layout_v2"' in layout
-assert "import android.preference.PreferenceManager;" in layout
-assert "import androidx.preference.PreferenceManager;" not in layout
-assert 'preferences.contains(V4_ENABLED_KEY)' in layout
-assert 'preferences.getBoolean(ENABLED_KEY, false)' in layout
-assert 'return originalResourceId;' in layout
-assert 'return resourceId == 0 ? originalResourceId : resourceId;' in layout
-assert layout.count("resources.getIdentifier(") == 2
-
-assert 'RESOURCE_ARGUMENT =\n            "morphe_boost_settings_hub_resource"' in hub
-assert 'resourceName.startsWith(RESOURCE_PREFIX)' in hub
-assert 'Preference backup = findPreference(BACKUP_KEY);' in hub
-assert 'intent.setClassName(context.getPackageName(), BACKUP_ACTIVITY);' in hub
-assert 'backup.setIntent(intent);' in hub
 
 assert f'ENABLED_KEY =\n            "{toggle_key}"' in v4
 assert 'LEGACY_V2_ENABLED_KEY =\n            "morphe_boost_settings_layout_v2_enabled"' in v4
@@ -720,23 +640,18 @@ assert 'window.setNavigationBarContrastEnforced(false);' in system_bars
 assert 'RippleDrawable' in v4_theme
 assert 'primaryContainer' in v4_theme
 
-assert "settingsHeaderOnCreatePreferencesFingerprint" in settings
 assert "settingsActivityOnCreateFingerprint" in settings
-assert "SettingsActivityCompat\\$HeaderFragment" in settings
 assert 'SettingsActivityCompat;"' in settings
-assert "SET_PREFERENCES_FROM_RESOURCE_REFERENCE" in settings
 assert "GET_INTENT_REFERENCE" in settings
-assert "val loadPreferencesIndex = indexOfFirstInstructionOrThrow" in settings
 assert "val getIntentIndex = indexOfFirstInstructionOrThrow" in settings
-assert "addInstructions(\n                loadPreferencesIndex," in settings
 assert "addInstructions(\n                getIntentIndex," in settings
-assert "$SETTINGS_LAYOUT_EXTENSION_DESCRIPTOR->resolveRootResource" in settings
 assert "$SETTINGS_V4_EXTENSION_DESCRIPTOR->prepareIntent" in settings
+assert "settingsHeaderOnCreatePreferencesFingerprint" not in settings
 assert "dependsOn(sharedExtensionPatch, boostMorpheSettingsResourcesPatch)" in settings
 PY_CHECK
 
 echo 'TOP_LEVEL_MORPHE_ENTRY=PASS'
-echo 'LEGACY_V2_LAYOUT_DEFAULT_OFF=PASS'
+echo 'LEGACY_V2_LAYOUT_REMOVED=PASS'
 echo 'SETTINGS_V4_TOGGLE_DEFAULT_ON=PASS'
 echo 'SETTINGS_V4_V2_MIGRATION=PASS'
 echo 'SETTINGS_V4_ACTIVITY_ROUTE=PASS'

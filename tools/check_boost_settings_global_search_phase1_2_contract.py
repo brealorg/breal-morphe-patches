@@ -76,8 +76,9 @@ PLAIN = [
     "MorpheSettingsV4SavedViewsFragment.java",
     "MorpheSettingsV4ToolbarFragment.java",
     "MorpheSettingsFragment.java",
-    "MorpheSettingsHubFragment.java",
 ]
+# The legacy v2 hubs were removed; they were unreachable once Settings v4 stored its choice.
+assert not (SETTINGS / "MorpheSettingsHubFragment.java").exists()
 for filename in PLAIN:
     text = (SETTINGS / filename).read_text(encoding="utf-8")
     assert "MorpheSettingsV4Search.prepareMenu(this, menu, true);" in text, filename
