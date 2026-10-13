@@ -36,12 +36,6 @@ import java.util.WeakHashMap;
  * No Material view is constructed dynamically.
  */
 public final class BoostSearchBottomNavigation {
-    private static final String MARKER =
-            "MORPHE_BOOST_SEARCH_BOTTOM_NAV_V7_XML_HOST";
-    private static final String ALIGNMENT_MARKER =
-            "MORPHE_BOOST_SEARCH_BOTTOM_NAV_V71_INSET_SELECTION";
-    private static final String SYSTEM_SURFACE_MARKER =
-            "MORPHE_BOOST_BOTTOM_NAV_SYSTEM_SURFACE_V72";
     private static final String DECOR_UNDERLAY_MARKER =
             "MORPHE_BOOST_BOTTOM_NAV_DECOR_UNDERLAY_V73";
     private static final String INBOX_PROFILE_LIFECYCLE_MARKER =
@@ -68,26 +62,6 @@ public final class BoostSearchBottomNavigation {
             "MORPHE_BOOST_BOTTOM_NAV_RESELECT_RECOVERY_ISSUE169_V2";
     private static final String FOREIGN_PROFILE_ROUTE_MARKER =
             "MORPHE_BOOST_FOREIGN_PROFILE_TO_OWN_PROFILE_ROUTE_V1";
-    private static volatile String UNIFIED_MATERIAL_MARKER =
-            "MORPHE_BOOST_UNIFIED_MATERIAL_BOTTOM_NAV_V771";
-    private static final String CANONICAL_NAV_BASE_MARKER =
-            "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_V8";
-    private static final String CANONICAL_NAV_SELECTION_MARKER =
-            "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_V10001_HOME_SINGLE_TARGET";
-    private static final String CANONICAL_NAV_FIXED_BLACK_MARKER =
-            "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_V10002_FIXED_BLACK_ICONS";
-    private static final String CANONICAL_NAV_THEME_CONTRAST_MARKER =
-            "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_V10003_THEME_CONTRAST_ICONS";
-    private static final String CANONICAL_NAV_HOME_GUARD_MARKER =
-            "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_V10005_HOME_STATE_UNDERLAY_GUARD";
-    private static final String CANONICAL_NAV_SUBREDDIT_SURFACE_MARKER =
-            "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_V10007_SUBREDDIT_SCOPE_SURFACE";
-    private static final String CANONICAL_NAV_ROUTE_MARKER =
-            "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_V10008_SUBREDDIT_CANONICAL_ROUTES";
-    private static final String CANONICAL_NAV_RENDERED_ICON_MARKER =
-            "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_V10010_RENDERED_ICON_STATE";
-    private static final String CANONICAL_NAV_PREVIOUS_MARKER =
-            "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_V10011_REMOVE_HOME_UNDERLAY_LOOP";
     private static volatile String CANONICAL_NAV_MARKER =
             "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_V10028_STABLE_ROOT_INSET";
     private static final String NATIVE_COORDINATOR_MARKER =
@@ -104,17 +78,12 @@ public final class BoostSearchBottomNavigation {
             "MORPHE_BOOST_SUBREDDIT_BOTTOM_NAV_SELECTION_ISSUE134_V1";
     private static final String CURRENT_SUBREDDIT_SUBSCRIPTIONS_MARKER =
             "MORPHE_BOOST_SUBSCRIPTIONS_CURRENT_SUBREDDIT_ISSUE141_V2_NATIVE_J6";
-    private static final String NAVIGATION_VISIBILITY_STATE_MARKER =
-            "MORPHE_BOOST_CANONICAL_BOTTOM_NAV_VISIBILITY_STATE_V1";
     private static final String ACTIVITY_STACK_STATE_MARKER =
             "MORPHE_BOOST_BOTTOM_NAV_ACTIVITY_STACK_V2_PRESERVE_CALLER";
     private static final String HOME_TASK_ROOT_MARKER =
             "MORPHE_BOOST_HOME_TASK_ROOT_ISSUE198_V1";
     private static final String HOME_RESELECT_TOP_MARKER =
             "MORPHE_BOOST_HOME_RESELECT_FAB_GO_TOP_V2";
-    private static final java.util.WeakHashMap<View, Boolean>
-            SUBREDDIT_SURFACE_GUARDS =
-                    new java.util.WeakHashMap<>();
     private static final java.util.WeakHashMap<View, Boolean>
             HOME_STABILITY_GUARDS =
                     new java.util.WeakHashMap<>();
@@ -124,14 +93,17 @@ public final class BoostSearchBottomNavigation {
     private static final java.util.WeakHashMap<View, Boolean>
             OWNED_MENU_INSTALLED =
                     new java.util.WeakHashMap<>();
-    private static final WeakValueRegistry<Activity, FrameLayout>
-            DECOR_NAVIGATION_CONTAINERS =
-                    new WeakValueRegistry<>();
-    private static final WeakValueRegistry<Activity, View>
-            DECOR_NAVIGATION_VIEWS =
-                    new WeakValueRegistry<>();
-    private static final java.util.WeakHashMap<Activity, Integer>
-            INBOX_BADGE_COUNTS =
+    /**
+     * Item views that already carry our long-press listener. Every configure
+     * (each onResume and feed switch) schedules the attach again; a rebuilt
+     * menu has new item views and is attached anew.
+     */
+    private static final java.util.WeakHashMap<View, Boolean>
+            LONG_PRESS_ITEMS =
+                    new java.util.WeakHashMap<>();
+    /** Navigation views whose selection listeners are already ours. */
+    private static final java.util.WeakHashMap<View, Boolean>
+            LISTENERS_ATTACHED =
                     new java.util.WeakHashMap<>();
     private static final String SHARED_INBOX_BADGE_MARKER =
             "MORPHE_BOOST_INBOX_BADGE_SHARED_STATE_V4D";
@@ -200,8 +172,6 @@ public final class BoostSearchBottomNavigation {
             "com.rubenmayayo.reddit.ui.activities.e";
     private static final String ACCOUNT_MANAGER = "xb.l";
 
-    private static final WeakHashMap<Activity, Boolean> INSTALLED =
-            new WeakHashMap<>();
     private static final WeakHashMap<Activity, Boolean>
             NATIVE_NAVIGATION_VISIBILITY_REQUESTS =
                     new WeakHashMap<>();
@@ -214,7 +184,6 @@ public final class BoostSearchBottomNavigation {
             RUNTIME_VISIBILITY_REQUESTS =
                     new WeakHashMap<>();
 
-    private static volatile ColorStateList CANONICAL_ITEM_TINT;
 
     private BoostSearchBottomNavigation() {
     }
@@ -235,13 +204,6 @@ public final class BoostSearchBottomNavigation {
                 activity,
                 fallbackIndex
         );
-
-        synchronized (INSTALLED) {
-            INSTALLED.put(
-                    activity,
-                    Boolean.TRUE
-            );
-        }
     }
 
     private static boolean shouldOpenKeyboardOnSearchEntry(
@@ -1017,22 +979,7 @@ public final class BoostSearchBottomNavigation {
                         + normalizedCount
         );
 
-        synchronized (INBOX_BADGE_COUNTS) {
-            INBOX_BADGE_COUNTS.put(
-                    activity,
-                    normalizedCount
-            );
-        }
-
-        View navigation;
-
-        synchronized (DECOR_NAVIGATION_VIEWS) {
-            navigation = DECOR_NAVIGATION_VIEWS.get(activity);
-        }
-
-        if (navigation == null) {
-            navigation = findNativeMaterialNavigation(activity);
-        }
+        View navigation = findNativeMaterialNavigation(activity);
 
         if (navigation == null) {
             Log.i(
@@ -1067,12 +1014,7 @@ public final class BoostSearchBottomNavigation {
             Activity activity,
             View navigation
     ) {
-        Integer count;
-
-        synchronized (INBOX_BADGE_COUNTS) {
-            count = INBOX_BADGE_COUNTS.get(activity);
-        }
-
+        Integer count = null;
         Integer sharedCount = SHARED_INBOX_BADGE_COUNT;
 
         if (sharedCount == null) {
@@ -1622,26 +1564,6 @@ public final class BoostSearchBottomNavigation {
                 activity,
                 nativeMaterial
         );
-
-        FrameLayout obsoleteContainer;
-
-        synchronized (DECOR_NAVIGATION_CONTAINERS) {
-            obsoleteContainer =
-                    DECOR_NAVIGATION_CONTAINERS.remove(activity);
-            DECOR_NAVIGATION_VIEWS.put(
-                    activity,
-                    nativeMaterial
-            );
-        }
-
-        if (
-                obsoleteContainer != null
-                        && obsoleteContainer.getParent()
-                            instanceof ViewGroup
-        ) {
-            ((ViewGroup) obsoleteContainer.getParent())
-                    .removeView(obsoleteContainer);
-        }
 
         nativeMaterial.setVisibility(
                 visible
@@ -2496,6 +2418,18 @@ public final class BoostSearchBottomNavigation {
         }
     }
 
+    private static boolean hasLongPress(View item) {
+        synchronized (LONG_PRESS_ITEMS) {
+            return LONG_PRESS_ITEMS.containsKey(item);
+        }
+    }
+
+    private static void rememberLongPress(View item) {
+        synchronized (LONG_PRESS_ITEMS) {
+            LONG_PRESS_ITEMS.put(item, Boolean.TRUE);
+        }
+    }
+
     private static void scheduleNativeProfileLongPress(
             final Activity activity,
             final View navigation
@@ -2532,6 +2466,10 @@ public final class BoostSearchBottomNavigation {
 
                 final View profileItem =
                         navigation.findViewById(profileId);
+
+                if (profileItem != null && hasLongPress(profileItem)) {
+                    return;
+                }
 
                 if (profileItem == null) {
                     if (
@@ -2573,6 +2511,7 @@ public final class BoostSearchBottomNavigation {
                                 }
                         );
                         profileItem.setLongClickable(true);
+                        rememberLongPress(profileItem);
 
                         Log.i(
                                 TAG,
@@ -2644,6 +2583,7 @@ public final class BoostSearchBottomNavigation {
                             }
                     );
                     profileItem.setLongClickable(true);
+                    rememberLongPress(profileItem);
 
                     Log.i(
                             TAG,
@@ -2703,6 +2643,10 @@ public final class BoostSearchBottomNavigation {
                 final View subscriptionsItem =
                         navigation.findViewById(subscriptionsId);
 
+                if (subscriptionsItem != null && hasLongPress(subscriptionsItem)) {
+                    return;
+                }
+
                 if (subscriptionsItem == null) {
                     if (
                             attempts
@@ -2743,6 +2687,7 @@ public final class BoostSearchBottomNavigation {
                                 }
                         );
                         subscriptionsItem.setLongClickable(true);
+                        rememberLongPress(subscriptionsItem);
 
                         Log.i(
                                 TAG,
@@ -2814,6 +2759,7 @@ public final class BoostSearchBottomNavigation {
                             }
                     );
                     subscriptionsItem.setLongClickable(true);
+                    rememberLongPress(subscriptionsItem);
 
                     Log.i(
                             TAG,
@@ -2959,12 +2905,7 @@ public final class BoostSearchBottomNavigation {
         applyCanonicalTint(navigation);
 
         String listeners =
-                attachSelectedListener(
-                        activity,
-                        navigation
-                )
-                + "+"
-                + attachReselectedListener(
+                attachSelectionListenersOnce(
                         activity,
                         navigation
                 );
@@ -3139,11 +3080,7 @@ public final class BoostSearchBottomNavigation {
                     selectedItemId
             );
             applyCanonicalTint(navigation);
-            attachSelectedListener(
-                    activity,
-                    navigation
-            );
-            attachReselectedListener(
+            attachSelectionListenersOnce(
                     activity,
                     navigation
             );
@@ -4101,6 +4038,39 @@ public final class BoostSearchBottomNavigation {
                     error
             );
         }
+    }
+
+    /**
+     * Boost sets its own listeners once in g3, before our hook; ours replace
+     * them and only capture this activity and view. Re-creating the proxies on
+     * every configure added nothing.
+     */
+    private static String attachSelectionListenersOnce(
+            Activity activity,
+            View navigation
+    ) throws Exception {
+        synchronized (LISTENERS_ATTACHED) {
+            if (LISTENERS_ATTACHED.containsKey(navigation)) {
+                return "already-attached";
+            }
+        }
+
+        String listeners =
+                attachSelectedListener(
+                        activity,
+                        navigation
+                )
+                + "+"
+                + attachReselectedListener(
+                        activity,
+                        navigation
+                );
+
+        synchronized (LISTENERS_ATTACHED) {
+            LISTENERS_ATTACHED.put(navigation, Boolean.TRUE);
+        }
+
+        return listeners;
     }
 
     private static String attachSelectedListener(
