@@ -20,6 +20,8 @@ Browser deep link:
 
 Use this only from a browser/link handler, not inside the Morphe Manager source URL text field:
 
+**[➕ Add to Morphe](https://morphe.software/add-source?github=brealorg/breal-morphe-patches)**
+
 ```text
 https://morphe.software/add-source?github=brealorg/breal-morphe-patches
 ```
@@ -72,14 +74,14 @@ The repository shorthand shown at the top is the preferred Manager setup. Raw
 
 | Field | Value |
 |---|---|
-| Version | `1.4.119` |
-| Release tag | `morphe-patches-119` |
-| Asset | `patches-1.4.119.mpp` |
-| SHA256 | `6fca52f75b1db2e2678b6b47be8086a0ed2fd5212310ee2c905766155eca4351` |
+| Version | `1.4.120` |
+| Release tag | `morphe-patches-120` |
+| Asset | `patches-1.4.120.mpp` |
+| SHA256 | `68023638aaf7fba9addc86e1a657d1411df8c477e2dd2128226f1311990dc9b1` |
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-119/patches-1.4.119.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-120/patches-1.4.120.mpp` |
 
-SHA256: `6fca52f75b1db2e2678b6b47be8086a0ed2fd5212310ee2c905766155eca4351`
+SHA256: `68023638aaf7fba9addc86e1a657d1411df8c477e2dd2128226f1311990dc9b1`
 ## What this bundle does
 
 The current bundle is focused on practical hotfixes for tested app versions, especially Boost for Reddit behavior on newer Android versions.
@@ -126,7 +128,7 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.119` • `main` • 58 unique patches • 110 package entries
+> **Patch source version:** `1.4.120` • `main` • 58 unique patches • 110 package entries
 
 <details>
 <summary><strong>Boost for Reddit</strong> • 49 patches</summary>
@@ -545,16 +547,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.119` is prepared and locally verified with:
+Release `1.4.120` is prepared and locally verified with:
 
-- Release tag `morphe-patches-119`.
+- Release tag `morphe-patches-120`.
 - Local built MPP SHA256 matching README.
-`6fca52f75b1db2e2678b6b47be8086a0ed2fd5212310ee2c905766155eca4351`
-- `patches-bundle.json` returning version `1.4.119`.
-- `patches-bundle.json` pointing to the `morphe-patches-119` asset.
+`68023638aaf7fba9addc86e1a657d1411df8c477e2dd2128226f1311990dc9b1`
+- `patches-bundle.json` returning version `1.4.120`.
+- `patches-bundle.json` pointing to the `morphe-patches-120` asset.
 - Expected release asset:
-`patches-1.4.119.mpp`
-- `6fca52f75b1db2e2678b6b47be8086a0ed2fd5212310ee2c905766155eca4351  patches-1.4.119.mpp`
+`patches-1.4.120.mpp`
+- `68023638aaf7fba9addc86e1a657d1411df8c477e2dd2128226f1311990dc9b1  patches-1.4.120.mpp`
 
 ## Development notes
 
