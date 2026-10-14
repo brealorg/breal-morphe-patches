@@ -8,6 +8,8 @@ import com.android.tools.smali.dexlib2.Opcode
 
 private const val SYSTEM_SURFACE_EXTENSION_DESCRIPTOR =
     "Lapp/morphe/extension/boostforreddit/utils/BoostSearchBottomNavigation;"
+private const val CONTENT_CLEARANCE_EXTENSION_DESCRIPTOR =
+    "Lapp/morphe/extension/boostforreddit/utils/BoostNavContentClearance;"
 
 @Suppress("unused")
 val boostBottomNavigationSystemSurfacePatch = bytecodePatch(
@@ -86,5 +88,14 @@ val boostBottomNavigationSystemSurfacePatch = bytecodePatch(
             }
         }
 
+        // Stock F1() pads lists by a fixed 56dp only while "Hide on scroll" is
+        // off, once per list. Let the extension track the bar's real height.
+        emptyRecyclerViewBottomNavigationPaddingFingerprint.method.addInstructions(
+            0,
+            """
+                invoke-static {p0}, $CONTENT_CLEARANCE_EXTENSION_DESCRIPTOR->apply(Landroid/view/View;)V
+                return-void
+            """.trimIndent(),
+        )
     }
 }
