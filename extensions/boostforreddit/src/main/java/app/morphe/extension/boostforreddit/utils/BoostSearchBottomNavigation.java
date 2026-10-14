@@ -755,10 +755,53 @@ public final class BoostSearchBottomNavigation {
                 : 0;
     }
 
+    /**
+     * The color the bar actually renders. Material's MaterialShapeDrawable adds
+     * an elevation overlay in dark themes when it draws, so its fill color is
+     * darker than the bar and the strip under it showed as a second band.
+     * Draw one pixel of the background near the bar's bottom edge instead.
+     */
+    private static Integer renderedBackgroundColor(View navigation) {
+        Drawable background = navigation.getBackground();
+        int width = navigation.getWidth();
+        int height = navigation.getHeight();
+
+        if (background == null || width <= 0 || height <= 0) {
+            return null;
+        }
+
+        try {
+            android.graphics.Bitmap pixel =
+                    android.graphics.Bitmap.createBitmap(
+                            1,
+                            1,
+                            android.graphics.Bitmap.Config.ARGB_8888
+                    );
+            android.graphics.Canvas canvas =
+                    new android.graphics.Canvas(pixel);
+            canvas.translate(-(width / 2f), -(height - 2f));
+            background.draw(canvas);
+            int color = pixel.getPixel(0, 0);
+            pixel.recycle();
+
+            return android.graphics.Color.alpha(color) == 0xFF
+                    ? color
+                    : null;
+        } catch (Throwable error) {
+            return null;
+        }
+    }
+
     private static Integer resolveNavigationSurfaceColor(
             Activity activity,
             View navigation
     ) {
+        Integer rendered = renderedBackgroundColor(navigation);
+
+        if (rendered != null) {
+            return rendered;
+        }
+
         try {
             ColorStateList tint =
                     navigation.getBackgroundTintList();
