@@ -51,12 +51,13 @@ public final class BoostNavContentClearance {
         }
 
         try {
-            if (!isBottomNavigationEnabled(list.getContext())) {
-                return;
-            }
-
+            // Track the list even while the bar is disabled: turning it on
+            // from Settings shows it in activities that are not recreated.
             ((ViewGroup) list).setClipToPadding(false);
-            setBottomPadding(list, fallbackHeight(list), null);
+
+            if (isBottomNavigationEnabled(list.getContext())) {
+                setBottomPadding(list, fallbackHeight(list), null);
+            }
 
             synchronized (TRACKERS) {
                 if (TRACKERS.containsKey(list)) {
@@ -128,6 +129,10 @@ public final class BoostNavContentClearance {
      * Boost's 56dp before the bar has been measured or where there is none.
      */
     private static int clearanceFor(View list, View navigation) {
+        if (!isBottomNavigationEnabled(list.getContext())) {
+            return 0;
+        }
+
         if (navigation == null) {
             return fallbackHeight(list);
         }
