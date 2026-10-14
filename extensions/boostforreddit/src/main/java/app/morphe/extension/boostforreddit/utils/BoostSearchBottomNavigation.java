@@ -197,6 +197,24 @@ public final class BoostSearchBottomNavigation {
                 activity,
                 fallbackIndex
         );
+
+        /*
+         * Search and Go To do not extend Boost's DrawerActivity, so p3() never
+         * runs there and the host XML's HideBottomViewOnScrollBehavior applied
+         * regardless of "Hide on scroll". Apply the preference here and keep
+         * the list clear of a bar that no longer hides.
+         */
+        View navigation = findNativeMaterialNavigation(activity);
+
+        if (navigation != null) {
+            lockOwnedNavigationHost(navigation, false);
+        }
+
+        View list = findViewByResourceName(activity, "recyclerview");
+
+        if (list != null) {
+            BoostNavContentClearance.apply(list);
+        }
     }
 
     private static boolean shouldOpenKeyboardOnSearchEntry(
