@@ -4,23 +4,21 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)" || exit 1
 python3 - "$ROOT" <<'PY'
 import pathlib
 import re
-import subprocess
 import sys
-import tempfile
 
+# Issue #191: static Activity -> View registries kept finished activities alive.
+# They were reduced to weak values, then removed once the nav stopped caching
+# views per activity. Keep them from coming back as strong references.
 root = pathlib.Path(sys.argv[1])
-base = root / 'extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/utils'
-source = (base / 'BoostSearchBottomNavigation.java').read_text()
-for name, value in [('DECOR_NAVIGATION_CONTAINERS', 'FrameLayout'), ('DECOR_NAVIGATION_VIEWS', 'View')]:
-    pattern = rf'private\s+static\s+final\s+WeakValueRegistry<Activity,\s*{value}>\s+{name}\s*=\s*new\s+WeakValueRegistry<>\(\);'
-    if len(re.findall(pattern, source)) != 1:
-        raise SystemExit(f'FAIL: {name} is not wired to the non-owning registry')
-print('NAVIGATION_REGISTRY_WIRING=PASS', flush=True)
-with tempfile.TemporaryDirectory(prefix='boost-issue191-jvm-') as output:
-    subprocess.run(['javac', '-encoding', 'UTF-8', '-d', output,
-                    str(base / 'WeakValueRegistry.java'),
-                    str(root / 'tools/tests/BoostWeakValueRegistryTest.java')], check=True)
-    subprocess.run(['java', '-Xmx64m', '-XX:+UseSerialGC', '-cp', output,
-                    'app.morphe.extension.boostforreddit.utils.BoostWeakValueRegistryTest'],
-                   check=True, timeout=25)
+source = (
+    root
+    / 'extensions/boostforreddit/src/main/java/app/morphe/extension/'
+      'boostforreddit/utils/BoostSearchBottomNavigation.java'
+).read_text()
+for name in ('DECOR_NAVIGATION_CONTAINERS', 'DECOR_NAVIGATION_VIEWS'):
+    if re.search(rf'\b{name}\b', source):
+        raise SystemExit(f'FAIL: {name} registry is back')
+if re.search(r'static\s+final\s+(?:java\.util\.)?(?:Hash)?Map<Activity,\s*(?:View|FrameLayout)>', source):
+    raise SystemExit('FAIL: strong static Activity -> View map')
+print('NAVIGATION_REGISTRY_RETENTION=PASS')
 PY
