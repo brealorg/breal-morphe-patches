@@ -1,50 +1,34 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Issue #97: the bar must follow "Show bottom navigation" and Boost's own
+# visibility decisions (p3(false) for the swipe post viewer). A per-frame
+# stability guard used to force it VISIBLE; it never logged a repair on device
+# and was removed in favor of the resume/p3 paths. Keep forced repairs out.
+
 SOURCE='extensions/boostforreddit/src/main/java/app/morphe/extension/boostforreddit/utils/BoostSearchBottomNavigation.java'
 
 test -f "$SOURCE"
 
-rg -q -F \
-  'MORPHE_BOOST_BOTTOM_NAV_SHOW_PREFERENCE_STABILITY_GUARD_ISSUE97_V1' \
-  "$SOURCE"
-
-GUARD_BLOCK="$(
-  sed -n \
-    '/private static void attachHomeStabilityGuard(/,/private static void repairHomeCanonicalState(/p' \
-    "$SOURCE"
-)"
-
-REPAIR_BLOCK="$(
-  sed -n \
-    '/private static void repairHomeCanonicalState(/,/private static boolean canonicalSelectionMatches(/p' \
-    "$SOURCE"
-)"
-
-test -n "$GUARD_BLOCK"
-test -n "$REPAIR_BLOCK"
-
-rg -q -F 'boolean navigationStateMismatch =' <<< "$GUARD_BLOCK"
-rg -q -F 'boolean navigationMismatch =' <<< "$GUARD_BLOCK"
-rg -q -U \
-  '(?s)navigationStateMismatch\s*&&\s*isBottomNavigationPreferenceEnabled\(\s*activity\s*\)' \
-  <<< "$GUARD_BLOCK"
-
-rg -q -F 'boolean navigationRepairAllowed =' <<< "$REPAIR_BLOCK"
-rg -q -U \
-  '(?s)navigationMismatch\s*&&\s*isBottomNavigationPreferenceEnabled\(\s*activity\s*\)' \
-  <<< "$REPAIR_BLOCK"
-rg -q -F 'if (navigationRepairAllowed) {' <<< "$REPAIR_BLOCK"
-rg -q -F 'navigation.setVisibility(View.VISIBLE);' <<< "$REPAIR_BLOCK"
-
-if rg -q -U \
-  '(?s)if \(navigationMismatch\) \{.*?navigation\.setVisibility\(View\.VISIBLE\);' \
-  <<< "$REPAIR_BLOCK"; then
-  echo 'BOTTOM_NAV_UNGATED_VISIBILITY_REPAIR=FAIL'
+if rg -q -F 'OnPreDrawListener' "$SOURCE"; then
+  echo 'BOTTOM_NAV_PER_FRAME_REPAIR=FAIL'
   exit 1
 fi
 
-echo 'BOTTOM_NAV_SHOW_PREFERENCE_GUARD_CALLBACK=PASS'
-echo 'BOTTOM_NAV_SHOW_PREFERENCE_REPAIR_DEFENSE=PASS'
-echo 'BOTTOM_NAV_UNGATED_VISIBILITY_REPAIR=ABSENT'
+if rg -q 'attachHomeStabilityGuard|repairHomeCanonicalState' "$SOURCE"; then
+  echo 'BOTTOM_NAV_STABILITY_GUARD_REMOVED=FAIL'
+  exit 1
+fi
+
+# Every visible state is gated by the preference.
+rg -q -U \
+  '(?s)boolean appliedVisible =\s*visible\s*&& isBottomNavigationPreferenceEnabled\(\s*activity\s*\);' \
+  "$SOURCE"
+rg -q -U \
+  '(?s)requestedVisible =\s*requestedVisible && preferenceEnabled;' \
+  "$SOURCE"
+
+echo 'BOTTOM_NAV_PER_FRAME_REPAIR=ABSENT'
+echo 'BOTTOM_NAV_STABILITY_GUARD_REMOVED=PASS'
+echo 'BOTTOM_NAV_VISIBILITY_PREFERENCE_GATED=PASS'
 echo 'RESULT=MORPHE_BOTTOM_NAV_SHOW_PREFERENCE_CONTRACT_OK'
