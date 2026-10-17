@@ -43,6 +43,22 @@ Release process notes:
 - [Final snapshot template](docs/final-snapshot-template.md)
 - [Supported app catalog](docs/supported-app-catalog.md)
 
+### Spoof client
+
+The Reddit client patches need an OAuth client ID. `Spoof client` has no default value, so patching fails with `The option client-id requires a value` if it is left empty.
+
+Reddit no longer issues new client IDs, so registering your own app at reddit.com/prefs/apps does not work. Use RedReader's client ID instead:
+
+1. Install RedReader from the Play Store and log in.
+2. Reddit sends an email titled *"You've authorized a new app in your Reddit account"*. Copy the **App ID** from it. RedReader can be uninstalled afterwards.
+3. In Morphe Manager, set these `Spoof client` options, with no trailing spaces or slashes:
+   - **OAuth client ID:** the App ID from the email
+   - **Redirect URI:** `redreader://rr_oauth_redir`
+   - **User agent:** `org.quantumbadger.redreader/1.25.1` (ignore the format hint in the option description)
+4. Select your other patches and patch as normal.
+
+Full guide and login troubleshooting: [patcheddit — What if I don't have a client ID?](https://github.com/wchill/patcheddit#what-if-i-dont-have-a-client-id)
+
 ## Project page
 
 Canonical GitHub repository:
