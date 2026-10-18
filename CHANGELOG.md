@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.121](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-120...morphe-patches-121) (2026-10-18)
+
+* **Boost for Reddit:** Show an "End of feed" row with a Refresh button when a feed has no more posts, instead of silently stopping. Reddit ends some feeds, like Home sorted by Best and Popular, after a few hundred posts.
+
 ## [1.4.120](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-119...morphe-patches-120) (2026-10-14)
 
 * **Boost for Reddit:** Keep the bottom navigation docked and dependable: the last post no longer sits under the bar, turning Hide on scroll off takes effect without restarting, the bar comes back after switching feeds, stays hidden over the swipe post viewer, follows Hide on scroll in Search and Go To, and the strip below it matches the bar's color.
