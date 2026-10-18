@@ -56,7 +56,11 @@ public final class BoostNavContentClearance {
             ((ViewGroup) list).setClipToPadding(false);
 
             if (isBottomNavigationEnabled(list.getContext())) {
-                setBottomPadding(list, fallbackHeight(list), null);
+                setBottomPadding(
+                        list,
+                        fallbackHeight(list) + BoostFeedEndFooter.reservedHeight(list),
+                        null
+                );
             }
 
             synchronized (TRACKERS) {
@@ -106,7 +110,8 @@ public final class BoostNavContentClearance {
                 View navigation = findNavigation(list);
                 setBottomPadding(
                         list,
-                        clearanceFor(list, navigation),
+                        clearanceFor(list, navigation)
+                                + BoostFeedEndFooter.reservedHeight(list),
                         navigation
                 );
                 revealAtTop(list, navigation);
