@@ -90,14 +90,14 @@ The repository shorthand shown at the top is the preferred Manager setup. Raw
 
 | Field | Value |
 |---|---|
-| Version | `1.4.120` |
-| Release tag | `morphe-patches-120` |
-| Asset | `patches-1.4.120.mpp` |
-| SHA256 | `68023638aaf7fba9addc86e1a657d1411df8c477e2dd2128226f1311990dc9b1` |
+| Version | `1.4.121` |
+| Release tag | `morphe-patches-121` |
+| Asset | `patches-1.4.121.mpp` |
+| SHA256 | `46b59c618d03f319ee0f0b1ed2af6f64d92552dbf1e56fbdc296a9b27b050c8a` |
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-120/patches-1.4.120.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-121/patches-1.4.121.mpp` |
 
-SHA256: `68023638aaf7fba9addc86e1a657d1411df8c477e2dd2128226f1311990dc9b1`
+SHA256: `46b59c618d03f319ee0f0b1ed2af6f64d92552dbf1e56fbdc296a9b27b050c8a`
 ## What this bundle does
 
 The current bundle is focused on practical hotfixes for tested app versions, especially Boost for Reddit behavior on newer Android versions.
@@ -144,10 +144,10 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.120` • `main` • 58 unique patches • 110 package entries
+> **Patch source version:** `1.4.121` • `main` • 59 unique patches • 111 package entries
 
 <details>
-<summary><strong>Boost for Reddit</strong> • 49 patches</summary>
+<summary><strong>Boost for Reddit</strong> • 50 patches</summary>
 
 
 
@@ -197,6 +197,7 @@ Included Imgur patches:
 | [Restore Boost sidebar Trending today](#restore-boost-sidebar-trending-today) | Uses native trending data when renderable, otherwise supplies HOT post rows and fixes the global community-limit control. |  |
 | [Restore GIF search integration probe](#restore-gif-search-integration-probe) | Fingerprint-only probe for Boost compose/reply GIF insertion through FormattingBar. No runtime behavior change. |  |
 | [Restore GIF URL insertion](#restore-gif-url-insertion) | Adds provider-independent manual GIF URL insertion to Boost's existing image menu. |  |
+| [Show end of feed](#show-end-of-feed) | Shows an "End of feed" row with a Refresh button below the last post when a feed has no more posts, instead of silently stopping. Home sorted by Best ends after a few hundred posts. |  |
 | [Show inline Giphy previews in comments](#show-inline-giphy-previews-in-comments) | Adds inline media previews below Boost comment text for Giphy links and direct static image URLs. |  |
 | [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
 | [Stabilize Boost subreddit bottom navigation surface](#stabilize-boost-subreddit-bottom-navigation-surface) | Applies theme contrast and gesture-inset surface handling to SubredditActivity while preserving native selection and routes. |  |
@@ -563,16 +564,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.120` is prepared and locally verified with:
+Release `1.4.121` is prepared and locally verified with:
 
-- Release tag `morphe-patches-120`.
+- Release tag `morphe-patches-121`.
 - Local built MPP SHA256 matching README.
-`68023638aaf7fba9addc86e1a657d1411df8c477e2dd2128226f1311990dc9b1`
-- `patches-bundle.json` returning version `1.4.120`.
-- `patches-bundle.json` pointing to the `morphe-patches-120` asset.
+`46b59c618d03f319ee0f0b1ed2af6f64d92552dbf1e56fbdc296a9b27b050c8a`
+- `patches-bundle.json` returning version `1.4.121`.
+- `patches-bundle.json` pointing to the `morphe-patches-121` asset.
 - Expected release asset:
-`patches-1.4.120.mpp`
-- `68023638aaf7fba9addc86e1a657d1411df8c477e2dd2128226f1311990dc9b1  patches-1.4.120.mpp`
+`patches-1.4.121.mpp`
+- `46b59c618d03f319ee0f0b1ed2af6f64d92552dbf1e56fbdc296a9b27b050c8a  patches-1.4.121.mpp`
 
 ## Development notes
 
