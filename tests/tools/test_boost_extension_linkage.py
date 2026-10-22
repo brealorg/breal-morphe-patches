@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import struct
 import sys
 import unittest
 
@@ -9,7 +10,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 
-from boost_extension_linkage import ClassDef, Model, check, unresolved  # noqa: E402
+from boost_extension_linkage import ClassDef, Model, _code_refs, check, unresolved  # noqa: E402
 
 CALL = "Lokhttp3/Call;"
 EXT = "Lapp/morphe/extension/boostforreddit/http/HttpUtils;"
@@ -100,6 +101,33 @@ class BoostExtensionLinkageTest(unittest.TestCase):
         candidate = with_extension(("method", EXT, "getJson", "(Ljava/lang/String;J)V"))
         candidate.classes[EXT].methods.add(("getJson", "(Ljava/lang/String;J)V"))
         self.assertEqual(check(boost_model(), candidate), [])
+
+
+def code_item(*units: int) -> bytes:
+    """A code item header followed by the given 16-bit code units."""
+    return struct.pack("<4HII", 1, 0, 0, 0, 0, len(units)) + struct.pack(f"<{len(units)}H", *units)
+
+
+class CodeRefsTest(unittest.TestCase):
+    def test_collects_field_and_method_ids_and_skips_payloads(self) -> None:
+        data = code_item(
+            0x0018, 0, 0, 0, 0,          # const-wide v0, 0 (5 units)
+            0x206e, 0x0007, 0x0000,      # invoke-virtual {v0}, method@7
+            0x0252, 0x0003,              # iget v2, v0, field@3
+            0x0074, 0x0009, 0x0000,      # invoke-virtual/range method@9
+            0x0100, 0x0001, 0, 0, 0, 0,  # packed-switch payload, one target
+            0x0300, 0x0001, 2, 0, 0x6e6e, # fill-array-data payload, 2 bytes
+        )
+        fields: set[int] = set()
+        methods: set[int] = set()
+        _code_refs(data, 0, fields, methods)
+        self.assertEqual(fields, {3})
+        self.assertEqual(methods, {7, 9})
+
+    def test_misaligned_code_fails_closed(self) -> None:
+        # const-wide needs 5 units, but the code item only holds 3.
+        with self.assertRaises(ValueError):
+            _code_refs(code_item(0x0018, 0, 0), 0, set(), set())
 
 
 if __name__ == "__main__":
