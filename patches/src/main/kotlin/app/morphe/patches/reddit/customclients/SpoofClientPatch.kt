@@ -11,6 +11,7 @@ import app.morphe.patcher.patch.BytecodePatchBuilder
 import app.morphe.patcher.patch.Option
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.stringOption
+import app.morphe.patches.all.misc.PatchCategory
 
 /**
  * Base class for patches that spoof the Reddit client.
@@ -30,6 +31,7 @@ fun spoofClientPatch(
     description = description,
     default = true
 ) {
+    category(PatchCategory.LOGIN)
     val clientIdOption = stringOption(
         "client-id",
         null,

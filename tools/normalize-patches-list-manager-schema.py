@@ -8,7 +8,7 @@ from typing import Any
 
 from compatible_app_catalog import APP_META
 
-PATCH_ORDER = ["name", "description", "default", "dependencies", "compatiblePackages", "options"]
+PATCH_ORDER = ["name", "description", "default", "category", "compatiblePackages", "options"]
 PACKAGE_ORDER = [
     "packageName",
     "name",
@@ -16,6 +16,7 @@ PACKAGE_ORDER = [
     "apkFileType",
     "appIconColor",
     "signatures",
+    "formFactor",
     "targets",
 ]
 TARGET_ORDER = ["version", "versionCodes", "isExperimental", "minSdk", "description"]
@@ -50,8 +51,9 @@ def normalize_target(raw: Any, *, min_sdk: int) -> dict[str, Any]:
     else:
         target["version"] = str(target["version"])
 
-    if target["versionCodes"] is not None and not isinstance(target["versionCodes"], list):
-        target["versionCodes"] = [target["versionCodes"]]
+    # Patcher 2.0 writes version codes as a map of ABI to code.
+    if target["versionCodes"] is not None and not isinstance(target["versionCodes"], dict):
+        target["versionCodes"] = None
 
     target["isExperimental"] = bool(target["isExperimental"])
 
@@ -77,6 +79,7 @@ def normalize_package(raw: Any) -> dict[str, Any]:
     pkg.setdefault("apkFileType", meta.get("apkFileType", "APK_REQUIRED"))
     pkg.setdefault("appIconColor", meta.get("appIconColor", "#607D8B"))
     pkg.setdefault("signatures", meta.get("signatures"))
+    pkg.setdefault("formFactor", meta.get("formFactor", "MOBILE"))
 
     min_sdk = int(meta.get("minSdk", 21))
     targets = pkg.get("targets")
@@ -121,12 +124,9 @@ def normalize_patch(raw: Any) -> dict[str, Any]:
     patch.setdefault("name", "")
     patch.setdefault("description", None)
 
-    deps = patch.get("dependencies")
-    if deps is None:
-        deps = []
-    elif not isinstance(deps, list):
-        deps = [deps]
-    patch["dependencies"] = [str(dep) for dep in deps]
+    patch.setdefault("category", None)
+    # Patcher 2.0 lists no dependencies.
+    patch.pop("dependencies", None)
 
     cps = patch.get("compatiblePackages")
     if cps is not None:

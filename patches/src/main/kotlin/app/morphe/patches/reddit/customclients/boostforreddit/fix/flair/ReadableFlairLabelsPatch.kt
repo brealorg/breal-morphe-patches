@@ -13,6 +13,7 @@ import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 import app.morphe.patches.reddit.customclients.boostforreddit.misc.extension.sharedExtensionPatch
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import com.android.tools.smali.dexlib2.Opcode
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val FLAIR_CONTRAST_EXTENSION_DESCRIPTOR =
     "Lapp/morphe/extension/boostforreddit/utils/BoostFlairContrast;"
@@ -40,6 +41,7 @@ val readableFlairLabelsPatch = bytecodePatch(
         "Uses black or white flair text when Reddit's flair text color is unreadable on its background.",
     default = true,
 ) {
+    category(PatchCategory.FEED)
     dependsOn(sharedExtensionPatch)
     compatibleWith(*BoostCompatible)
 

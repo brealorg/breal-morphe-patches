@@ -14,6 +14,7 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 import app.morphe.patches.reddit.customclients.boostforreddit.misc.extension.sharedExtensionPatch
 import com.android.tools.smali.dexlib2.AccessFlags
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val FILTERED_PAGE_EXTENSION_DESCRIPTOR =
     "Lapp/morphe/extension/boostforreddit/utils/BoostFilteredPageAutoLoad;"
@@ -43,6 +44,7 @@ val autoLoadFilteredPagePatch = bytecodePatch(
             "instead of leaving the feed stuck behind a \"Results were filtered\" Snackbar.",
     default = true,
 ) {
+    category(PatchCategory.FEED)
     dependsOn(sharedExtensionPatch)
     compatibleWith(*BoostCompatible)
 

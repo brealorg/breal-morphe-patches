@@ -17,6 +17,7 @@ import app.morphe.patches.reddit.customclients.boostforreddit.http.undeleteAppli
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import app.morphe.patches.all.misc.PatchCategory
 
 
 internal const val OKHTTP_EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/boostforreddit/http/OkHttpRequestHook;"
@@ -27,6 +28,7 @@ val interceptImgurRequests = bytecodePatch(
     description = "Loads deleted Imgur images from the Wayback Machine.",
     default = false
 ) {
+    category(PatchCategory.UNDELETE)
     dependsOn(sharedExtensionPatch, interceptHttpRequests, undeleteAppliedMarkerPatch(IMGUR_UNDELETE_APPLIED_RESOURCE))
     compatibleWith(*BoostCompatible)
 

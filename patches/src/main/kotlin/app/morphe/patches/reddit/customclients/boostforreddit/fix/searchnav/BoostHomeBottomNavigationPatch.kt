@@ -5,6 +5,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 import app.morphe.patches.reddit.customclients.boostforreddit.misc.extension.sharedExtensionPatch
 import com.android.tools.smali.dexlib2.Opcode
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val HOME_NAV_EXTENSION_DESCRIPTOR =
     "Lapp/morphe/extension/boostforreddit/utils/BoostSearchBottomNavigation;"
@@ -12,9 +13,10 @@ private const val HOME_NAV_EXTENSION_DESCRIPTOR =
 @Suppress("unused")
 val boostHomeBottomNavigationPatch = bytecodePatch(
     name = "Standardize Boost Home bottom navigation",
-    description = "Applies the canonical five-destination Material navigation and native Home tint when MainActivity resumes.",
+    description = "Shows the same five-tab bottom navigation on Home, with Home highlighted.",
     default = true,
 ) {
+    category(PatchCategory.NAVIGATION)
     compatibleWith(*BoostCompatible)
     dependsOn(sharedExtensionPatch)
 

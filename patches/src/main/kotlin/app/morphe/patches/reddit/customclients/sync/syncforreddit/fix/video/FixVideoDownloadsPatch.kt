@@ -6,6 +6,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.reddit.customclients.sync.SyncForRedditCompatible
 import app.morphe.patches.reddit.customclients.sync.syncforreddit.extension.sharedExtensionPatch
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val EXTENSION_CLASS_DESCRIPTOR =
     "Lapp/morphe/extension/syncforreddit/FixRedditVideoDownloadPatch;"
@@ -14,9 +15,10 @@ private const val GET_LINKS_METHOD = "getLinks([B)[Ljava/lang/String;"
 @Suppress("unused")
 val fixVideoDownloadsPatch = bytecodePatch(
     name = "Fix video downloads",
-    description = "Fixes a bug in Sync's MPD parser resulting in only the audio-track being saved.",
+    description = "Fixes video downloads that saved only the audio track.",
     default = true
 ) {
+    category(PatchCategory.MEDIA)
     dependsOn(sharedExtensionPatch)
 
     compatibleWith(*SyncForRedditCompatible)

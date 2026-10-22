@@ -22,6 +22,7 @@ import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/boostforreddit/http/reddit/RedditFixAudioInDownloadsInterceptor;"
 
@@ -31,6 +32,7 @@ val fixAudioMissingInDownloadsPatch = bytecodePatch(
     description = "Fixes audio missing in videos downloaded from v.redd.it.",
     default = true
 ) {
+    category(PatchCategory.MEDIA)
     dependsOn(sharedExtensionPatch, interceptHttpRequests)
     compatibleWith(*BoostCompatible)
 

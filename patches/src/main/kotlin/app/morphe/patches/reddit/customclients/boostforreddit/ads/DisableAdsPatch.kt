@@ -20,6 +20,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import org.w3c.dom.Element
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val MAX_AD_PLACER_SETTINGS_DESCRIPTOR =
     "Lcom/applovin/mediation/nativeAds/adPlacer/MaxAdPlacerSettings;"
@@ -61,6 +62,7 @@ val disableAdsPatch = bytecodePatch(
     description = "Removes ads from feeds and comments and keeps the ad SDKs from starting.",
     default = true
 ) {
+    category(PatchCategory.ADS)
     dependsOn(removeBoostAdInitProvidersPatch)
     compatibleWith(*BoostCompatible)
 

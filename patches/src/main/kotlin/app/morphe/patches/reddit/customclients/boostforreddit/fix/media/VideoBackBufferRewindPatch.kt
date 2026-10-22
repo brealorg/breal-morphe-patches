@@ -13,6 +13,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val CONTRACT_MARKER =
     "MORPHE_BOOST_VIDEO_REWIND_BACKBUFFER_ISSUE188_V2"
@@ -32,9 +33,10 @@ private val backBufferDurationUsFingerprint = Fingerprint(
 val fixBoostVideoRewindBackBufferPatch = bytecodePatch(
     name = "Fix Boost video rewind back buffer",
     description =
-        "Retains 30 seconds of recently played video in ExoPlayer so backward seeks can reuse buffered media instead of reloading it.",
+        "Keeps the last 30 seconds of a video, so rewinding plays right away instead of reloading.",
     default = true,
 ) {
+    category(PatchCategory.MEDIA)
     compatibleWith(*BoostCompatible)
 
     execute {

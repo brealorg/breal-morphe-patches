@@ -10,6 +10,7 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 import org.w3c.dom.Document
 import org.w3c.dom.Element
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val COMMENTS_SLIDR_NO_TITLE_MARKER =
     "morphe_boost_comments_slidrtheme_notitle_noactionbar_v12"
@@ -33,9 +34,10 @@ private fun Element.setOrAppendItem(document: Document, itemName: String, itemVa
 @Suppress("unused")
 val fixCommentsLemmyModelUiPatch = resourcePatch(
     name = "Fix Boost comments Lemmy-style toolbar UI",
-    description = "Removes the duplicate native comments title by disabling the SlidrTheme window title/actionbar layer while preserving Boost's selected light/dark theme, toolbar title, and dynamic sort subtitle.",
+    description = "Removes the duplicate title above comments, keeping Boost's theme, toolbar title and sort label.",
     default = true
 ) {
+    category(PatchCategory.COMMENTS)
     compatibleWith(*BoostCompatible)
 
     execute {

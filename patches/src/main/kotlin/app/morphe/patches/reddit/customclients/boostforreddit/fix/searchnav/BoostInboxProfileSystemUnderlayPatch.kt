@@ -5,6 +5,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 import app.morphe.patches.reddit.customclients.boostforreddit.misc.extension.sharedExtensionPatch
 import com.android.tools.smali.dexlib2.Opcode
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val UNIFIED_MATERIAL_NAV_PATCH_MARKER =
     "MORPHE_BOOST_UNIFIED_MATERIAL_BOTTOM_NAV_V771"
@@ -39,9 +40,10 @@ private val userActivityUnderlayLifecycleFingerprint = Fingerprint(
 @Suppress("unused")
 val boostInboxProfileSystemUnderlayPatch = bytecodePatch(
     name = "Standardize Boost Inbox and Profile bottom navigation",
-    description = "Applies the canonical five-destination Material bottom-navigation contract after Inbox and Profile complete lifecycle setup.",
+    description = "Shows the same five-tab bottom navigation in Inbox and Profile.",
     default = true,
 ) {
+    category(PatchCategory.NAVIGATION)
     compatibleWith(*BoostCompatible)
     dependsOn(sharedExtensionPatch)
 

@@ -6,6 +6,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.stringOption
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import app.morphe.patches.all.misc.PatchCategory
 
 @Suppress("unused")
 val customSynccitUrlPatch = bytecodePatch(
@@ -14,6 +15,7 @@ val customSynccitUrlPatch = bytecodePatch(
         "Allows Boost to use a custom self-hosted Synccit API endpoint.",
     default = true,
 ) {
+    category(PatchCategory.LOGIN)
     compatibleWith(*BoostCompatible)
 
     val synccitUrlOption = stringOption(

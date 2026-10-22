@@ -229,7 +229,11 @@ if [ "$FAIL" -eq 0 ]; then
     --name "$NORMAL_NAME"
     --expected-target-sdk "$EXPECTED_TARGET_SDK"
   )
-  [ "$NO_VERIFY_WITH_SDK" -eq 1 ] && BUILD_ARGS+=(--no-verify-with-sdk)
+  if [ "$NO_VERIFY_WITH_SDK" -eq 1 ]; then
+    BUILD_ARGS+=(--no-verify-with-sdk)
+  else
+    BUILD_ARGS+=(--verify-with-sdk)
+  fi
   if [ "${#ENABLE_PATCHES[@]}" -gt 0 ]; then
     BUILD_ARGS+=(--)
     for patch in "${ENABLE_PATCHES[@]}"; do

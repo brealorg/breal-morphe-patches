@@ -11,6 +11,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.reddit.customclients.redditisfun.RedditIsFunCompatible
 import app.morphe.patches.reddit.customclients.redditisfun.RedditIsFunFreeCompatible
 import app.morphe.util.returnEarly
+import app.morphe.patches.all.misc.PatchCategory
 
 // Based on: https://github.com/ReVanced/revanced-patches/issues/661#issuecomment-2549674017
 val fakePremiumPatch = bytecodePatch(
@@ -18,6 +19,7 @@ val fakePremiumPatch = bytecodePatch(
     description = "Allows using pro features without ads.",
     default = true
 ) {
+    category(PatchCategory.ADS)
     compatibleWith(RedditIsFunFreeCompatible)
 
     execute {

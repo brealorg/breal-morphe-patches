@@ -12,6 +12,7 @@ import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 import app.morphe.patches.reddit.customclients.boostforreddit.misc.extension.sharedExtensionPatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.Opcode
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val GALLERY_ACTIVITY_DESCRIPTOR =
     "Lcom/rubenmayayo/reddit/ui/activities/GalleryActivity;"
@@ -28,9 +29,10 @@ private const val GALLERY_PREVIEW_EXTENSION_DESCRIPTOR =
 @Suppress("unused")
 val galleryAnimatedPreviewPatch = bytecodePatch(
     name = "Animate media in Boost gallery previews",
-    description = "Autoplays selected Reddit gallery GIF and video media while preserving Boost's poster, data preferences, and full-screen media route.",
+    description = "Plays GIFs and videos in Reddit gallery previews, following Boost's data saving settings. Tapping still opens the full-screen viewer.",
     default = true,
 ) {
+    category(PatchCategory.MEDIA)
     dependsOn(sharedExtensionPatch)
     compatibleWith(*BoostCompatible)
 

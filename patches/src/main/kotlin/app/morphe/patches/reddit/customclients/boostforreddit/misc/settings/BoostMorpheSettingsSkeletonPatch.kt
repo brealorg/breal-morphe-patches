@@ -11,6 +11,7 @@ import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val SETTINGS_V4_EXTENSION_DESCRIPTOR =
     "Lapp/morphe/extension/boostforreddit/settings/MorpheSettingsV4;"
@@ -249,9 +250,10 @@ private val boostMorpheSettingsResourcesPatch = resourcePatch(
 @Suppress("unused")
 val boostMorpheSettingsSkeletonPatch = bytecodePatch(
     name = "Boost Morphe settings",
-    description = "Adds dedicated Morphe settings and task-based Material Settings V5 navigation with global search and a classic fallback.",
+    description = "Adds a Morphe section and a reorganized settings screen with search. The classic settings stay available.",
     default = false,
 ) {
+    category(PatchCategory.INTERFACE)
     dependsOn(sharedExtensionPatch, boostMorpheSettingsResourcesPatch)
     compatibleWith(*BoostCompatible)
 

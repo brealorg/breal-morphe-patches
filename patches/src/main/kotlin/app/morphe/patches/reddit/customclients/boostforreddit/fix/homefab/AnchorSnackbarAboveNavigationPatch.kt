@@ -13,6 +13,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 import app.morphe.patches.reddit.customclients.boostforreddit.misc.extension.sharedExtensionPatch
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val SNACKBAR_ANCHOR_EXTENSION_DESCRIPTOR =
     "Lapp/morphe/extension/boostforreddit/utils/BoostSnackbarAnchor;"
@@ -55,6 +56,7 @@ val anchorSnackbarAboveNavigationPatch = bytecodePatch(
         "Shows Boost Snackbars above the visible bottom navigation instead of covering it.",
     default = true,
 ) {
+    category(PatchCategory.NAVIGATION)
     dependsOn(sharedExtensionPatch)
     compatibleWith(*BoostCompatible)
 

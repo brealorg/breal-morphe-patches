@@ -75,6 +75,54 @@ def _string(data: bytes, offset: int) -> str:
     return data[offset:end].decode("utf-8", errors="surrogateescape")
 
 
+# Size in 16-bit code units of each Dalvik opcode, from its instruction format.
+_INSN_UNITS = [1] * 256
+for _op, _units in (
+    ((0x02, 0x05, 0x08), 2), ((0x03, 0x06, 0x09), 3),
+    ((0x13, 0x15, 0x16, 0x19, 0x1a, 0x1c, 0x1f, 0x20, 0x22, 0x23, 0x29), 2),
+    ((0x14, 0x17, 0x1b, 0x24, 0x25, 0x26, 0x2a, 0x2b, 0x2c), 3),
+    ((0x18,), 5),
+    (range(0x2d, 0x32), 2), (range(0x32, 0x38), 2), (range(0x38, 0x3e), 2),
+    (range(0x44, 0x52), 2), (range(0x52, 0x6e), 2),
+    (range(0x6e, 0x73), 3), (range(0x74, 0x79), 3),
+    (range(0x90, 0xb0), 2), (range(0xd0, 0xe3), 2),
+    ((0xfa, 0xfb), 4), ((0xfc, 0xfd), 3), ((0xfe, 0xff), 2),
+):
+    for _code in _op:
+        _INSN_UNITS[_code] = _units
+
+# Opcodes whose first index operand is a field or a method.
+_FIELD_OPS = frozenset(range(0x52, 0x6e))
+_METHOD_OPS = frozenset([*range(0x6e, 0x73), *range(0x74, 0x79), 0xfa, 0xfb])
+
+
+def _code_refs(data: bytes, code_off: int, fields: set[int], methods: set[int]) -> None:
+    """Collects the field and method ids that the instructions of a code item use."""
+    insns_size = struct.unpack_from("<I", data, code_off + 12)[0]
+    start = code_off + 16
+    pc = 0
+    while pc < insns_size:
+        unit = struct.unpack_from("<H", data, start + 2 * pc)[0]
+        op = unit & 0xff
+        if op == 0x00 and unit == 0x0100:  # packed-switch payload
+            size = struct.unpack_from("<H", data, start + 2 * pc + 2)[0]
+            pc += size * 2 + 4
+        elif op == 0x00 and unit == 0x0200:  # sparse-switch payload
+            size = struct.unpack_from("<H", data, start + 2 * pc + 2)[0]
+            pc += size * 4 + 2
+        elif op == 0x00 and unit == 0x0300:  # fill-array-data payload
+            width, size = struct.unpack_from("<HI", data, start + 2 * pc + 2)
+            pc += (size * width + 1) // 2 + 4
+        else:
+            if op in _FIELD_OPS:
+                fields.add(struct.unpack_from("<H", data, start + 2 * pc + 2)[0])
+            elif op in _METHOD_OPS:
+                methods.add(struct.unpack_from("<H", data, start + 2 * pc + 2)[0])
+            pc += _INSN_UNITS[op]
+    if pc != insns_size:
+        raise ValueError(f"code item at {code_off:#x} does not end on an instruction boundary")
+
+
 def parse_dex(data: bytes, model: Model) -> None:
     if not data.startswith(b"dex\n"):
         raise ValueError("not a dex file")
@@ -107,8 +155,10 @@ def parse_dex(data: bytes, model: Model) -> None:
         method_ids.append((types[class_idx], strings[name_idx], protos[proto_idx]))
 
     model.refs.update(("class", t.lstrip("["), "", "") for t in types if t.lstrip("[").startswith("L"))
-    model.refs.update(("field",) + f for f in field_ids)
-    model.refs.update(("method",) + m for m in method_ids)
+    # Only members that code uses can fail to link. A copied DEX file keeps the ids of the
+    # classes dropped from it, which nothing calls, so the id tables alone overreport.
+    used_fields: set[int] = set()
+    used_methods: set[int] = set()
 
     for i in range(class_defs_size):
         (class_idx, _, superclass_idx, interfaces_off, _, _, class_data_off, _) = struct.unpack_from(
@@ -133,12 +183,17 @@ def parse_dex(data: bytes, model: Model) -> None:
                     diff, offset = _uleb128(data, offset)
                     _, offset = _uleb128(data, offset)  # access flags
                     if ids is method_ids:
-                        _, offset = _uleb128(data, offset)  # code offset
+                        code_off, offset = _uleb128(data, offset)
+                        if code_off:
+                            _code_refs(data, code_off, used_fields, used_methods)
                     index += diff
                     _, member_name, descriptor = ids[index]
                     target.add((member_name, descriptor))
         # Multidex APKs must not define a class twice; keep the first like ART does.
         model.classes.setdefault(name, definition)
+
+    model.refs.update(("field",) + field_ids[i] for i in used_fields)
+    model.refs.update(("method",) + method_ids[i] for i in used_methods)
 
 
 def load_apk(path: Path) -> Model:

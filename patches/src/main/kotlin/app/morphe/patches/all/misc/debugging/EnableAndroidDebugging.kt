@@ -2,6 +2,7 @@ package app.morphe.patches.all.misc.debugging
 
 import app.morphe.patcher.patch.resourcePatch
 import org.w3c.dom.Element
+import app.morphe.patches.all.misc.PatchCategory
 
 @Suppress("unused")
 internal val enableAndroidDebuggingPatch = resourcePatch(
@@ -9,6 +10,7 @@ internal val enableAndroidDebuggingPatch = resourcePatch(
     description = "Enables Android developer debugging capabilities. Including this patch can slow down the app.",
     default = false
 ) {
+    category(PatchCategory.ADVANCED)
     execute {
         document("AndroidManifest.xml").use { document ->
             val applicationNode =

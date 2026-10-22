@@ -13,6 +13,7 @@ import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.Patch
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.returnEarly
+import app.morphe.patches.all.misc.PatchCategory
 
 fun fixRAllPatch(
     extensionPatch: Array<Patch<*>>,
@@ -22,6 +23,7 @@ fun fixRAllPatch(
     description = "Loads /r/all through Reddit's .json endpoint so the feed shows posts.",
     default = true
 ) {
+    category(PatchCategory.FEED)
     compatibleWith(*compatible)
 
     dependsOn(

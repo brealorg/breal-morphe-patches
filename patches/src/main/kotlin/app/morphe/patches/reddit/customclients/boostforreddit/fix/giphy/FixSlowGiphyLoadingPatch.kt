@@ -11,13 +11,15 @@ package app.morphe.patches.reddit.customclients.boostforreddit.fix.giphy
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
+import app.morphe.patches.all.misc.PatchCategory
 
 @Suppress("unused")
 val fixSlowGiphyLoadingPatch = bytecodePatch(
     name = "Fix slow Giphy loading",
-    description = "Bypasses Boost's slow Giphy API resolver and uses Boost's direct media.giphy.com MP4 fallback for Giphy posts.",
+    description = "Loads Giphy posts faster by playing the MP4 directly instead of waiting for the Giphy API.",
     default = true
 ) {
+    category(PatchCategory.MEDIA)
     compatibleWith(*BoostCompatible)
 
     execute {

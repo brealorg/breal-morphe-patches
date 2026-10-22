@@ -6,6 +6,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 import app.morphe.patches.reddit.customclients.boostforreddit.misc.extension.sharedExtensionPatch
 import app.morphe.patches.reddit.customclients.boostforreddit.misc.settings.boostMorpheSettingsSkeletonPatch
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val ADAPTIVE_REFRESH_RATE_EXTENSION_DESCRIPTOR =
     "Lapp/morphe/extension/boostforreddit/utils/AdaptiveRefreshRate;"
@@ -21,6 +22,7 @@ val preferHighRefreshRatePatch = bytecodePatch(
     description = "Requests a high display refresh rate for Boost on adaptive-refresh devices.",
     default = false,
 ) {
+    category(PatchCategory.INTERFACE)
     dependsOn(sharedExtensionPatch, boostMorpheSettingsSkeletonPatch)
     compatibleWith(*BoostCompatible)
 

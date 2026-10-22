@@ -5,6 +5,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 import app.morphe.patches.reddit.customclients.boostforreddit.misc.extension.sharedExtensionPatch
 import com.android.tools.smali.dexlib2.Opcode
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val SUBREDDIT_NAV_EXTENSION =
     "Lapp/morphe/extension/boostforreddit/utils/BoostSearchBottomNavigation;"
@@ -12,9 +13,10 @@ private const val SUBREDDIT_NAV_EXTENSION =
 @Suppress("unused")
 val boostSubredditBottomNavigationSurfacePatch = bytecodePatch(
     name = "Stabilize Boost subreddit bottom navigation surface",
-    description = "Applies theme contrast and gesture-inset surface handling to SubredditActivity while preserving native selection and routes.",
+    description = "Gives the bottom navigation in subreddits proper contrast and room for gesture navigation.",
     default = true,
 ) {
+    category(PatchCategory.NAVIGATION)
     compatibleWith(*BoostCompatible)
     dependsOn(sharedExtensionPatch)
 

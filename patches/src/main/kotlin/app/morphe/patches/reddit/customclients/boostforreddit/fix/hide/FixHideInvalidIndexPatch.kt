@@ -17,13 +17,15 @@ import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import app.morphe.patches.all.misc.PatchCategory
 
 @Suppress("unused")
 val fixHideInvalidIndexPatch = bytecodePatch(
     name = "Fix Hide crash",
-    description = "Stabilizes Boost feed position handling and prevents invalid-index crashes when hiding read posts.",
+    description = "Fixes crashes and jumps in the feed when hiding read posts.",
     default = true
 ) {
+    category(PatchCategory.FEED)
     compatibleWith(*BoostCompatible)
 
     execute {

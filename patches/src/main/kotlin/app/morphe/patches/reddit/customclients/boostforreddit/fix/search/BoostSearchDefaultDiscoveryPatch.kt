@@ -7,13 +7,15 @@ import app.morphe.patches.reddit.customclients.boostforreddit.misc.extension.sha
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import com.android.tools.smali.dexlib2.Opcode
+import app.morphe.patches.all.misc.PatchCategory
 
 @Suppress("unused")
 val boostSearchDefaultDiscoveryPatch = bytecodePatch(
     name = "Boost search default discovery",
-    description = "Starts Boost search on an instant cached active-subreddit landing with Reddit-native labels.",
+    description = "Opens Search right away on a list of active subreddits.",
     default = true,
 ) {
+    category(PatchCategory.FEED)
     dependsOn(sharedExtensionPatch)
     compatibleWith(*BoostCompatible)
 

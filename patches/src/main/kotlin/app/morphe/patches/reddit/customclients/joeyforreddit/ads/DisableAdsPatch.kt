@@ -11,6 +11,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.reddit.customclients.joeyforreddit.JoeyForRedditFreeCompatible
 import app.morphe.patches.reddit.customclients.joeyforreddit.detection.piracy.disablePiracyDetectionPatch
 import app.morphe.util.returnEarly
+import app.morphe.patches.all.misc.PatchCategory
 
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
@@ -18,6 +19,7 @@ val disableAdsPatch = bytecodePatch(
     description = "Removes ads by treating the user as ad-free.",
     default = true
 ) {
+    category(PatchCategory.ADS)
     dependsOn(disablePiracyDetectionPatch)
 
     compatibleWith(JoeyForRedditFreeCompatible)

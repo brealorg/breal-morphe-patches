@@ -3,7 +3,7 @@
 FAIL=0
 BASE_APK=""
 MPP=""
-JAR="${HOME}/.local/share/morphe/tools/morphe-desktop-1.11.0-all.jar"
+JAR="${HOME}/.local/share/morphe/tools/morphe-desktop-1.19.0-all.jar"
 OPTIONS_FILE=""
 PACKAGE="com.rubenmayayo.reddit"
 EXPECTED_TARGET_SDK="35"
@@ -185,7 +185,7 @@ if [ "$FAIL" -ne 0 ]; then
   exit 1
 fi
 
-CMD=(java -jar "$JAR" patch --purge -p "$MPP" --options-file "$OPTIONS_FILE" -o "$OUT_APK" -r "$RESULT_JSON")
+CMD=(java -jar "$JAR" patch -p "$MPP" --options-file "$OPTIONS_FILE" -o "$OUT_APK" -r "$RESULT_JSON")
 for patch in "${ENABLE_PATCHES[@]}"; do
   CMD+=(-e "$patch")
 done

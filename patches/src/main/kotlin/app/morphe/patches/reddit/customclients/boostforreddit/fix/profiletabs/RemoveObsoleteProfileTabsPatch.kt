@@ -6,6 +6,7 @@ import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 import app.morphe.patches.reddit.customclients.boostforreddit.misc.extension.sharedExtensionPatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val EXTENSION_DESCRIPTOR =
     "Lapp/morphe/extension/boostforreddit/RemoveObsoleteProfileTabsPatch;"
@@ -16,6 +17,7 @@ val removeObsoleteProfileTabsPatch = bytecodePatch(
     description = "Removes the legacy Gilded and Friends tabs from Boost profiles.",
     default = true,
 ) {
+    category(PatchCategory.INTERFACE)
     compatibleWith(*BoostCompatible)
     dependsOn(sharedExtensionPatch)
 

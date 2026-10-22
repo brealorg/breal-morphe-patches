@@ -10,6 +10,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 import app.morphe.patches.reddit.customclients.boostforreddit.misc.extension.sharedExtensionPatch
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val CODEBLOCK_NORMALIZER_DESCRIPTOR =
     "Lapp/morphe/extension/boostforreddit/codeblock/CodeBlockHtmlNormalizer;"
@@ -17,9 +18,10 @@ private const val CODEBLOCK_NORMALIZER_DESCRIPTOR =
 @Suppress("unused")
 val fixCodeBlockRenderingPatch = bytecodePatch(
     name = "Fix Boost code block rendering",
-    description = "Preserves Reddit code blocks and repairs malformed legacy HTML links with parenthesized URLs before Boost renders them.",
+    description = "Shows Reddit code blocks correctly and fixes links whose URL contains parentheses.",
     default = true
 ) {
+    category(PatchCategory.COMMENTS)
     dependsOn(sharedExtensionPatch)
     compatibleWith(*BoostCompatible)
 
