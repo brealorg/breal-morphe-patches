@@ -2,6 +2,8 @@
 
 ## Add to Morphe
 
+Since 1.4.122 this bundle requires **Morphe Manager 2.0** or newer. Manager 1.x cannot load it.
+
 ### Morphe Manager source URL field
 
 Paste this value into Morphe Manager when adding a remote source:
@@ -90,14 +92,14 @@ The repository shorthand shown at the top is the preferred Manager setup. Raw
 
 | Field | Value |
 |---|---|
-| Version | `1.4.121` |
-| Release tag | `morphe-patches-121` |
-| Asset | `patches-1.4.121.mpp` |
-| SHA256 | `46b59c618d03f319ee0f0b1ed2af6f64d92552dbf1e56fbdc296a9b27b050c8a` |
+| Version | `1.4.122` |
+| Release tag | `morphe-patches-122` |
+| Asset | `patches-1.4.122.mpp` |
+| SHA256 | `f1a4844361c877a834511b67770833157de5c1678a2161050429cf97828d799f` |
 | Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-121/patches-1.4.121.mpp` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-122/patches-1.4.122.mpp` |
 
-SHA256: `46b59c618d03f319ee0f0b1ed2af6f64d92552dbf1e56fbdc296a9b27b050c8a`
+SHA256: `f1a4844361c877a834511b67770833157de5c1678a2161050429cf97828d799f`
 ## What this bundle does
 
 The current bundle is focused on practical hotfixes for tested app versions, especially Boost for Reddit behavior on newer Android versions.
@@ -144,10 +146,10 @@ Included Imgur patches:
 ### Patches list
 
 <!-- PATCHES_START -->
-> **Patch source version:** `1.4.121` • `main` • 59 unique patches • 111 package entries
+> **Patch source version:** `1.4.122` • `main` • 57 unique patches • 109 package entries
 
 <details>
-<summary><strong>Boost for Reddit</strong> • 50 patches</summary>
+<summary><strong>Boost for Reddit</strong> • 48 patches</summary>
 
 
 
@@ -158,56 +160,54 @@ Included Imgur patches:
 
 | Patch | Description | Options |
 |---|---|---|
-| [Add archive links to context menu](#add-archive-links-to-context-menu) |  |  |
+| [Add archive links to context menu](#add-archive-links-to-context-menu) | Adds 'Open with Wayback Machine' and 'Open with Archive.is' to the link context menu. |  |
 | [Add Boost Search bottom navigation](#add-boost-search-bottom-navigation) | Shows Boost's native Home, Search, Subscriptions, Inbox and Profile menu in Search and Go To. |  |
 | [Anchor Boost Snackbars above bottom navigation](#anchor-boost-snackbars-above-bottom-navigation) | Shows Boost Snackbars above the visible bottom navigation instead of covering it. |  |
-| [Animate media in Boost gallery previews](#animate-media-in-boost-gallery-previews) | Autoplays selected Reddit gallery GIF and video media while preserving Boost's poster, data preferences, and full-screen media route. |  |
+| [Animate media in Boost gallery previews](#animate-media-in-boost-gallery-previews) | Plays GIFs and videos in Reddit gallery previews, following Boost's data saving settings. Tapping still opens the full-screen viewer. |  |
 | [Auto-load next page after filtered results](#auto-load-next-page-after-filtered-results) | Loads the next page automatically when content filters hide every post on a page, instead of leaving the feed stuck behind a "Results were filtered" Snackbar. |  |
-| [Automatically undelete Imgur images](#automatically-undelete-imgur-images) |  |  |
-| [Automatically undelete Reddit content](#automatically-undelete-reddit-content) |  |  |
-| [Boost Morphe settings](#boost-morphe-settings) | Adds dedicated Morphe settings and task-based Material Settings V5 navigation with global search and a classic fallback. |  |
-| [Boost search default discovery](#boost-search-default-discovery) | Starts Boost search on an instant cached active-subreddit landing with Reddit-native labels. |  |
+| [Automatically undelete Imgur images](#automatically-undelete-imgur-images) | Loads deleted Imgur images from the Wayback Machine. |  |
+| [Automatically undelete Reddit content](#automatically-undelete-reddit-content) | Restores deleted and removed posts and comments from Arctic Shift, and their media from the Wayback Machine. |  |
+| [Boost Morphe settings](#boost-morphe-settings) | Adds a Morphe section and a reorganized settings screen with search. The classic settings stay available. |  |
+| [Boost search default discovery](#boost-search-default-discovery) | Opens Search right away on a list of active subreddits. |  |
 | [Custom Synccit URL](#custom-synccit-url) | Allows Boost to use a custom self-hosted Synccit API endpoint. | • Synccit API URL |
-| [Disable ads](#disable-ads) |  |  |
-| [Disable Boost Crashlytics startup network calls](#disable-boost-crashlytics-startup-network-calls) | Disables Boost's Crashlytics startup initialization while keeping Firebase Analytics and other Firebase components. |  |
-| [Fix /r/all](#fix-r-all) |  |  |
-| [Fix /s/ links](#fix-s-links) |  |  |
-| [Fix Boost code block rendering](#fix-boost-code-block-rendering) | Preserves Reddit code blocks and repairs malformed legacy HTML links with parenthesized URLs before Boost renders them. |  |
-| [Fix Boost comments Lemmy-style toolbar UI](#fix-boost-comments-lemmy-style-toolbar-ui) | Removes the duplicate native comments title by disabling the SlidrTheme window title/actionbar layer while preserving Boost's selected light/dark theme, toolbar title, and dynamic sort subtitle. |  |
-| [Fix Boost FAB nested scroll](#fix-boost-fab-nested-scroll) | Synchronizes Boost FAB hide/show with collapsing-header and nested-scroll motion. |  |
-| [Fix Boost image widget click target](#fix-boost-image-widget-click-target) | Prevents Boost's image widget from opening a stale post by making the CommentsActivity PendingIntent data unique per widget update. |  |
-| [Fix Boost native image upload](#fix-boost-native-image-upload) | Keeps Boost image posts and galleries on Reddit's native uploader and routes images inserted into comments or text posts through Imgur by default, with ImgBB as a manually selected alternative. GIF and video upload behavior is unchanged. |  |
-| [Fix Boost navigation bar overlap](#fix-boost-navigation-bar-overlap) | Adds runtime system bar inset handling for Boost bottom controls and drawer content on Android 15+ target SDK builds. |  |
-| [Fix Boost target SDK 35 compatibility](#fix-boost-target-sdk-35-compatibility) | Sets Boost for Reddit's target SDK to 35 and fixes BillingClient receiver registration for newer Android versions. |  |
-| [Fix Boost video rewind back buffer](#fix-boost-video-rewind-back-buffer) | Retains 30 seconds of recently played video in ExoPlayer so backward seeks can reuse buffered media instead of reloading it. |  |
+| [Disable ads](#disable-ads) | Removes ads from feeds and comments and keeps the ad SDKs from starting. |  |
+| [Disable Boost Crashlytics startup network calls](#disable-boost-crashlytics-startup-network-calls) | Stops Boost's crash reporting (Crashlytics) from connecting at startup. Other Firebase services keep working. |  |
+| [Fix /r/all](#fix-r-all) | Loads /r/all through Reddit's .json endpoint so the feed shows posts. |  |
+| [Fix /s/ links](#fix-s-links) | Opens Reddit share links (/s/) by resolving them to the post they point to. |  |
+| [Fix Boost code block rendering](#fix-boost-code-block-rendering) | Shows Reddit code blocks correctly and fixes links whose URL contains parentheses. |  |
+| [Fix Boost comments Lemmy-style toolbar UI](#fix-boost-comments-lemmy-style-toolbar-ui) | Removes the duplicate title above comments, keeping Boost's theme, toolbar title and sort label. |  |
+| [Fix Boost FAB nested scroll](#fix-boost-fab-nested-scroll) | Hides and shows the floating action button in step with scrolling, also on pages with a collapsing header. |  |
+| [Fix Boost image widget click target](#fix-boost-image-widget-click-target) | Makes the image widget open the post it shows instead of an older one. |  |
+| [Fix Boost native image upload](#fix-boost-native-image-upload) | Uploads image posts and galleries to Reddit, and images in comments or text posts to Imgur, or ImgBB if you choose it. GIF and video uploads are unchanged. |  |
+| [Fix Boost navigation bar overlap](#fix-boost-navigation-bar-overlap) | Keeps Boost's bottom controls and drawer clear of the system navigation bar on Android 15 and newer. |  |
+| [Fix Boost target SDK 35 compatibility](#fix-boost-target-sdk-35-compatibility) | Makes Boost target Android 15 (SDK 35) and fixes billing setup on newer Android versions. |  |
+| [Fix Boost video rewind back buffer](#fix-boost-video-rewind-back-buffer) | Keeps the last 30 seconds of a video, so rewinding plays right away instead of reloading. |  |
 | [Fix Boost YouTube playback fallback](#fix-boost-youtube-playback-fallback) | Opens the original YouTube link externally when Boost's legacy embedded YouTube player is unavailable. |  |
-| [Fix download completed notification visibility](#fix-download-completed-notification-visibility) | Moves completed download notifications to a separate default-importance channel so download completion is visible while progress notifications remain low-priority. |  |
-| [Fix Hide crash](#fix-hide-crash) | Stabilizes Boost feed position handling and prevents invalid-index crashes when hiding read posts. |  |
+| [Fix download completed notification visibility](#fix-download-completed-notification-visibility) | Shows a visible notification when a download finishes, while progress notifications stay quiet. |  |
+| [Fix Hide crash](#fix-hide-crash) | Fixes crashes and jumps in the feed when hiding read posts. |  |
 | [Fix missing audio in video downloads](#fix-missing-audio-in-video-downloads) | Fixes audio missing in videos downloaded from v.redd.it. |  |
-| [Fix Random subreddit](#fix-random-subreddit) | Normalizes Boost's broken r/random route by resolving a live non-NSFW subreddit through Reddit search and subscriber-count filtering. |  |
-| [Fix Redgifs API](#fix-redgifs-api) |  |  |
-| [Fix slow Giphy loading](#fix-slow-giphy-loading) | Bypasses Boost's slow Giphy API resolver and uses Boost's direct media.giphy.com MP4 fallback for Giphy posts. |  |
-| [Hook exception handler](#hook-exception-handler) | Hook the exception handler in Boost. Don't enable except for development purposes |  |
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Fix Random subreddit](#fix-random-subreddit) | Fixes the Random button by picking an active, non-NSFW subreddit through Reddit search. |  |
+| [Fix Redgifs API](#fix-redgifs-api) | Fetches a fresh Redgifs API token so Redgifs videos load. |  |
+| [Fix slow Giphy loading](#fix-slow-giphy-loading) | Loads Giphy posts faster by playing the MP4 directly instead of waiting for the Giphy API. |  |
+| [Hook exception handler](#hook-exception-handler) | Catches Boost's crashes for debugging. Only enable this for development. |  |
+| [Modify login WebView](#modify-login-webview) | Adjusts the Reddit login page to prevent sign-in problems. |  |
 | [Open Reddit image links in Boost](#open-reddit-image-links-in-boost) | Opens i.redd.it image links in Boost's image viewer instead of a web page. |  |
 | [Prefer high refresh rate](#prefer-high-refresh-rate) | Requests a high display refresh rate for Boost on adaptive-refresh devices. |  |
 | [Readable Boost flair labels](#readable-boost-flair-labels) | Uses black or white flair text when Reddit's flair text color is unreadable on its background. |  |
 | [Remove obsolete profile tabs](#remove-obsolete-profile-tabs) | Removes the legacy Gilded and Friends tabs from Boost profiles. |  |
-| [Restore Boost Open by default prompt](#restore-boost-open-by-default-prompt) | Prompts after Boost patch updates to reopen Android's Open by default settings so supported Reddit links can be re-enabled. |  |
-| [Restore Boost sidebar Trending today](#restore-boost-sidebar-trending-today) | Uses native trending data when renderable, otherwise supplies HOT post rows and fixes the global community-limit control. |  |
-| [Restore GIF search integration probe](#restore-gif-search-integration-probe) | Fingerprint-only probe for Boost compose/reply GIF insertion through FormattingBar. No runtime behavior change. |  |
-| [Restore GIF URL insertion](#restore-gif-url-insertion) | Adds provider-independent manual GIF URL insertion to Boost's existing image menu. |  |
+| [Restore Boost sidebar Trending today](#restore-boost-sidebar-trending-today) | Restores the sidebar's Trending today section, falling back to hot posts, and fixes its community limit setting. |  |
+| [Restore GIF URL insertion](#restore-gif-url-insertion) | Adds an option to the image menu to insert a GIF from its URL. |  |
 | [Show end of feed](#show-end-of-feed) | Shows an "End of feed" row with a Refresh button below the last post when a feed has no more posts, instead of silently stopping. Home sorted by Best ends after a few hundred posts. |  |
 | [Show inline Giphy previews in comments](#show-inline-giphy-previews-in-comments) | Adds inline media previews below Boost comment text for Giphy links and direct static image URLs. |  |
 | [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-| [Stabilize Boost subreddit bottom navigation surface](#stabilize-boost-subreddit-bottom-navigation-surface) | Applies theme contrast and gesture-inset surface handling to SubredditActivity while preserving native selection and routes. |  |
-| [Standardize Boost bottom navigation](#standardize-boost-bottom-navigation) | Applies one destination, listener, selection, tint, and system-surface contract to Boost's Material bottom navigation. |  |
-| [Standardize Boost bottom-navigation FAB clearance](#standardize-boost-bottom-navigation-fab-clearance) | Keeps Home/Subreddit, Random, Inbox and Profile FABs 16 dp above native canonical navigation. |  |
-| [Standardize Boost Home bottom navigation](#standardize-boost-home-bottom-navigation) | Applies the canonical five-destination Material navigation and native Home tint when MainActivity resumes. |  |
-| [Standardize Boost Inbox and Profile bottom navigation](#standardize-boost-inbox-and-profile-bottom-navigation) | Applies the canonical five-destination Material bottom-navigation contract after Inbox and Profile complete lifecycle setup. |  |
-| [Support keyboard GIF insertion](#support-keyboard-gif-insertion) | Enables keyboard GIF/image rich content insertion through Android receive-content when a public URL is available. |  |
-| [Theme Boost settings icons](#theme-boost-settings-icons) | Uses the active theme primary text color for Boost preference icons. |  |
-| [Tune Boost image dismissal](#tune-boost-image-dismissal) | Adds image-viewer-only quick-flick dismissal with a moderate distance option without changing GIF, video, or general navigation gestures. |  |
+| [Stabilize Boost subreddit bottom navigation surface](#stabilize-boost-subreddit-bottom-navigation-surface) | Gives the bottom navigation in subreddits proper contrast and room for gesture navigation. |  |
+| [Standardize Boost bottom navigation](#standardize-boost-bottom-navigation) | Makes the bottom navigation look and behave the same on every screen. |  |
+| [Standardize Boost bottom-navigation FAB clearance](#standardize-boost-bottom-navigation-fab-clearance) | Keeps the floating action buttons on Home, subreddits, Random, Inbox and Profile clear of the bottom navigation. |  |
+| [Standardize Boost Home bottom navigation](#standardize-boost-home-bottom-navigation) | Shows the same five-tab bottom navigation on Home, with Home highlighted. |  |
+| [Standardize Boost Inbox and Profile bottom navigation](#standardize-boost-inbox-and-profile-bottom-navigation) | Shows the same five-tab bottom navigation in Inbox and Profile. |  |
+| [Support keyboard GIF insertion](#support-keyboard-gif-insertion) | Lets you insert GIFs and images from your keyboard while writing, when the keyboard provides a public link. |  |
+| [Theme Boost settings icons](#theme-boost-settings-icons) | Colors the settings icons to match the active theme. |  |
+| [Tune Boost image dismissal](#tune-boost-image-dismissal) | Lets you close the image viewer with a quick flick, without changing GIF, video or other gestures. |  |
 
 </details>
 
@@ -223,15 +223,15 @@ Included Imgur patches:
 
 | Patch | Description | Options |
 |---|---|---|
-| [Disable ads](#disable-ads) |  |  |
-| [Disable Sync for Lemmy bottom sheet](#disable-sync-for-lemmy-bottom-sheet) | Disables the bottom sheet at the startup that asks you to signup to "Sync for Lemmy". |  |
-| [Fix /s/ links](#fix-s-links) |  |  |
+| [Disable ads](#disable-ads) | Removes ads. |  |
+| [Disable Sync for Lemmy bottom sheet](#disable-sync-for-lemmy-bottom-sheet) | Hides the startup prompt that asks you to sign up for Sync for Lemmy. |  |
+| [Fix /s/ links](#fix-s-links) | Opens Reddit share links (/s/) by resolving them to the post they point to. |  |
 | [Fix post thumbnails](#fix-post-thumbnails) | Fixes loading post thumbnails by correcting their URLs. |  |
-| [Fix Redgifs API](#fix-redgifs-api) |  |  |
-| [Fix video downloads](#fix-video-downloads) | Fixes a bug in Sync's MPD parser resulting in only the audio-track being saved. |  |
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Fix Redgifs API](#fix-redgifs-api) | Fetches a fresh Redgifs API token so Redgifs videos load. |  |
+| [Fix video downloads](#fix-video-downloads) | Fixes video downloads that saved only the audio track. |  |
+| [Modify login WebView](#modify-login-webview) | Adjusts the Reddit login page to prevent sign-in problems. |  |
 | [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-| [Use /user/ endpoint](#use-user-endpoint) | Replaces the deprecated endpoint for viewing user profiles /u with /user, that used to fix a bug. |  |
+| [Use /user/ endpoint](#use-user-endpoint) | Opens user profiles through /user/ instead of the deprecated /u/ endpoint. |  |
 
 </details>
 
@@ -247,14 +247,14 @@ Included Imgur patches:
 
 | Patch | Description | Options |
 |---|---|---|
-| [Disable Sync for Lemmy bottom sheet](#disable-sync-for-lemmy-bottom-sheet) | Disables the bottom sheet at the startup that asks you to signup to "Sync for Lemmy". |  |
-| [Fix /s/ links](#fix-s-links) |  |  |
+| [Disable Sync for Lemmy bottom sheet](#disable-sync-for-lemmy-bottom-sheet) | Hides the startup prompt that asks you to sign up for Sync for Lemmy. |  |
+| [Fix /s/ links](#fix-s-links) | Opens Reddit share links (/s/) by resolving them to the post they point to. |  |
 | [Fix post thumbnails](#fix-post-thumbnails) | Fixes loading post thumbnails by correcting their URLs. |  |
-| [Fix Redgifs API](#fix-redgifs-api) |  |  |
-| [Fix video downloads](#fix-video-downloads) | Fixes a bug in Sync's MPD parser resulting in only the audio-track being saved. |  |
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Fix Redgifs API](#fix-redgifs-api) | Fetches a fresh Redgifs API token so Redgifs videos load. |  |
+| [Fix video downloads](#fix-video-downloads) | Fixes video downloads that saved only the audio track. |  |
+| [Modify login WebView](#modify-login-webview) | Adjusts the Reddit login page to prevent sign-in problems. |  |
 | [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-| [Use /user/ endpoint](#use-user-endpoint) | Replaces the deprecated endpoint for viewing user profiles /u with /user, that used to fix a bug. |  |
+| [Use /user/ endpoint](#use-user-endpoint) | Opens user profiles through /user/ instead of the deprecated /u/ endpoint. |  |
 
 </details>
 
@@ -270,14 +270,14 @@ Included Imgur patches:
 
 | Patch | Description | Options |
 |---|---|---|
-| [Disable Sync for Lemmy bottom sheet](#disable-sync-for-lemmy-bottom-sheet) | Disables the bottom sheet at the startup that asks you to signup to "Sync for Lemmy". |  |
-| [Fix /s/ links](#fix-s-links) |  |  |
+| [Disable Sync for Lemmy bottom sheet](#disable-sync-for-lemmy-bottom-sheet) | Hides the startup prompt that asks you to sign up for Sync for Lemmy. |  |
+| [Fix /s/ links](#fix-s-links) | Opens Reddit share links (/s/) by resolving them to the post they point to. |  |
 | [Fix post thumbnails](#fix-post-thumbnails) | Fixes loading post thumbnails by correcting their URLs. |  |
-| [Fix Redgifs API](#fix-redgifs-api) |  |  |
-| [Fix video downloads](#fix-video-downloads) | Fixes a bug in Sync's MPD parser resulting in only the audio-track being saved. |  |
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Fix Redgifs API](#fix-redgifs-api) | Fetches a fresh Redgifs API token so Redgifs videos load. |  |
+| [Fix video downloads](#fix-video-downloads) | Fixes video downloads that saved only the audio track. |  |
+| [Modify login WebView](#modify-login-webview) | Adjusts the Reddit login page to prevent sign-in problems. |  |
 | [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-| [Use /user/ endpoint](#use-user-endpoint) | Replaces the deprecated endpoint for viewing user profiles /u with /user, that used to fix a bug. |  |
+| [Use /user/ endpoint](#use-user-endpoint) | Opens user profiles through /user/ instead of the deprecated /u/ endpoint. |  |
 
 </details>
 
@@ -293,8 +293,8 @@ Included Imgur patches:
 
 | Patch | Description | Options |
 |---|---|---|
-| [Disable ads](#disable-ads) |  |  |
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Disable ads](#disable-ads) | Removes ads by treating the user as ad-free. |  |
+| [Modify login WebView](#modify-login-webview) | Adjusts the Reddit login page to prevent sign-in problems. |  |
 | [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
 
 </details>
@@ -311,7 +311,7 @@ Included Imgur patches:
 
 | Patch | Description | Options |
 |---|---|---|
-| [Disable ads](#disable-ads) |  |  |
+| [Disable ads](#disable-ads) | Removes ads. |  |
 
 </details>
 
@@ -328,9 +328,9 @@ Included Imgur patches:
 | Patch | Description | Options |
 |---|---|---|
 | [Fake reddit premium](#fake-reddit-premium) | Allows using pro features without ads. |  |
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Modify login WebView](#modify-login-webview) | Adjusts the Reddit login page to prevent sign-in problems. |  |
 | [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-| [Use public imgur API](#use-public-imgur-api) | Fix imgur albums not loading. |  |
+| [Use public imgur API](#use-public-imgur-api) | Fixes Imgur albums not loading. |  |
 
 </details>
 
@@ -346,8 +346,8 @@ Included Imgur patches:
 
 | Patch | Description | Options |
 |---|---|---|
-| [Fix /s/ links](#fix-s-links) |  |  |
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Fix /s/ links](#fix-s-links) | Opens Reddit share links (/s/) by resolving them to the post they point to. |  |
+| [Modify login WebView](#modify-login-webview) | Adjusts the Reddit login page to prevent sign-in problems. |  |
 | [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
 
 </details>
@@ -364,8 +364,8 @@ Included Imgur patches:
 
 | Patch | Description | Options |
 |---|---|---|
-| [Fix /s/ links](#fix-s-links) |  |  |
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Fix /s/ links](#fix-s-links) | Opens Reddit share links (/s/) by resolving them to the post they point to. |  |
+| [Modify login WebView](#modify-login-webview) | Adjusts the Reddit login page to prevent sign-in problems. |  |
 | [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
 
 </details>
@@ -382,8 +382,8 @@ Included Imgur patches:
 
 | Patch | Description | Options |
 |---|---|---|
-| [Fix Redgifs API](#fix-redgifs-api) |  |  |
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Fix Redgifs API](#fix-redgifs-api) | Fetches a fresh Redgifs API token so Redgifs videos load. |  |
+| [Modify login WebView](#modify-login-webview) | Adjusts the Reddit login page to prevent sign-in problems. |  |
 | [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
 
 </details>
@@ -400,8 +400,8 @@ Included Imgur patches:
 
 | Patch | Description | Options |
 |---|---|---|
-| [Fix Redgifs API](#fix-redgifs-api) |  |  |
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Fix Redgifs API](#fix-redgifs-api) | Fetches a fresh Redgifs API token so Redgifs videos load. |  |
+| [Modify login WebView](#modify-login-webview) | Adjusts the Reddit login page to prevent sign-in problems. |  |
 | [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
 
 </details>
@@ -418,7 +418,7 @@ Included Imgur patches:
 
 | Patch | Description | Options |
 |---|---|---|
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Modify login WebView](#modify-login-webview) | Adjusts the Reddit login page to prevent sign-in problems. |  |
 | [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
 
 </details>
@@ -435,7 +435,7 @@ Included Imgur patches:
 
 | Patch | Description | Options |
 |---|---|---|
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Modify login WebView](#modify-login-webview) | Adjusts the Reddit login page to prevent sign-in problems. |  |
 | [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
 
 </details>
@@ -452,7 +452,7 @@ Included Imgur patches:
 
 | Patch | Description | Options |
 |---|---|---|
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Modify login WebView](#modify-login-webview) | Adjusts the Reddit login page to prevent sign-in problems. |  |
 | [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
 
 </details>
@@ -469,7 +469,7 @@ Included Imgur patches:
 
 | Patch | Description | Options |
 |---|---|---|
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Modify login WebView](#modify-login-webview) | Adjusts the Reddit login page to prevent sign-in problems. |  |
 | [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
 
 </details>
@@ -486,9 +486,9 @@ Included Imgur patches:
 
 | Patch | Description | Options |
 |---|---|---|
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
+| [Modify login WebView](#modify-login-webview) | Adjusts the Reddit login page to prevent sign-in problems. |  |
 | [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent |
-| [Use public imgur API](#use-public-imgur-api) | Fix imgur albums not loading. |  |
+| [Use public imgur API](#use-public-imgur-api) | Fixes Imgur albums not loading. |  |
 
 </details>
 
@@ -564,16 +564,16 @@ Compatibility with other app versions is not guaranteed.
 
 ## Verification
 
-Release `1.4.121` is prepared and locally verified with:
+Release `1.4.122` is prepared and locally verified with:
 
-- Release tag `morphe-patches-121`.
+- Release tag `morphe-patches-122`.
 - Local built MPP SHA256 matching README.
-`46b59c618d03f319ee0f0b1ed2af6f64d92552dbf1e56fbdc296a9b27b050c8a`
-- `patches-bundle.json` returning version `1.4.121`.
-- `patches-bundle.json` pointing to the `morphe-patches-121` asset.
+`f1a4844361c877a834511b67770833157de5c1678a2161050429cf97828d799f`
+- `patches-bundle.json` returning version `1.4.122`.
+- `patches-bundle.json` pointing to the `morphe-patches-122` asset.
 - Expected release asset:
-`patches-1.4.121.mpp`
-- `46b59c618d03f319ee0f0b1ed2af6f64d92552dbf1e56fbdc296a9b27b050c8a  patches-1.4.121.mpp`
+`patches-1.4.122.mpp`
+- `f1a4844361c877a834511b67770833157de5c1678a2161050429cf97828d799f  patches-1.4.122.mpp`
 
 ## Development notes
 

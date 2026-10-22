@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.122](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-121...morphe-patches-122) (2026-10-22)
+
+* **Boost for Reddit:** Requires Morphe Manager 2.0. Patches are now grouped into categories and every patch says what it does for you. The Open by default prompt patch is removed, because Manager 2.0 now finds and repairs unverified links itself.
+
 ## [1.4.121](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-120...morphe-patches-121) (2026-10-18)
 
 * **Boost for Reddit:** Show an "End of feed" row with a Refresh button when a feed has no more posts, instead of silently stopping. Reddit ends some feeds, like Home sorted by Best and Popular, after a few hundred posts.
