@@ -12,6 +12,7 @@ import app.morphe.patcher.patch.BytecodePatchBuilder
 import app.morphe.patcher.patch.Patch
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.returnEarly
+import app.morphe.patches.all.misc.PatchCategory
 
 fun fixRedgifsApiPatch(
     extensionPatch: Patch<*>,
@@ -21,6 +22,7 @@ fun fixRedgifsApiPatch(
     description = "Fetches a fresh Redgifs API token so Redgifs videos load.",
     default = true
 ) {
+    category(PatchCategory.MEDIA)
     dependsOn(
         extensionPatch,
         bytecodePatch {

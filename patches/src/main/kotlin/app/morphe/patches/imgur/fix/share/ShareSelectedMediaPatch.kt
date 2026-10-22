@@ -7,6 +7,7 @@ import app.morphe.patcher.patch.stringOption
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val LINK_MODE_RAW_MEDIA = "raw_media"
 private const val LINK_MODE_ITEM_PERMALINK = "item_permalink"
@@ -18,6 +19,7 @@ val shareSelectedMediaPatch = bytecodePatch(
         "Can share either the raw media/download URL or the Imgur item permalink.",
     default = true
 ) {
+    category(PatchCategory.MEDIA)
     compatibleWith(*ImgurCompatible)
 
     val linkModeOption = stringOption(

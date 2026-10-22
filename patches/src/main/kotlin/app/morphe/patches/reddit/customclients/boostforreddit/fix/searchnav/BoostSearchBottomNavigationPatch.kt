@@ -8,6 +8,7 @@ import app.morphe.patches.reddit.customclients.boostforreddit.misc.extension.sha
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.w3c.dom.Element
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val MATERIAL_BOTTOM_NAVIGATION =
     "com.google.android.material.bottomnavigation.BottomNavigationView"
@@ -92,6 +93,7 @@ val boostSearchBottomNavigationPatch = bytecodePatch(
     description = "Shows Boost's native Home, Search, Subscriptions, Inbox and Profile menu in Search and Go To.",
     default = true,
 ) {
+    category(PatchCategory.NAVIGATION)
     compatibleWith(*BoostCompatible)
     dependsOn(addSearchBottomNavigationHostPatch, sharedExtensionPatch)
 

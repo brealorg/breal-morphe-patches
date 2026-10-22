@@ -18,6 +18,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val FAB_NESTED_SCROLL_FALLBACK_MARKER =
     "MORPHE_BOOST_FAB_NESTED_SCROLL_FALLBACK_ISSUE97_V1"
@@ -54,9 +55,10 @@ private data class ScrollAwareTarget(
 val fixFabNestedScrollFallbackPatch = bytecodePatch(
     name = "Fix Boost FAB nested scroll",
     description =
-        "Synchronizes Boost FAB hide/show with collapsing-header and nested-scroll motion.",
+        "Hides and shows the floating action button in step with scrolling, also on pages with a collapsing header.",
     default = true,
 ) {
+    category(PatchCategory.NAVIGATION)
     compatibleWith(*BoostCompatible)
 
     execute {

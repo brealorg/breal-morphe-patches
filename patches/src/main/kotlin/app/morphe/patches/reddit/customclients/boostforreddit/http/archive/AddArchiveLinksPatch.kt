@@ -14,6 +14,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 import app.morphe.patches.reddit.customclients.boostforreddit.misc.extension.sharedExtensionPatch
+import app.morphe.patches.all.misc.PatchCategory
 
 
 internal val SETTINGS_UTILS_EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/boostforreddit/utils/SettingsUtils;"
@@ -25,6 +26,7 @@ val addArchiveLinks = bytecodePatch(
     description = "Adds 'Open with Wayback Machine' and 'Open with Archive.is' to the link context menu.",
     default = true
 ) {
+    category(PatchCategory.LINKS)
     dependsOn(sharedExtensionPatch)
     compatibleWith(*BoostCompatible)
     execute {

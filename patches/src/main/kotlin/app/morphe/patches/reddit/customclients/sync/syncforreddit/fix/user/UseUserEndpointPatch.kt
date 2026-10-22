@@ -8,13 +8,15 @@ import app.morphe.patches.reddit.customclients.sync.SyncForRedditCompatible
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import app.morphe.patches.all.misc.PatchCategory
 
 @Suppress("unused")
 val useUserEndpointPatch = bytecodePatch(
     name = "Use /user/ endpoint",
-    description = "Replaces the deprecated endpoint for viewing user profiles /u with /user, that used to fix a bug.",
+    description = "Opens user profiles through /user/ instead of the deprecated /u/ endpoint.",
     default = true,
 ) {
+    category(PatchCategory.LOGIN)
     compatibleWith(*SyncForRedditCompatible)
 
     execute {

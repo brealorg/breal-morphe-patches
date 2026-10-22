@@ -3,13 +3,15 @@ package app.morphe.patches.reddit.customclients.boostforreddit.fix.gifsearch
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
+import app.morphe.patches.all.misc.PatchCategory
 
 @Suppress("unused")
 val restoreGifUrlInsertionPatch = bytecodePatch(
     name = "Restore GIF URL insertion",
-    description = "Adds provider-independent manual GIF URL insertion to Boost's existing image menu.",
+    description = "Adds an option to the image menu to insert a GIF from its URL.",
     default = false
 ) {
+    category(PatchCategory.COMMENTS)
     compatibleWith(*BoostCompatible)
 
     execute {

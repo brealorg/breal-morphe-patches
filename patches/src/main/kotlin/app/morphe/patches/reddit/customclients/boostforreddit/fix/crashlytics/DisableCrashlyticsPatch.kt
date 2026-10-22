@@ -15,6 +15,7 @@ import app.morphe.util.indexOfFirstInstructionOrThrow
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.w3c.dom.Element
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val CRASHLYTICS_REGISTRAR_META_DATA =
     "com.google.firebase.components:com.google.firebase.crashlytics.CrashlyticsRegistrar"
@@ -51,9 +52,10 @@ private val removeBoostCrashlyticsRegistrarPatch = resourcePatch(
 @Suppress("unused")
 val disableBoostCrashlyticsPatch = bytecodePatch(
     name = "Disable Boost Crashlytics startup network calls",
-    description = "Disables Boost's Crashlytics startup initialization while keeping Firebase Analytics and other Firebase components.",
+    description = "Stops Boost's crash reporting (Crashlytics) from connecting at startup. Other Firebase services keep working.",
     default = true
 ) {
+    category(PatchCategory.ADS)
     dependsOn(removeBoostCrashlyticsRegistrarPatch)
     compatibleWith(*BoostCompatible)
 

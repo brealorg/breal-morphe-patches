@@ -14,15 +14,17 @@ import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.Patch
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.registersUsed
+import app.morphe.patches.all.misc.PatchCategory
 
 fun modifyWebViewPatch(
     extensionPatch: Array<Patch<*>>,
     compatible: Array<Compatibility>
 ) = bytecodePatch(
     name = "Modify login WebView",
-    description = "Modify the WebView used for logging into reddit to prevent login issues",
+    description = "Adjusts the Reddit login page to prevent sign-in problems.",
     default = true
 ) {
+    category(PatchCategory.LOGIN)
     compatibleWith(*compatible)
 
     dependsOn(

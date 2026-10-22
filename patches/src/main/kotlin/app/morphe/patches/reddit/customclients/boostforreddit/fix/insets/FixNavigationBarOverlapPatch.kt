@@ -14,6 +14,7 @@ import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val EXTENSION_CLASS_DESCRIPTOR =
     "Lapp/morphe/extension/boostforreddit/utils/BoostSystemBarInsetsFix;"
@@ -21,9 +22,10 @@ private const val EXTENSION_CLASS_DESCRIPTOR =
 @Suppress("unused")
 val fixNavigationBarOverlapPatch = bytecodePatch(
     name = "Fix Boost navigation bar overlap",
-    description = "Adds runtime system bar inset handling for Boost bottom controls and drawer content on Android 15+ target SDK builds.",
+    description = "Keeps Boost's bottom controls and drawer clear of the system navigation bar on Android 15 and newer.",
     default = true
 ) {
+    category(PatchCategory.NAVIGATION)
     dependsOn(sharedExtensionPatch)
     compatibleWith(*BoostCompatible)
 

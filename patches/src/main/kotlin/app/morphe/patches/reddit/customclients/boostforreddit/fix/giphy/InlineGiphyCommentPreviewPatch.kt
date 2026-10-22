@@ -15,6 +15,7 @@ import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val COMMENT_VIEW_HOLDER_DESCRIPTOR =
     "Lcom/rubenmayayo/reddit/ui/adapters/CommentViewHolder;"
@@ -34,6 +35,7 @@ val inlineGiphyCommentPreviewPatch = bytecodePatch(
     description = "Adds inline media previews below Boost comment text for Giphy links and direct static image URLs.",
     default = true
 ) {
+    category(PatchCategory.COMMENTS)
     dependsOn(sharedExtensionPatch)
     compatibleWith(*BoostCompatible)
 

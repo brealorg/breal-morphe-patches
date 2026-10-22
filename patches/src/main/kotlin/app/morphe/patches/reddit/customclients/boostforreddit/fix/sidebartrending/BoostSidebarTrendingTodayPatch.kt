@@ -7,13 +7,15 @@ import app.morphe.patches.reddit.customclients.boostforreddit.misc.extension.sha
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import com.android.tools.smali.dexlib2.Opcode
+import app.morphe.patches.all.misc.PatchCategory
 
 @Suppress("unused")
 val boostSidebarTrendingTodayPatch = bytecodePatch(
     name = "Restore Boost sidebar Trending today",
-    description = "Uses native trending data when renderable, otherwise supplies HOT post rows and fixes the global community-limit control.",
+    description = "Restores the sidebar's Trending today section, falling back to hot posts, and fixes its community limit setting.",
     default = true,
 ) {
+    category(PatchCategory.FEED)
     dependsOn(sharedExtensionPatch)
     compatibleWith(*BoostCompatible)
 

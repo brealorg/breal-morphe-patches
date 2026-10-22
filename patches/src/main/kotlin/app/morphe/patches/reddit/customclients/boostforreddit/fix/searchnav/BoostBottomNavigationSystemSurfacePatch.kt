@@ -5,6 +5,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 import app.morphe.patches.reddit.customclients.boostforreddit.misc.extension.sharedExtensionPatch
 import com.android.tools.smali.dexlib2.Opcode
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val SYSTEM_SURFACE_EXTENSION_DESCRIPTOR =
     "Lapp/morphe/extension/boostforreddit/utils/BoostSearchBottomNavigation;"
@@ -14,9 +15,10 @@ private const val CONTENT_CLEARANCE_EXTENSION_DESCRIPTOR =
 @Suppress("unused")
 val boostBottomNavigationSystemSurfacePatch = bytecodePatch(
     name = "Standardize Boost bottom navigation",
-    description = "Applies one destination, listener, selection, tint, and system-surface contract to Boost's Material bottom navigation.",
+    description = "Makes the bottom navigation look and behave the same on every screen.",
     default = true,
 ) {
+    category(PatchCategory.NAVIGATION)
     compatibleWith(*BoostCompatible)
     dependsOn(sharedExtensionPatch)
 

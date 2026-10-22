@@ -34,6 +34,7 @@ import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21t
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.patches.all.misc.PatchCategory
 
 
 internal const val OKHTTP_EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/boostforreddit/http/OkHttpRequestHook;"
@@ -47,6 +48,7 @@ val undeleteRedditPatch = bytecodePatch(
     description = "Restores deleted and removed posts and comments from Arctic Shift, and their media from the Wayback Machine.",
     default = false
 ) {
+    category(PatchCategory.UNDELETE)
     dependsOn(sharedExtensionPatch, interceptHttpRequests, undeleteAppliedMarkerPatch(REDDIT_UNDELETE_APPLIED_RESOURCE))
     compatibleWith(*BoostCompatible)
 

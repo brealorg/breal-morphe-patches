@@ -17,6 +17,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.w3c.dom.Element
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val MEDIA_LINKS_DESCRIPTOR =
     "Lapp/morphe/extension/boostforreddit/utils/RedditMediaLinks;"
@@ -86,6 +87,7 @@ val openRedditMediaLinksPatch = bytecodePatch(
     description = "Opens i.redd.it image links in Boost's image viewer instead of a web page.",
     default = true,
 ) {
+    category(PatchCategory.LINKS)
     dependsOn(sharedExtensionPatch, openRedditMediaLinksManifestPatch)
     compatibleWith(*BoostCompatible)
 

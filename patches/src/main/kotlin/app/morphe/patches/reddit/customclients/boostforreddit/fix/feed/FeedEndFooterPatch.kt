@@ -11,6 +11,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
 import app.morphe.patches.reddit.customclients.boostforreddit.misc.extension.sharedExtensionPatch
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val FEED_END_EXTENSION_DESCRIPTOR =
     "Lapp/morphe/extension/boostforreddit/utils/BoostFeedEndFooter;"
@@ -54,6 +55,7 @@ val feedEndFooterPatch = bytecodePatch(
             "hundred posts.",
     default = true,
 ) {
+    category(PatchCategory.FEED)
     dependsOn(sharedExtensionPatch)
     compatibleWith(*BoostCompatible)
 

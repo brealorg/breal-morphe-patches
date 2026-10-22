@@ -48,7 +48,7 @@ class GalleryAnimatedPreviewSourceContractTests(unittest.TestCase):
     def test_patch_description_covers_gif_and_video(self):
         patch = PATCH.read_text(encoding="utf-8")
 
-        self.assertIn("gallery GIF and video media", patch)
+        self.assertIn("GIFs and videos in Reddit gallery previews", patch)
 
 
 if __name__ == "__main__":

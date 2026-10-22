@@ -9,6 +9,7 @@ package app.morphe.patches.reddit.customclients.boostforreddit.fix.youtube
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.reddit.customclients.boostforreddit.BoostCompatible
+import app.morphe.patches.all.misc.PatchCategory
 
 @Suppress("unused")
 val fixYouTubeExternalFallbackPatch = bytecodePatch(
@@ -17,6 +18,7 @@ val fixYouTubeExternalFallbackPatch = bytecodePatch(
         "Opens the original YouTube link externally when Boost's legacy embedded YouTube player is unavailable.",
     default = true,
 ) {
+    category(PatchCategory.MEDIA)
     compatibleWith(*BoostCompatible)
 
     execute {

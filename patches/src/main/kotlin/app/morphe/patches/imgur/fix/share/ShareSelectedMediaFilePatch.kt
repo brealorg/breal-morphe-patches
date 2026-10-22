@@ -8,6 +8,7 @@ import app.morphe.patches.imgur.misc.extension.sharedExtensionPatch
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import app.morphe.patches.all.misc.PatchCategory
 
 private const val EXTENSION_CLASS_DESCRIPTOR =
     "Lapp/morphe/extension/imgur/ShareMediaFile;"
@@ -21,6 +22,7 @@ val shareSelectedMediaFilePatch = bytecodePatch(
         "and is not saved permanently to /sdcard/Download/Imgur.",
     default = true
 ) {
+    category(PatchCategory.MEDIA)
     compatibleWith(*ImgurCompatible)
 
     dependsOn(sharedExtensionPatch)
