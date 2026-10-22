@@ -15,6 +15,7 @@ import app.morphe.util.returnEarly
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
+    description = "Removes ads by treating the user as ad-free.",
     default = true
 ) {
     dependsOn(disablePiracyDetectionPatch)

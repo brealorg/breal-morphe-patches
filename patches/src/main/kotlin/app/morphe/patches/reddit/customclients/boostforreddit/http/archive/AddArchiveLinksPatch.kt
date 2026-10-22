@@ -21,7 +21,8 @@ internal val SETTINGS_UTILS_EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/
 
 @Suppress("unused")
 val addArchiveLinks = bytecodePatch(
-    name="Add archive links to context menu",
+    name = "Add archive links to context menu",
+    description = "Adds 'Open with Wayback Machine' and 'Open with Archive.is' to the link context menu.",
     default = true
 ) {
     dependsOn(sharedExtensionPatch)

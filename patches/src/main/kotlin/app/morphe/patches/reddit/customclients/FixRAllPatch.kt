@@ -19,6 +19,7 @@ fun fixRAllPatch(
     compatible: Array<Compatibility>
 ) = bytecodePatch(
     name = "Fix /r/all",
+    description = "Loads /r/all through Reddit's .json endpoint so the feed shows posts.",
     default = true
 ) {
     compatibleWith(*compatible)
