@@ -14,7 +14,10 @@ Options:
   --jar PATH                  Morphe CLI jar.
   --name NAME                 Candidate name. Default: boost-candidate.
   --expected-target-sdk SDK   Expected targetSdk for static gate. Default: 35.
-  --no-verify-with-sdk        Do not pass --verify-with-sdk to Morphe CLI.
+  --verify-with-sdk           Pass --verify-with-sdk to Morphe CLI. Off by default:
+                              Morphe CLI 1.19 fails on Boost's own unresolved refs
+                              (Picasso OkHttp2, slf4j, okhttp3 GraalVM).
+  --no-verify-with-sdk        Do not pass --verify-with-sdk to Morphe CLI. Default.
   --help                      Show this help.
 
 Output:
@@ -23,7 +26,7 @@ USAGE
 }
 
 DEFAULT_BASE='/home/b-real/com.rubenmayayo.reddit_1.12.12-210011212_minAPI21(arm64-v8a,armeabi,armeabi-v7a,mips,mips64,x86,x86_64)(nodpi)_apkmirror.com.apk'
-DEFAULT_JAR='/home/b-real/.local/share/morphe/tools/morphe-desktop-1.11.0-all.jar'
+DEFAULT_JAR='/home/b-real/.local/share/morphe/tools/morphe-desktop-1.19.0-all.jar'
 
 VERSION="$(grep -E '^version\s*=' gradle.properties 2>/dev/null | sed -E 's/^version\s*=\s*//')"
 DEFAULT_MPP="patches/build/libs/patches-${VERSION}.mpp"
@@ -33,7 +36,7 @@ MPP="$DEFAULT_MPP"
 JAR="$DEFAULT_JAR"
 NAME="boost-candidate"
 EXPECTED_TARGET_SDK="35"
-VERIFY_WITH_SDK=1
+VERIFY_WITH_SDK=0
 EXTRA_ARGS=()
 
 need_value() {
@@ -70,6 +73,10 @@ while [ "$#" -gt 0 ]; do
       need_value "$1" "${2:-}"
       EXPECTED_TARGET_SDK="$2"
       shift 2
+      ;;
+    --verify-with-sdk)
+      VERIFY_WITH_SDK=1
+      shift
       ;;
     --no-verify-with-sdk)
       VERIFY_WITH_SDK=0
@@ -187,7 +194,7 @@ if [ "$VERIFY_WITH_SDK" -eq 1 ]; then
     warn "Android SDK dir not found; Morphe --verify-with-sdk disabled: $SDK"
   fi
 else
-  warn "Morphe --verify-with-sdk disabled by flag"
+  echo "INFO: Morphe --verify-with-sdk off (pass --verify-with-sdk to enable)"
 fi
 
 if [ "$FAIL" -ne 0 ]; then
