@@ -44,6 +44,7 @@ internal const val EXTRA_EMOJI_GETTER = "getExtraEmoji"
 @Suppress("unused")
 val undeleteRedditPatch = bytecodePatch(
     name = "Automatically undelete Reddit content",
+    description = "Restores deleted and removed posts and comments from Arctic Shift, and their media from the Wayback Machine.",
     default = false
 ) {
     dependsOn(sharedExtensionPatch, interceptHttpRequests, undeleteAppliedMarkerPatch(REDDIT_UNDELETE_APPLIED_RESOURCE))

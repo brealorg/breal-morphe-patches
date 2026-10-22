@@ -18,6 +18,7 @@ fun fixRedgifsApiPatch(
     block: BytecodePatchBuilder.() -> Unit = {},
 ) = bytecodePatch(
     name = "Fix Redgifs API",
+    description = "Fetches a fresh Redgifs API token so Redgifs videos load.",
     default = true
 ) {
     dependsOn(

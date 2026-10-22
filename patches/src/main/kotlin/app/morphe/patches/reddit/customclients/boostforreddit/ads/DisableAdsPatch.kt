@@ -58,6 +58,7 @@ private val removeBoostAdInitProvidersPatch = resourcePatch(
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
+    description = "Removes ads from feeds and comments and keeps the ad SDKs from starting.",
     default = true
 ) {
     dependsOn(removeBoostAdInitProvidersPatch)
