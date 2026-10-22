@@ -1,0 +1,3 @@
+# Patch names that may disappear from patches-list.json, one per line.
+# tools/check-patches-list-feed.sh fails on any other removed patch.
+Restore GIF search integration probe

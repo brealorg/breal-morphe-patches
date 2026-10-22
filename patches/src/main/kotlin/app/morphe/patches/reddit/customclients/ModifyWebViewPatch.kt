@@ -41,7 +41,6 @@ fun modifyWebViewPatch(
                 !classDef.type.startsWith("Lapp/morphe/")
             }
         ).matchAll().forEach { match ->
-            println("${match.classDef}->${match.method.name}")
             val index = match.instructionMatches[0].index
             val instruction = match.instructionMatches[0].instruction
             val webviewReg = instruction.registersUsed[0]
