@@ -11,6 +11,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation
 import app.morphe.patcher.OpcodeFilter
 import app.morphe.patcher.OpcodesFilter
+import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import com.android.tools.smali.dexlib2.Opcode
@@ -76,6 +77,18 @@ internal val infinityStartSubscriptionActivityFingerprint = Fingerprint(
             name = "<init>",
             opcode = Opcode.INVOKE_DIRECT
         ),
+        literal(0x10008000)
+    )
+)
+
+// Infinity+ 8.3.0+ launches SubscriptionActivityNew through an obfuscated helper whose class and
+// signature change between builds, so anchor on the SubscriptionActivityNew field read before the flags.
+internal val infinityStartSubscriptionActivityNewFingerprint = Fingerprint(
+    definingClass = "Lml/docilealligator/infinityforreddit/Infinity;",
+    returnType = "V",
+    parameters = emptyList(),
+    filters = listOf(
+        fieldAccess(definingClass = "Lml/docilealligator/infinityforreddit/activities/SubscriptionActivityNew;"),
         literal(0x10008000)
     )
 )
