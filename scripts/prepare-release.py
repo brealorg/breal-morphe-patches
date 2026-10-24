@@ -285,6 +285,7 @@ def run_manager_changelog_update(
     version: str,
     tag: str,
     changelog_lines: list[str],
+    scope: str,
 ) -> None:
     if not changelog_lines:
         return
@@ -305,7 +306,7 @@ def run_manager_changelog_update(
         "--previous-tag",
         previous_release_tag_for(version),
         "--scope",
-        "Boost for Reddit",
+        scope,
     ]
 
     for line in changelog_lines:
@@ -341,6 +342,11 @@ def main() -> int:
     parser.add_argument("--changelog", action="append", default=[], help="Manager-facing release description text. Can be repeated.")
     parser.add_argument("--marker", action="append", default=[], help="Marker to require in extensions/boostforreddit.mpe. Can be repeated.")
     parser.add_argument("--stale", action="append", default=[], help="Old value that must not remain in release metadata. Can be repeated.")
+    parser.add_argument(
+        "--scope",
+        default="Boost for Reddit",
+        help="Manager changelog scope. Must match the affected app's Compatibility name exactly.",
+    )
     parser.add_argument("--allow-empty-changelog", action="store_true", help="Allow release without adding a changelog line.")
     parser.add_argument("--skip-build", action="store_true", help="Do not run Gradle; use existing patches/build/libs artifact.")
     parser.add_argument("--skip-gate", action="store_true", help="Do not run scripts/release-gate.py after preparing.")
@@ -380,6 +386,7 @@ def main() -> int:
     print("asset:", mpp_name_for(version))
     print("stale checks:", ", ".join(stale_values) if stale_values else "(none)")
     print("markers:", ", ".join(args.marker) if args.marker else "(none)")
+    print("changelog scope:", args.scope)
     print("changelog:")
     for line in changelog_lines:
         print(f" - {line}")
@@ -387,13 +394,14 @@ def main() -> int:
     if args.dry_run:
         print()
         print("DRY RUN: no files changed, no build run.")
+        run_manager_update_changelog_guard("Boost for Reddit")
         return 0
 
     gradle_text = replace_gradle_version(read(gradle_path), version)
     write(gradle_path, gradle_text)
 
     update_bundle_json(bundle_path, version, tag, changelog_lines)
-    run_manager_changelog_update(Path.cwd(), version, tag, changelog_lines)
+    run_manager_changelog_update(Path.cwd(), version, tag, changelog_lines, args.scope)
     run(["./tools/check-patches-list-feed.sh", "--write", version])
     run([
         sys.executable,
@@ -419,11 +427,12 @@ def main() -> int:
         run_release_gate(version, tag, changelog_lines, args.marker, stale_values)
 
     print_summary(version, tag, mpp, sha)
+    run_manager_update_changelog_guard(args.scope)
     return 0
 
 
 
-def run_manager_update_changelog_guard() -> None:
+def run_manager_update_changelog_guard(scope: str) -> None:
     """Fail release prep if CHANGELOG.md cannot drive Morphe Manager update badges."""
     import subprocess
     import sys
@@ -432,12 +441,9 @@ def run_manager_update_changelog_guard() -> None:
     repo_root = Path(__file__).resolve().parent.parent
     guard = repo_root / "tools" / "check-manager-update-changelog.py"
     subprocess.run(
-        [sys.executable, str(guard), "--repo-root", str(repo_root)],
+        [sys.executable, str(guard), "--repo-root", str(repo_root), "--scope", scope],
         check=True,
     )
 
 if __name__ == "__main__":
-    rc = main()
-    if rc is None or rc == 0:
-        run_manager_update_changelog_guard()
-    raise SystemExit(rc)
+    raise SystemExit(main())

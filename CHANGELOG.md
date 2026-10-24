@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- MORPHE_MANAGER_CHANGELOG_START -->
+## [1.4.123](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-122...morphe-patches-123) (2026-10-24)
+
+* **Infinity for Reddit+:** Spoof client works again on Infinity+ 8.3.0 and newer, which failed to patch because Infinity moved its subscription prompt.
+
 ## [1.4.122](https://github.com/brealorg/breal-morphe-patches/compare/morphe-patches-121...morphe-patches-122) (2026-10-22)
 
 * **Boost for Reddit:** Requires Morphe Manager 2.0. Patches are now grouped into categories and every patch says what it does for you. The Open by default prompt patch is removed, because Manager 2.0 now finds and repairs unverified links itself.
