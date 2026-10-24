@@ -1,5 +1,7 @@
 # Breal Morphe Patches
 
+> **Boost for Reddit is officially back.** Ruben Mayayo now publishes signed Boost releases on [GitHub](https://github.com/rubenmayayo/boost-for-reddit/releases). The Boost patches in this bundle are frozen at `1.12.12` and will not be ported to 1.14 or later. See [Boost for Reddit](#boost-for-reddit) for how to switch.
+
 ## Add to Morphe
 
 Since 1.4.122 this bundle requires **Morphe Manager 2.0** or newer. Manager 1.x cannot load it.
@@ -106,9 +108,30 @@ The current bundle is focused on practical hotfixes for tested app versions, esp
 
 ### Boost for Reddit
 
+**Status: frozen at `1.12.12`.**
+
+Ruben Mayayo has brought Boost back, with official, signed releases on [GitHub](https://github.com/rubenmayayo/boost-for-reddit/releases). Boost is his app and it is not open source, so this project will not build a patched variant of his new versions.
+
+- The Boost patches are frozen at `1.12.12`. They will not be ported to 1.14 or later.
+- Instead, the work goes into helping Boost itself: reporting bugs to Ruben, and fixes where they're welcome. Many of the problems these patches fixed are already solved in 1.14.0.
+- The bundle stays available for `1.12.12` for now, but there will be no new Boost features or fixes here.
+
+Report bugs in the official version on [Ruben's issue tracker](https://github.com/rubenmayayo/boost-for-reddit/issues), not in this repository. If you like the app, consider [supporting Ruben](https://ko-fi.com/mayayo).
+
+#### Switching to the official version
+
+Patched Boost is signed with a different key than Ruben's APK, so his version cannot be installed over it. You have to uninstall first, which deletes local data.
+
+1. In patched Boost, export your settings: Settings → Backup settings → Export. The backup includes settings, filters, user tags, themes, and views and sort per subscription. It does *not* include accounts, drafts, read posts, or visited-communities history.
+2. Uninstall patched Boost.
+3. Install the latest APK from [Ruben's releases](https://github.com/rubenmayayo/boost-for-reddit/releases/latest) and verify the signing certificate as described in his README.
+4. Set up your own Reddit client ID ([guide](https://github.com/rubenmayayo/boost-for-reddit/blob/main/REDDIT_API_SETUP.md)), log in, and import the backup.
+
+#### What the 1.12.12 patches cover
+
 Tested against Boost for Reddit `1.12.12` / versionCode `210011212`.
 
-Current Boost coverage includes keyboard GIF insertion through Android receive-content / Gboard, restored manual GIF URL insertion, code block rendering fixes, comments toolbar cleanup, media tap-action settings, Android 15+ / target SDK 35 compatibility, navigation bar inset fixes, download notification/audio fixes, direct `i.redd.it` GIF handling, Giphy preview/loading fixes, archive/undelete behavior, gallery metadata recovery, Hide crash prevention, and subreddit listing fallback handling.
+Boost coverage includes keyboard GIF insertion through Android receive-content / Gboard, restored manual GIF URL insertion, code block rendering fixes, comments toolbar cleanup, media tap-action settings, Android 15+ / target SDK 35 compatibility, navigation bar inset fixes, download notification/audio fixes, direct `i.redd.it` GIF handling, Giphy preview/loading fixes, archive/undelete behavior, gallery metadata recovery, Hide crash prevention, and subreddit listing fallback handling.
 
 
 ### NSFW and mature-content scope
@@ -152,6 +175,8 @@ Included Imgur patches:
 <summary><strong>Boost for Reddit</strong> • 48 patches</summary>
 
 
+
+> **Frozen at 1.12.12.** Boost is officially back with signed releases from Ruben Mayayo. These patches will not be ported to 1.14 or later. See [Boost for Reddit](#boost-for-reddit) for how to switch.
 
 **Supported versions:**
 
