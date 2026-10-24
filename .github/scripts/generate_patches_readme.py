@@ -19,6 +19,15 @@ from pathlib import Path
 
 AUTO_EXPAND_THRESHOLD = 20
 
+# Status notes shown at the top of a package's patch list.
+PACKAGE_NOTICES = {
+    "com.rubenmayayo.reddit": (
+        "**Frozen at 1.12.12.** Boost is officially back with signed releases from Ruben Mayayo. "
+        "These patches will not be ported to 1.14 or later. "
+        "See [Boost for Reddit](#boost-for-reddit) for how to switch."
+    ),
+}
+
 TOOLS_DIR = Path(__file__).resolve().parents[2] / "tools"
 sys.path.insert(0, str(TOOLS_DIR))
 
@@ -166,17 +175,18 @@ def versions_table(targets) -> str:
         rows.append("| " + " | ".join(descriptions) + " |")
     return "\n".join(rows)
 
-def details_block(label: str, patch_items, targets, expanded: bool) -> str:
+def details_block(label: str, patch_items, targets, expanded: bool, notice: str = "") -> str:
     count = len(patch_items)
     noun = "patch" if count == 1 else "patches"
     open_attr = " open" if expanded else ""
     versions = versions_table(targets)
     versions_section = f"\n\n**Supported versions:**\n\n{versions}" if versions else ""
+    notice_section = f"\n\n> {notice}" if notice else ""
 
     return (
         f"<details{open_attr}>\n"
         f"<summary><strong>{safe_text(label)}</strong> • {count} {noun}</summary>\n\n"
-        f"{versions_section}\n\n"
+        f"{notice_section}{versions_section}\n\n"
         f"{patches_table(patch_items)}\n\n"
         f"</details>"
     )
@@ -223,8 +233,14 @@ lines = [
     "",
 ]
 
-for _package_name, entry in by_package.items():
-    lines.append(details_block(entry["name"], list(entry["patches"].values()), entry["targets"], expanded))
+for package_name, entry in by_package.items():
+    lines.append(details_block(
+        entry["name"],
+        list(entry["patches"].values()),
+        entry["targets"],
+        expanded,
+        PACKAGE_NOTICES.get(package_name, ""),
+    ))
     lines.append("")
 
 if universal:
