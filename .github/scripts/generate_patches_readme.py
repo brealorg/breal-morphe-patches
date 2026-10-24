@@ -24,7 +24,7 @@ PACKAGE_NOTICES = {
     "com.rubenmayayo.reddit": (
         "**Frozen at 1.12.12.** Boost is officially back with signed releases from Ruben Mayayo. "
         "These patches will not be ported to 1.14 or later. "
-        "See [Boost for Reddit](#boost-for-reddit) for how to switch."
+        "See the top of this README for how to switch."
     ),
 }
 

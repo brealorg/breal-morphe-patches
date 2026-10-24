@@ -1,110 +1,25 @@
 # Breal Morphe Patches
 
-> **Boost for Reddit is officially back.** Ruben Mayayo now publishes signed Boost releases on [GitHub](https://github.com/rubenmayayo/boost-for-reddit/releases). The Boost patches in this bundle are frozen at `1.12.12` and will not be ported to 1.14 or later. See [Boost for Reddit](#boost-for-reddit) for how to switch.
+> **Boost for Reddit is officially back.** Ruben Mayayo now publishes signed Boost releases on [GitHub](https://github.com/rubenmayayo/boost-for-reddit/releases). The Boost patches in this bundle are frozen at `1.12.12` and will not be ported to 1.14 or later. Please report bugs in the official version on [Ruben's issue tracker](https://github.com/rubenmayayo/boost-for-reddit/issues).
 
-## Add to Morphe
+<details>
+<summary>Switching from patched Boost to the official version</summary>
 
-Since 1.4.122 this bundle requires **Morphe Manager 2.0** or newer. Manager 1.x cannot load it.
+Patched Boost is signed with a different key than Ruben's APK, so his version cannot be installed over it. You have to uninstall first, which deletes local data.
 
-### Morphe Manager source URL field
+1. In patched Boost, export your settings: Settings → Backup settings → Export. The backup includes settings, filters, user tags, themes, and views and sort per subscription. It does *not* include accounts, drafts, read posts, or visited-communities history.
+2. Uninstall patched Boost.
+3. Install the latest APK from [Ruben's releases](https://github.com/rubenmayayo/boost-for-reddit/releases/latest) and verify the signing certificate as described in his README.
+4. Set up your own Reddit client ID ([guide](https://github.com/rubenmayayo/boost-for-reddit/blob/main/REDDIT_API_SETUP.md)), log in, and import the backup.
 
-Paste this value into Morphe Manager when adding a remote source:
+</details>
 
-```text
-github.com/brealorg/breal-morphe-patches
-```
-
-Alternative raw JSON URL:
-
-```text
-https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json
-```
-
-Browser deep link:
-
-Use this only from a browser/link handler, not inside the Morphe Manager source URL text field:
-
-**[➕ Add to Morphe](https://morphe.software/add-source?github=brealorg/breal-morphe-patches)**
-
-```text
-https://morphe.software/add-source?github=brealorg/breal-morphe-patches
-```
-
-Manual fallback / repository page:
-
-```text
-https://github.com/brealorg/breal-morphe-patches
-```
+<details>
+<summary>Legacy: about this bundle</summary>
 
 Unofficial Morphe patch bundle for Boost for Reddit, Imgur, and related Android app fixes.
 
-This repository publishes a Morphe-compatible `.mpp` bundle and a small JSON feed used by Morphe Manager to discover the current release.
-
-Release process notes:
-
-- [Release validation policy](docs/release-validation-policy.md)
-- [Branch policy](docs/branch-policy.md)
-- [Final snapshot template](docs/final-snapshot-template.md)
-- [Supported app catalog](docs/supported-app-catalog.md)
-
-### Spoof client
-
-The Reddit client patches need an OAuth client ID. `Spoof client` has no default value, so patching fails with `The option client-id requires a value` if it is left empty.
-
-Reddit no longer issues new client IDs, so registering your own app at reddit.com/prefs/apps does not work. Use RedReader's client ID instead:
-
-1. Install RedReader from the Play Store and log in.
-2. Reddit sends an email titled *"You've authorized a new app in your Reddit account"*. Copy the **App ID** from it. RedReader can be uninstalled afterwards.
-3. In Morphe Manager, set these `Spoof client` options, with no trailing spaces or slashes:
-   - **OAuth client ID:** the App ID from the email
-   - **Redirect URI:** `redreader://rr_oauth_redir`
-   - **User agent:** `org.quantumbadger.redreader/1.25.1` (ignore the format hint in the option description)
-4. Select your other patches and patch as normal.
-
-Full guide and login troubleshooting: [patcheddit — What if I don't have a client ID?](https://github.com/wchill/patcheddit#what-if-i-dont-have-a-client-id)
-
-## Project page
-
-Canonical GitHub repository:
-
-```text
-https://github.com/brealorg/breal-morphe-patches
-```
-
-Legacy repository URLs under `breal-boost-hotfixes` currently redirect here for backwards compatibility. Do not recreate a new repository with the old name, because that may break existing redirects.
-
-## Morphe patch source
-
-Use this raw JSON source in Morphe Manager:
-
-```text
-https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json
-```
-
-Legacy source URL, kept working through GitHub redirect:
-
-```text
-https://raw.githubusercontent.com/brealorg/breal-boost-hotfixes/main/patches-bundle.json
-```
-
-The repository shorthand shown at the top is the preferred Manager setup. Raw
-`patches-bundle.json` links are kept for release and debug verification.
-
-## Current release
-
-| Field | Value |
-|---|---|
-| Version | `1.4.123` |
-| Release tag | `morphe-patches-123` |
-| Asset | `patches-1.4.123.mpp` |
-| SHA256 | `cee4fb7f7a084260c4a9a8a63b1decdfd4f6358b75d54f7d8990afba6e886eec` |
-| Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
-| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-123/patches-1.4.123.mpp` |
-
-SHA256: `cee4fb7f7a084260c4a9a8a63b1decdfd4f6358b75d54f7d8990afba6e886eec`
 ## What this bundle does
-
-The current bundle is focused on practical hotfixes for tested app versions, especially Boost for Reddit behavior on newer Android versions.
 
 ### Boost for Reddit
 
@@ -118,23 +33,13 @@ Ruben Mayayo has brought Boost back, with official, signed releases on [GitHub](
 
 Report bugs in the official version on [Ruben's issue tracker](https://github.com/rubenmayayo/boost-for-reddit/issues), not in this repository. If you like the app, consider [supporting Ruben](https://ko-fi.com/mayayo).
 
-#### Switching to the official version
-
-Patched Boost is signed with a different key than Ruben's APK, so his version cannot be installed over it. You have to uninstall first, which deletes local data.
-
-1. In patched Boost, export your settings: Settings → Backup settings → Export. The backup includes settings, filters, user tags, themes, and views and sort per subscription. It does *not* include accounts, drafts, read posts, or visited-communities history.
-2. Uninstall patched Boost.
-3. Install the latest APK from [Ruben's releases](https://github.com/rubenmayayo/boost-for-reddit/releases/latest) and verify the signing certificate as described in his README.
-4. Set up your own Reddit client ID ([guide](https://github.com/rubenmayayo/boost-for-reddit/blob/main/REDDIT_API_SETUP.md)), log in, and import the backup.
-
 #### What the 1.12.12 patches cover
 
 Tested against Boost for Reddit `1.12.12` / versionCode `210011212`.
 
 Boost coverage includes keyboard GIF insertion through Android receive-content / Gboard, restored manual GIF URL insertion, code block rendering fixes, comments toolbar cleanup, media tap-action settings, Android 15+ / target SDK 35 compatibility, navigation bar inset fixes, download notification/audio fixes, direct `i.redd.it` GIF handling, Giphy preview/loading fixes, archive/undelete behavior, gallery metadata recovery, Hide crash prevention, and subreddit listing fallback handling.
 
-
-### NSFW and mature-content scope
+#### NSFW and mature-content scope
 
 Restoring or bypassing access to Reddit NSFW communities is not currently within the scope of this project. This is a technical and maintenance decision, not a judgement about legal adult content or the people who use it.
 
@@ -166,6 +71,58 @@ Included Imgur patches:
   - Optional mode shares the selected item permalink.
   - Keeps URL/link sharing separate from file sharing.
 
+</details>
+
+<details>
+<summary>Legacy: add to Morphe</summary>
+
+## Add to Morphe
+
+Since 1.4.122 this bundle requires **Morphe Manager 2.0** or newer. Manager 1.x cannot load it.
+
+Paste this value into Morphe Manager when adding a remote source:
+
+```text
+github.com/brealorg/breal-morphe-patches
+```
+
+Or open **[➕ Add to Morphe](https://morphe.software/add-source?github=brealorg/breal-morphe-patches)** from a browser on your phone.
+
+Raw JSON source:
+
+```text
+https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json
+```
+
+Legacy source URL, kept working through GitHub redirect:
+
+```text
+https://raw.githubusercontent.com/brealorg/breal-boost-hotfixes/main/patches-bundle.json
+```
+
+Legacy repository URLs under `breal-boost-hotfixes` redirect here. Do not recreate a repository with the old name, because that may break existing redirects.
+
+### Spoof client
+
+The Reddit client patches need an OAuth client ID. `Spoof client` has no default value, so patching fails with `The option client-id requires a value` if it is left empty.
+
+Reddit no longer issues new client IDs, so registering your own app at reddit.com/prefs/apps does not work. Use RedReader's client ID instead:
+
+1. Install RedReader from the Play Store and log in.
+2. Reddit sends an email titled *"You've authorized a new app in your Reddit account"*. Copy the **App ID** from it. RedReader can be uninstalled afterwards.
+3. In Morphe Manager, set these `Spoof client` options, with no trailing spaces or slashes:
+   - **OAuth client ID:** the App ID from the email
+   - **Redirect URI:** `redreader://rr_oauth_redir`
+   - **User agent:** `org.quantumbadger.redreader/1.25.1` (ignore the format hint in the option description)
+4. Select your other patches and patch as normal.
+
+Full guide and login troubleshooting: [patcheddit — What if I don't have a client ID?](https://github.com/wchill/patcheddit#what-if-i-dont-have-a-client-id)
+
+</details>
+
+<details>
+<summary>Legacy: patches list</summary>
+
 ### Patches list
 
 <!-- PATCHES_START -->
@@ -176,7 +133,7 @@ Included Imgur patches:
 
 
 
-> **Frozen at 1.12.12.** Boost is officially back with signed releases from Ruben Mayayo. These patches will not be ported to 1.14 or later. See [Boost for Reddit](#boost-for-reddit) for how to switch.
+> **Frozen at 1.12.12.** Boost is officially back with signed releases from Ruben Mayayo. These patches will not be ported to 1.14 or later. See the top of this README for how to switch.
 
 **Supported versions:**
 
@@ -578,6 +535,24 @@ Included Imgur patches:
 </details>
 <!-- PATCHES_END -->
 
+</details>
+
+<details>
+<summary>Legacy: current release and tested app versions</summary>
+
+## Current release
+
+| Field | Value |
+|---|---|
+| Version | `1.4.123` |
+| Release tag | `morphe-patches-123` |
+| Asset | `patches-1.4.123.mpp` |
+| SHA256 | `cee4fb7f7a084260c4a9a8a63b1decdfd4f6358b75d54f7d8990afba6e886eec` |
+| Manager JSON | `https://raw.githubusercontent.com/brealorg/breal-morphe-patches/main/patches-bundle.json` |
+| Download URL | `https://github.com/brealorg/breal-morphe-patches/releases/download/morphe-patches-123/patches-1.4.123.mpp` |
+
+SHA256: `cee4fb7f7a084260c4a9a8a63b1decdfd4f6358b75d54f7d8990afba6e886eec`
+
 ## Tested app versions
 
 | App | Package | Version |
@@ -586,6 +561,11 @@ Included Imgur patches:
 | Imgur | `com.imgur.mobile` | `7.33.0.0` / versionCode `73300` |
 
 Compatibility with other app versions is not guaranteed.
+
+</details>
+
+<details>
+<summary>Legacy: release verification and development notes</summary>
 
 ## Verification
 
@@ -610,6 +590,18 @@ This repository contains experimental and release-candidate work in local/work b
 
 That work is preserved separately for a later scope.
 
+Release process notes:
+
+- [Release validation policy](docs/release-validation-policy.md)
+- [Branch policy](docs/branch-policy.md)
+- [Final snapshot template](docs/final-snapshot-template.md)
+- [Supported app catalog](docs/supported-app-catalog.md)
+
+</details>
+
+<details>
+<summary>Attribution, license and disclaimer</summary>
+
 ## Attribution and license
 
 This repository is derived from Patcheddit/Morphe patch work.
@@ -625,3 +617,5 @@ Additional license conditions under GPL section 7 apply. See `LICENSE` for attri
 ## Disclaimer
 
 This is an unofficial community patch bundle. It is provided as-is and is intended for tested app versions only. Use at your own risk.
+
+</details>
