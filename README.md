@@ -1,5 +1,9 @@
 # Breal Morphe Patches
 
+> **This repository is archived.** No new patches or releases will be published. The last bundle, [1.4.123](https://github.com/brealorg/breal-morphe-patches/releases/tag/morphe-patches-123), stays available for download.
+
+> **Infinity for Reddit patches are frozen.** They are kept as-is and will not be updated for newer Infinity+ releases (8.3.x and later). See [#257](https://github.com/brealorg/breal-morphe-patches/issues/257).
+
 > **Boost for Reddit is officially back.** Ruben Mayayo now publishes signed Boost releases on [GitHub](https://github.com/rubenmayayo/boost-for-reddit/releases). The Boost patches in this bundle are frozen at `1.12.12` and will not be ported to 1.14 or later. Please report bugs in the official version on [Ruben's issue tracker](https://github.com/rubenmayayo/boost-for-reddit/issues).
 
 <details>
